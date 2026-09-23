@@ -252,7 +252,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
 <div class="hero">
   <div class="hero-badge">📊 Manual Valuation Workbench · DCF · DDM · RIM</div>
   <h1>Build a <span>Real Valuation</span><br>Like a Senior Analyst</h1>
-  <p>Enter a ticker — fetch real financials — forecast every line with your assumptions — three valuation models converge on a fair value.</p>
+  <p>Enter a ticker, fetch real financials, forecast every line with your assumptions, and watch three valuation models converge on a fair value.</p>
 
   <div class="search-wrap">
     <input type="text" class="search-input" id="tickerInput" placeholder="Enter ticker: AAPL, MSFT, TSLA, ULVR.L…" onkeydown="if(event.key==='Enter')loadCompany()">
@@ -302,7 +302,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
         <!-- Revenue Assumptions -->
         <div class="panel">
           <div class="panel-head">
-            <h3><span class="ph-icon">📈</span> Step 1 — Forecast Revenue</h3>
+            <h3><span class="ph-icon">📈</span> Step 1: Forecast Revenue</h3>
             <div style="display:flex;gap:.5rem">
               <button class="tab active" onclick="setRevMode('manual',this)" id="rev-manual-tab">Manual</button>
               <button class="tab" onclick="setRevMode('auto',this)" id="rev-auto-tab">Auto</button>
@@ -310,7 +310,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
           </div>
           <div class="panel-body">
             <div id="rev-manual-section">
-              <p style="font-size:.75rem;color:var(--muted);margin-bottom:1rem;line-height:1.65">Enter your revenue growth assumption for each forecast year. Use the sidebar context — news, historical growth, and business metrics — to form your view.</p>
+              <p style="font-size:.75rem;color:var(--muted);margin-bottom:1rem;line-height:1.65">Enter your revenue growth assumption for each forecast year. Use the sidebar context (news, historical growth and business metrics) to form your view.</p>
               <div id="revGrowthInputs"></div>
             </div>
             <div id="rev-auto-section" style="display:none">
@@ -326,10 +326,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
         <!-- Margin Assumptions -->
         <div class="panel">
           <div class="panel-head">
-            <h3><span class="ph-icon">📊</span> Step 2 — Forecast Margins & Costs</h3>
+            <h3><span class="ph-icon">📊</span> Step 2: Forecast Margins & Costs</h3>
           </div>
           <div class="panel-body">
-            <p style="font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Each cost line is expressed as % of revenue — matching how senior analysts model them. Historical averages are pre-filled as suggestions.</p>
+            <p style="font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Each cost line is expressed as % of revenue, matching how senior analysts model them. Historical averages are pre-filled as suggestions.</p>
             <div id="marginInputs"></div>
           </div>
         </div>
@@ -412,7 +412,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
             <h3><span class="ph-icon">🏦</span> Balance Sheet Assumptions</h3>
           </div>
           <div class="panel-body">
-            <p style="font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Key balance sheet items drive the equity bridge. Pre-filled from the latest filing — adjust if you expect significant changes.</p>
+            <p style="font-size:.75rem;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Key balance sheet items drive the equity bridge. Pre-filled from the latest filing, adjust if you expect significant changes.</p>
             <div id="bsInputs"></div>
           </div>
         </div>
@@ -541,7 +541,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,
       <div class="panel-head"><h3><span class="ph-icon">🏁</span> Horizon Values (Terminal Value Components)</h3></div>
       <div class="panel-body">
         <div class="horizon-grid" id="horizonGrid"></div>
-        <p style="font-size:.72rem;color:var(--muted);line-height:1.6">Terminal value represents the present value of all cash flows beyond the explicit forecast period. It typically accounts for 60–80% of total enterprise value — making terminal growth rate the single most sensitive assumption in the model.</p>
+        <p style="font-size:.72rem;color:var(--muted);line-height:1.6">Terminal value represents the present value of all cash flows beyond the explicit forecast period. It typically accounts for 60–80% of total enterprise value, making terminal growth rate the single most sensitive assumption in the model.</p>
       </div>
     </div>
 
@@ -593,7 +593,7 @@ let histChartObj = null;
 let capChartObj = null;
 
 const FORECAST_YEARS = 5;
-// Path to yahoo-proxy.php — must be in the same folder on your server
+// Path to yahoo-proxy.php, must be in the same folder on your server
 const YAHOO_PROXY = '/projects/yahoo-proxy.php';
 
 // ═══════════════════════════════════════════════════════
@@ -623,7 +623,7 @@ async function loadCompany(){
     hideStatus();
   } catch(e){
     console.error('loadCompany error:', e);
-    showStatus('Could not reach yahoo-proxy.php — make sure it is uploaded to the same folder on Hostinger.', 'error');
+    showStatus('Could not reach yahoo-proxy.php, make sure it is uploaded to the same folder on Hostinger.', 'error');
   }
   document.getElementById('searchBtn').disabled = false;
 }
@@ -697,7 +697,7 @@ function initGlobals(d){
     fcCapexPct:  Array(FORECAST_YEARS).fill(null),
     fcIntRate:   Array(FORECAST_YEARS).fill(null),
     fcTaxRate:   Array(FORECAST_YEARS).fill(null),
-    // Balance sheet — FMP gives scalars, demo data gives arrays
+    // Balance sheet, FMP gives scalars, demo data gives arrays
     grossDebt: Array.isArray(d.grossDebt) ? d.grossDebt[d.grossDebt.length-1] : (d.grossDebt||0),
     cash:      Array.isArray(d.cash)      ? d.cash[d.cash.length-1]           : (d.cash||0),
     shares:    d.shares,
@@ -905,7 +905,7 @@ function renderIS(){
     row.data.forEach((v,i) => {
       const fc = i >= hist;
       if(v === null){
-        body += `<td class="${fc?'edc':''} fc"><input type="number" class="ci" placeholder="—" readonly></td>`;
+        body += `<td class="${fc?'edc':''} fc"><input type="number" class="ci" placeholder=", " readonly></td>`;
       } else {
         const neg = row.cls.includes('neg');
         body += `<td class="${fc?'fc':''} ${neg&&v>0?'neg':v<0?'pos':''}">
@@ -1106,7 +1106,7 @@ function buildValInputs(d){
   // DCF inputs
   document.getElementById('dcfInputs').innerHTML = `
     <div class="assum-row">
-      <span class="assum-label">WACC (override — or auto from builder)</span>
+      <span class="assum-label">WACC (override, or auto from builder)</span>
       <input type="number" step="0.1" class="assum-in" id="dcf_wacc" value="${G.wacc}" oninput="G.wacc=parseFloat(this.value)||9.5">
       <span class="assum-unit">%</span>
     </div>
@@ -1201,7 +1201,7 @@ function renderSensPreview(){
     waccRange.forEach(dw => {
       const price = quickDCF(waccBase+dw, tgBase+dg);
       const isBase = dw===0 && dg===0;
-      html += `<td class="${isBase?'hl-cell':''}" style="${price>G.d.price?'color:var(--green)':'color:var(--red)'}">${price > 0 ? fmtCurr(price, G.currency) : '—'}</td>`;
+      html += `<td class="${isBase?'hl-cell':''}" style="${price>G.d.price?'color:var(--green)':'color:var(--red)'}">${price > 0 ? fmtCurr(price, G.currency) : ', '}</td>`;
     });
     html += `</tr>`;
   });
@@ -1448,7 +1448,7 @@ function showResultChart(type, el=null){
       {label:'Forecast Revenue',data:[...Array(hist-1).fill(null),histRevs[hist-1],...fcRevs],borderColor:'#2563eb',backgroundColor:g1,borderWidth:2.5,pointRadius:4,fill:true,tension:.4}
     ]},options:{...opts,plugins:{...opts.plugins,tooltip:{callbacks:{label:c=>` ${fmtLarge(c.parsed.y)}`}}}}});
     const grow = G.fcRevGrowth.filter(g=>g!==null);
-    const avgG = grow.length ? (grow.reduce((a,b)=>a+b,0)/grow.length).toFixed(1) : '—';
+    const avgG = grow.length ? (grow.reduce((a,b)=>a+b,0)/grow.length).toFixed(1) : ', ';
     document.getElementById('chartNote').textContent = `Avg forecast revenue growth: ${avgG}% p.a. over ${FORECAST_YEARS}-year horizon`;
   }
   else if(type==='sensitivity'){
@@ -1476,7 +1476,7 @@ function buildSensMatrix(){
       const p = quickDCF(parseFloat(w), parseFloat(tg));
       const isBase = w==G.wacc.toFixed(1) && tg==G.tg.toFixed(1);
       const up = p > G.d.price;
-      html += `<td class="${isBase?'hl-cell':''}" style="color:${up?'var(--green)':'var(--red)'}">${p>0?fmtCurr(p,G.currency):'—'}</td>`;
+      html += `<td class="${isBase?'hl-cell':''}" style="color:${up?'var(--green)':'var(--red)'}">${p>0?fmtCurr(p,G.currency):', '}</td>`;
     });
     html += `</tr>`;
   });
@@ -1547,12 +1547,12 @@ function showStatus(msg, type){
 function hideStatus(){ document.getElementById('statusMsg').className='status-msg'; }
 
 function fmtCurr(n, curr){
-  if(!isFinite(n)) return '—';
+  if(!isFinite(n)) return ', ';
   const sym = curr==='USD'?'$':curr==='GBP'||curr==='GBX'?'£':curr==='EUR'?'€':curr||'';
   return sym + n.toFixed(2);
 }
 function fmtLarge(n){
-  if(!isFinite(n)||n===null) return '—';
+  if(!isFinite(n)||n===null) return ', ';
   const neg = n<0; n=Math.abs(n);
   const s = n>=1e6?`${(n/1e6).toFixed(1)}T` : n>=1e3?`${(n/1e3).toFixed(1)}B` : `${n.toFixed(0)}M`;
   return (neg?'-':'') + G.currency + ' ' + s;

@@ -1,0 +1,41 @@
+# harshwalia.com
+
+# Why this file exists: Hostinger served no Cache-Control header at all, only ETag and
+# Last-Modified. Without an explicit directive browsers fall back to heuristic caching,
+# so a visitor could hold a stale page for hours after a deploy. That is how an old copy
+# of the market calendar kept showing December at the top after the fix had shipped.
+#
+# HTML must always revalidate, because the site deploys on every push.
+# Fingerprint-free assets get a long cache, because they change rarely and are the bulk
+# of the bytes.
+
+<IfModule mod_headers.c>
+    # Always revalidate documents and data the pages read at runtime.
+    <FilesMatch "\.(html|json)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+
+    # Long cache for static assets.
+    <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?|css|js)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # The API key lives above the web root, but defend in depth anyway.
+    <FilesMatch "^(config\.local\.php|fmp-config\.php|\.env)$">
+        Require all denied
+    </FilesMatch>
+
+    # Modest hardening. No CSP here: the pages load Tailwind, Chart.js and TradingView
+    # from CDNs, and a policy written blind would break them.
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Block direct access to backups and version control leftovers.
+<FilesMatch "\.(bak|orig|swp)$">
+    Require all denied
+</FilesMatch>

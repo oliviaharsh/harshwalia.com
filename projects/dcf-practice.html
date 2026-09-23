@@ -188,7 +188,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 <div class="hero">
   <div class="hero-badge">📊 Interactive · Unlimited Practice · AI-Powered</div>
   <h1>DCF <span>Practice</span> Tool</h1>
-  <p>Master discounted cash flow valuation through unlimited randomised exercises. Choose your mode, crunch the numbers, and build real-world intuition — one company at a time.</p>
+  <p>Master discounted cash flow valuation through unlimited randomised exercises. Choose your mode, crunch the numbers, and build real-world intuition, one company at a time.</p>
 
   <div class="mode-bar">
     <div style="display:flex;flex-direction:column;gap:.4rem">
@@ -507,14 +507,14 @@ function renderTabs() {
   const yrs = Array.from({length:q.projYrs},(_,i)=>`Y${i+1}`);
   const fcfToggleBar = `
     <div class="fcf-toggle-bar">
-      <span class="fcf-toggle-label">⚠️ Hide FCF rows — calculate them yourself</span>
+      <span class="fcf-toggle-label">⚠️ Hide FCF rows, calculate them yourself</span>
       <label class="toggle-switch">
         <input type="checkbox" id="fcfToggle" ${fcfVisible?'':'checked'} onchange="toggleFCF(this)">
         <span class="toggle-slider"></span>
       </label>
     </div>`;
 
-  // Income Statement — FCF rows get class fcf-hidden-row
+  // Income Statement, FCF rows get class fcf-hidden-row
   document.getElementById('tab-is').innerHTML = fcfToggleBar + `
     <table class="fin-table">
       <thead><tr><th>Line Item</th><th>Base Year</th>${yrs.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
@@ -531,7 +531,7 @@ function renderTabs() {
       </tbody>
     </table>`;
 
-  // Balance Sheet — separate debt and cash
+  // Balance Sheet, separate debt and cash
   document.getElementById('tab-bs').innerHTML = `
     <table class="fin-table">
       <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>

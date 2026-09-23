@@ -175,7 +175,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 <div class="hero">
   <div class="hero-badge">💰 Interactive · Unlimited Practice · AI-Powered</div>
   <h1>DDM <span>Practice</span> Tool</h1>
-  <p>Master the Dividend Discount Model through unlimited randomised exercises. From Gordon Growth to multi-stage valuation — build intuition for dividend-paying equity one company at a time.</p>
+  <p>Master the Dividend Discount Model through unlimited randomised exercises. From Gordon Growth to multi-stage valuation, build intuition for dividend-paying equity one company at a time.</p>
 
   <div class="mode-bar">
     <div style="display:flex;flex-direction:column;gap:.4rem">
@@ -471,7 +471,7 @@ function renderTabs() {
       </tbody>
     </table>
     <div style="margin-top:.75rem;padding:.65rem .9rem;background:var(--violet-l);border:1px solid var(--violet-m);border-radius:9px;font-size:.75rem;color:#5b21b6;line-height:1.7">
-      <strong>Note:</strong> Dividend growth here is historical. The model uses the <strong>assumed future growth rate</strong> given in the parameters panel — do not use the average of historical growth directly.
+      <strong>Note:</strong> Dividend growth here is historical. The model uses the <strong>assumed future growth rate</strong> given in the parameters panel, do not use the average of historical growth directly.
     </div>`;
 
   // Income Statement Tab
@@ -494,12 +494,12 @@ function renderTabs() {
       <strong>Sustainable Growth Rate:</strong> g = b × ROE = ${q.retainPct}% × ${fmtP(q.roe)} = <strong>${fmtP(q.gSust,2)}</strong>
     </div>`;
 
-  // Projections Tab — depends on mode
+  // Projections Tab, depends on mode
   let projHTML = '';
   if(mode === 'gordon') {
     projHTML = `
       <div class="stage-box">
-        <div class="stage-title">Gordon Growth Model — Single Stage</div>
+        <div class="stage-title">Gordon Growth Model, Single Stage</div>
         <table class="fin-table">
           <thead><tr><th>Item</th><th>Value</th></tr></thead>
           <tbody>
@@ -790,7 +790,7 @@ function showChart(type, el=null) {
 
   if(type === 'div') {
     mainChart = new Chart(ctx,{type:'bar',data:{labels:histLabels,datasets:[{label:'Dividend Per Share (p)',data:q.histDivs,backgroundColor:q.histDivs.map((_,i)=>i===q.histDivs.length-1?'rgba(124,58,237,.85)':'rgba(124,58,237,.45)'),borderRadius:5,borderSkipped:false}]},options:{...base}});
-    document.getElementById('chartNote').textContent = `Historical dividend trend for ${q.coName} — current DPS: ${fmtPx(q.d0)}`;
+    document.getElementById('chartNote').textContent = `Historical dividend trend for ${q.coName}, current DPS: ${fmtPx(q.d0)}`;
   }
   else if(type === 'pv') {
     if(mode === 'gordon') {
@@ -802,7 +802,7 @@ function showChart(type, el=null) {
         return +(pvDivs+pTerm).toFixed(1);
       });
       mainChart = new Chart(ctx,{type:'line',data:{labels:horizons.map(h=>`Horizon Y${h}`),datasets:[{label:'P₀ (any horizon)',data:prices,borderColor:'#7c3aed',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base}});
-      document.getElementById('chartNote').textContent='DDM price is horizon-invariant — value converges to the same P₀';
+      document.getElementById('chartNote').textContent='DDM price is horizon-invariant, value converges to the same P₀';
     } else if(mode === 'two') {
       const cumPV = q.stagePVs.map((v,i)=>+q.stagePVs.slice(0,i+1).reduce((a,b)=>a+b,0).toFixed(2));
       mainChart = new Chart(ctx,{type:'bar',data:{labels:Array.from({length:q.stageYrs},(_,i)=>`Y${i+1}`),datasets:[{label:'PV of Dividend',data:q.stagePVs,backgroundColor:'rgba(124,58,237,.7)',borderRadius:5},{label:'Cumulative PV',data:cumPV,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,fill:false}]},options:{...base}});
@@ -831,7 +831,7 @@ function showChart(type, el=null) {
     };
     const prices = keRange.map(getPrice);
     mainChart = new Chart(ctx,{type:'line',data:{labels:keRange.map(k=>`${fmt(k,1)}%`),datasets:[{label:'Share Price (p)',data:prices,borderColor:'#7c3aed',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base,scales:{x:{...base.scales.x,title:{display:true,text:'Cost of Equity (Ke)',font:{size:9},color:'#64748b'}},y:{...base.scales.y}}}});
-    document.getElementById('chartNote').textContent=`Sensitivity to Ke — price rises sharply as Ke approaches g`;
+    document.getElementById('chartNote').textContent=`Sensitivity to Ke, price rises sharply as Ke approaches g`;
   }
 }
 

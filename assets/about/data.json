@@ -2,10 +2,10 @@
   "about": {
     "name": "Harsh Walia",
     "title": "MSc Investments",
-    "bio": "I am an MSc Investments student at the University of Birmingham. I research listed companies, build the valuation models behind that research, and publish both here. Most of my work is in equity research and valuation — discounted cash flow, dividend discount and residual income models — built in Excel and Python.",
+    "bio": "I am an MSc Investments student at the University of Birmingham. I research listed companies, build the valuation models behind that research, and publish both here. My coverage is deliberately narrow: transport, travel and logistics, where the same drivers recur and each note compounds on the last. The models are built in Excel and Python, and every forecast driver is traced to a published source.",
     "technicalSkills": [
       {
-        "name": "Valuation modelling — DCF, DDM, residual income, trading comparables"
+        "name": "Valuation modelling: DCF, DDM, residual income, trading comparables"
       },
       {
         "name": "Financial statement analysis and forecasting"
@@ -14,7 +14,7 @@
         "name": "Python and Stata for financial data and econometrics"
       },
       {
-        "name": "Excel — financial modelling, Power Query, VBA"
+        "name": "Excel modelling, Power Query and VBA"
       }
     ],
     "education": {
@@ -31,7 +31,7 @@
     },
     {
       "id": "halma",
-      "title": "Halma PLC — Valuation Model",
+      "title": "Halma PLC: Valuation Model",
       "summary": "Residual income and dividend discount models for Halma, with forecast statements and sensitivity output. Method and limitations stated."
     },
     {
@@ -57,7 +57,7 @@
     {
       "id": "retirement-calculator",
       "title": "Retirement Planner",
-      "summary": "Python-backed retirement calculator — solve for retirement age, required contribution, or final corpus, in multiple currencies."
+      "summary": "Python-backed retirement calculator: solve for retirement age, required contribution, or final corpus, in multiple currencies."
     }
   ]
 }

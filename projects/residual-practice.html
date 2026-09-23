@@ -161,7 +161,7 @@ input:checked + .slider::before{transform:translateX(16px)}
 <div class="hero">
   <div class="hero-badge">📊 Valuation Practice</div>
   <h1>Residual Income<br><span>Model Practice</span></h1>
-  <p>Master RIM valuation — from computing a single period's residual income to deriving equity value from raw financial statements. Three modes, unlimited problems.</p>
+  <p>Master RIM valuation, from computing a single period's residual income to deriving equity value from raw financial statements. Three modes, unlimited problems.</p>
   <div class="score-chips">
     <div class="sc g"><span class="v" id="sc-correct">0</span> Correct</div>
     <div class="sc r"><span class="v" id="sc-wrong">0</span> Wrong</div>
@@ -171,9 +171,9 @@ input:checked + .slider::before{transform:translateX(16px)}
   </div>
   <div class="mode-bar">
     <div class="mode-pills">
-      <button class="mp active" data-m="guided"   onclick="setMode('guided',this)">Mode 1 — Guided</button>
-      <button class="mp"        data-m="standard" onclick="setMode('standard',this)">Mode 2 — Standard</button>
-      <button class="mp"        data-m="full"     onclick="setMode('full',this)">Mode 3 — Full Statements</button>
+      <button class="mp active" data-m="guided"   onclick="setMode('guided',this)">Mode 1, Guided</button>
+      <button class="mp"        data-m="standard" onclick="setMode('standard',this)">Mode 2, Standard</button>
+      <button class="mp"        data-m="full"     onclick="setMode('full',this)">Mode 3, Full Statements</button>
     </div>
     <div class="diff-pills">
       <button class="dp active" data-d="easy"   onclick="setDiff('easy',this)">Easy</button>
@@ -261,14 +261,14 @@ function render(){
   else g.innerHTML=renderFull();
 }
 
-// ══ MODE 1 — GUIDED ══════════════════════════════════════════════════════════
+// ══ MODE 1, GUIDED ══════════════════════════════════════════════════════════
 function renderGuided(){
   const y=q.proj[0];
   return`<div>
     <div class="panel">
       <div class="panel-head"><h3><span class="ph-icon">📐</span>${q.co.name}</h3></div>
       <div class="panel-body">
-        <div class="mode-badge">Mode 1 — Guided · Single Year Focus</div>
+        <div class="mode-badge">Mode 1, Guided · Single Year Focus</div>
         <div class="co-header">
           <div class="co-name">${q.co.name}</div><div class="co-sector">${q.co.sector}</div>
           <div class="co-kpis">
@@ -308,22 +308,22 @@ function renderGuided(){
       <div class="panel-body">
         <div class="ans-section">
           <div class="ans-group">
-            <div class="ans-title">Step 1 — Equity Charge</div>
+            <div class="ans-title">Step 1: Equity Charge</div>
             <div class="ans-row"><span class="ans-label">Equity Charge (BV₀ × Ke)</span>
               <div class="ans-input-wrap"><input class="ans-input" id="in_ec" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
           </div>
           <div class="ans-group">
-            <div class="ans-title">Step 2 — Residual Income</div>
+            <div class="ans-title">Step 2: Residual Income</div>
             <div class="ans-row"><span class="ans-label">Residual Income (NI − EC)</span>
               <div class="ans-input-wrap"><input class="ans-input" id="in_ri" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
           </div>
           <div class="ans-group">
-            <div class="ans-title">Step 3 — Updated Book Value</div>
+            <div class="ans-title">Step 3: Updated Book Value</div>
             <div class="ans-row"><span class="ans-label">BV Equity end of Year 1</span>
               <div class="ans-input-wrap"><input class="ans-input" id="in_bv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
           </div>
           <div class="ans-group">
-            <div class="ans-title">Step 4 — PV of Residual Income</div>
+            <div class="ans-title">Step 4: PV of Residual Income</div>
             <div class="ans-row"><span class="ans-label">PV of Year 1 RI</span>
               <div class="ans-input-wrap"><input class="ans-input" id="in_pv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
           </div>
@@ -365,16 +365,16 @@ function showGuidedWork(){
   </table>`;
 }
 
-// ══ MODE 2 — STANDARD ════════════════════════════════════════════════════════
+// ══ MODE 2, STANDARD ════════════════════════════════════════════════════════
 function renderStandard(){
   const rows=q.proj.map((y,i)=>`<tr>
     <td>Year ${y.t}</td><td>${fmt(y.bvStart)}</td><td>${fmt(y.ni)}</td>
-    <td>${i===0?'—':q.niGPct+'%'}</td><td>${fmt(y.div)}</td></tr>`).join('');
+    <td>${i===0?', ':q.niGPct+'%'}</td><td>${fmt(y.div)}</td></tr>`).join('');
   return`<div>
     <div class="panel">
       <div class="panel-head"><h3><span class="ph-icon">📊</span>${q.co.name}</h3></div>
       <div class="panel-body">
-        <div class="mode-badge">Mode 2 — Standard · ${q.years}-Year Model</div>
+        <div class="mode-badge">Mode 2, Standard · ${q.years}-Year Model</div>
         <div class="co-header">
           <div class="co-name">${q.co.name}</div><div class="co-sector">${q.co.sector}</div>
           <div class="co-kpis">
@@ -390,7 +390,7 @@ function renderStandard(){
           <div class="info-card"><div class="info-label">Shares Outstanding</div><div class="info-val">${q.shares}m</div></div>
           ${q.niGPct>0?`<div class="info-card hl-amber full"><div class="info-label">NI Growth Rate (Years 2+)</div><div class="info-val">${q.niGPct}%</div></div>`:''}
         </div>
-        <div class="section-label">Annual Data — Given</div>
+        <div class="section-label">Annual Data, Given</div>
         <table class="fin-table">
           <thead><tr><th>Year</th><th>BV Start (£m)</th><th>Net Income (£m)</th><th>NI Growth</th><th>Dividends (£m)</th></tr></thead>
           <tbody>${rows}</tbody>
@@ -477,20 +477,20 @@ function showStandardWork(){
   </tbody></table>`;
 }
 
-// ══ MODE 3 — FULL STATEMENTS ═════════════════════════════════════════════════
+// ══ MODE 3, FULL STATEMENTS ═════════════════════════════════════════════════
 function renderFull(){
   const y1=q.proj[0];
   return`<div>
     <div class="panel">
-      <div class="panel-head"><h3><span class="ph-icon">📋</span>${q.co.name} — Financial Statements</h3></div>
+      <div class="panel-head"><h3><span class="ph-icon">📋</span>${q.co.name}, Financial Statements</h3></div>
       <div class="panel-body">
-        <div class="mode-badge">Mode 3 — Full Statements · Derive everything from scratch</div>
+        <div class="mode-badge">Mode 3, Full Statements · Derive everything from scratch</div>
         <div class="tab-bar">
           <button class="tab active" onclick="showTab('is',this)">Income Statement</button>
           <button class="tab" onclick="showTab('bs',this)">Balance Sheet</button>
         </div>
         <div id="tab-is">
-          <div class="section-label">Income Statement — Year 1</div>
+          <div class="section-label">Income Statement, Year 1</div>
           <table class="fin-table">
             <thead><tr><th>Line Item</th><th>£m</th></tr></thead>
             <tbody>
@@ -509,7 +509,7 @@ function renderFull(){
           </div>
         </div>
         <div id="tab-bs" style="display:none">
-          <div class="section-label">Balance Sheet — t = 0 (Start of Year 1)</div>
+          <div class="section-label">Balance Sheet, t = 0 (Start of Year 1)</div>
           <table class="fin-table">
             <thead><tr><th>Assets</th><th>£m</th><th>Liabilities & Equity</th><th>£m</th></tr></thead>
             <tbody>
@@ -525,7 +525,7 @@ function renderFull(){
             <div class="info-card hl-green full"><div class="info-label">Hint: Balance Sheet Identity</div><div class="info-val" style="font-size:.8rem">Total Assets = Total Liabilities + Total Equity</div></div>
           </div>
         </div>
-        <div class="section-label" style="margin-top:.9rem">Valuation Parameters — Given</div>
+        <div class="section-label" style="margin-top:.9rem">Valuation Parameters, Given</div>
         <div class="info-grid">
           <div class="info-card hl"><div class="info-label">Cost of Equity (Ke)</div><div class="info-val">${q.ke}%</div></div>
           <div class="info-card hl"><div class="info-label">Terminal Growth (g)</div><div class="info-val">${q.tg}%</div></div>
@@ -544,7 +544,7 @@ function renderFull(){
         </label>
         <div id="riBreakBox" style="display:none">
           <div class="ri-breakdown">
-            <div class="ri-break-head">📐 Year 1 — Deriving RI from Net Income</div>
+            <div class="ri-break-head">📐 Year 1, Deriving RI from Net Income</div>
             <table class="ri-step-table">
               <tr><td>Net Income (IS: PBT − Tax = £${fmt(q.ebt)}m − £${fmt(q.taxAmt)}m)</td><td class="pos">£${fmt(q.ni0)}m</td></tr>
               <tr><td>Book Value of Equity t=0 (BS: Total Assets − Total Liabilities)</td><td>£${fmt(q.bv0)}m</td></tr>
@@ -613,19 +613,19 @@ function showFullWork(){
     <td class="neg">(${fmt(y.ec)})</td><td class="${y.rim>=0?'pos':'neg'}">${fmt(y.rim)}</td><td>${fmt(y.pv)}</td></tr>`).join('');
   const w=document.getElementById('workings');w.className='workings show';
   w.innerHTML=`
-  <div class="work-head">Step 1 — From Statements</div>
+  <div class="work-head">Step 1: From Statements</div>
   <table class="work-table"><tbody>
     <tr><td>Net Income (PBT − Tax = £${fmt(q.ebt)}m − £${fmt(q.taxAmt)}m)</td><td class="pos">£${fmt(q.ni0)}m</td></tr>
     <tr><td>BV Equity t=0 (Total Assets − Total Liabilities = £${fmt(q.totalA)}m − £${fmt(q.totalLiab)}m)</td><td class="pos">£${fmt(q.bv0)}m</td></tr>
   </tbody></table>
-  <div class="work-head">Step 2 — Year-by-Year RI</div>
+  <div class="work-head">Step 2: Year-by-Year RI</div>
   <table class="work-table">
     <thead><tr><th>Year</th><th>BV Start</th><th>NI</th><th>Eq Charge</th><th>RI</th><th>PV(RI)</th></tr></thead>
     <tbody>${rows}
       <tr class="sub"><td colspan="5">Σ PV of Residual Incomes</td><td>${fmt(q.pvSum)}</td></tr>
     </tbody>
   </table>
-  <div class="work-head">Step 3 — Terminal Value</div>
+  <div class="work-head">Step 3: Terminal Value</div>
   <table class="work-table"><tbody>
     <tr><td>NI(T)×(1+g)</td><td>${fmt(lp.ni)}×(1+${q.tg}%)</td><td>${fmt(lp.ni*(1+q.Tg))}</td></tr>
     <tr><td>BV(T)×(1+g)×Ke</td><td>${fmt(lp.bvEnd)}×(1+${q.tg}%)×${q.ke}%</td><td class="neg">(${fmt(lp.bvEnd*(1+q.Tg)*q.Ke)})</td></tr>
@@ -633,7 +633,7 @@ function showFullWork(){
     <tr><td>TV = TermRI ÷ (Ke−g)</td><td>${fmt(q.termRI)} ÷ (${q.ke}%−${q.tg}%)</td><td>${fmt(q.termTV)}</td></tr>
     <tr class="sub"><td>PV of TV</td><td>÷ (1+${q.ke}%)^${q.years}</td><td>${fmt(q.pvTV)}</td></tr>
   </tbody></table>
-  <div class="work-head">Step 4 — Equity Value</div>
+  <div class="work-head">Step 4: Equity Value</div>
   <table class="work-table"><tbody>
     <tr><td>BV Equity (t=0)</td><td></td><td>${fmt(q.bv0)}</td></tr>
     <tr><td>+ Σ PV of RIs</td><td></td><td class="pos">+${fmt(q.pvSum)}</td></tr>

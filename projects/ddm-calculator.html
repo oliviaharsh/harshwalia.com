@@ -183,7 +183,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
 <div class="page-header">
   <div class="tool-badge">📐 Finance Tools · Equity Valuation</div>
   <h1>Dividend Discount <span>Model</span></h1>
-  <p>Practice DDM valuation across three models — Gordon Growth, Two-Stage, and H-Model. Adjust assumptions, see live intrinsic value, and compare against a market price.</p>
+  <p>Practice DDM valuation across three models, Gordon Growth, Two-Stage, and H-Model. Adjust assumptions, see live intrinsic value, and compare against a market price.</p>
 
   <div class="model-switcher">
     <button class="mb active" onclick="switchModel('gordon',this)">📈 Gordon Growth (GGM)</button>
@@ -337,7 +337,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
             <div class="ig-top"><span class="ig-label">Initial High Growth g₁ (%)</span><span class="ig-val" id="hm-v-g1">15%</span></div>
             <input type="range" id="hm-g1" min="0" max="30" step="0.5" value="15" oninput="updateHM()">
             <div class="ig-bounds"><span>0%</span><span>30%</span></div>
-            <div class="ig-hint">Starting growth rate — declines linearly to g₂</div>
+            <div class="ig-hint">Starting growth rate, declines linearly to g₂</div>
           </div>
 
           <div class="ig">
@@ -385,7 +385,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
         <div class="res-grid" id="res-grid">
           <div class="res-card hero-card">
             <div class="rc-label">Intrinsic Value</div>
-            <div class="rc-val big" id="rv-intrinsic">£—</div>
+            <div class="rc-val big" id="rv-intrinsic">£, </div>
             <div class="rc-sub" id="rv-sub">Select model and adjust inputs</div>
           </div>
         </div>
@@ -407,7 +407,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
 
     <!-- SENSITIVITY TABLE -->
     <div class="panel">
-      <div class="panel-head"><div class="ph-icon">🔬</div><h3>Sensitivity Analysis — Intrinsic Value (£)</h3></div>
+      <div class="panel-head"><div class="ph-icon">🔬</div><h3>Sensitivity Analysis: Intrinsic Value (£)</h3></div>
       <div class="panel-body">
         <p style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Rows: Required Return (r). Columns: Growth Rate (g or g₂).</p>
         <div id="sens-container" style="overflow-x:auto"></div>
@@ -437,7 +437,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
             <span class="edu-chevron">▾</span>
           </div>
           <div class="edu-card-content">
-            <p class="edu-card-body">GGM breaks down when g ≥ r — the denominator becomes zero or negative. In practice, g should be ≤ long-run GDP growth (~2–4% for developed markets). If you need to model a higher g, use the Two-Stage DDM instead to model a finite supernormal period first.</p>
+            <p class="edu-card-body">GGM breaks down when g ≥ r, the denominator becomes zero or negative. In practice, g should be ≤ long-run GDP growth (~2–4% for developed markets). If you need to model a higher g, use the Two-Stage DDM instead to model a finite supernormal period first.</p>
           </div>
         </div>
 
@@ -459,7 +459,7 @@ input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
             <span class="edu-chevron">▾</span>
           </div>
           <div class="edu-card-content">
-            <p class="edu-card-body">Two-Stage DDM uses a hard cut-off: high growth for N years, then stable. H-Model assumes a <em>smooth linear decline</em> over 2H years. The H-Model is often more realistic for real companies where competitive advantages erode gradually — though it introduces more estimation error in H itself.</p>
+            <p class="edu-card-body">Two-Stage DDM uses a hard cut-off: high growth for N years, then stable. H-Model assumes a <em>smooth linear decline</em> over 2H years. The H-Model is often more realistic for real companies where competitive advantages erode gradually, though it introduces more estimation error in H itself.</p>
           </div>
         </div>
 
@@ -479,8 +479,8 @@ let activeModel = 'gordon', chartView = 'dividends', mainChart = null;
 let lastState = {};
 
 // ─── FORMAT ───────────────────────────────────────────────────────────────
-const fmtGBP = n => isFinite(n) ? '£' + n.toFixed(2) : '£—';
-const fmtPct = n => isFinite(n) ? (n >= 0 ? '+' : '') + n.toFixed(1) + '%' : '—';
+const fmtGBP = n => isFinite(n) ? '£' + n.toFixed(2) : '£, ';
+const fmtPct = n => isFinite(n) ? (n >= 0 ? '+' : '') + n.toFixed(1) + '%' : ', ';
 
 // ─── MODEL SWITCHER ───────────────────────────────────────────────────────
 function switchModel(m, el) {
@@ -658,13 +658,13 @@ function renderResults(result, mp, prefix) {
   const badge = $(prefix + '-badge');
   if (upside > 10) {
     badge.className = 'status-badge green';
-    badge.innerHTML = '✅ Undervalued by ' + fmtPct(upside) + ' — potential BUY signal';
+    badge.innerHTML = '✅ Undervalued by ' + fmtPct(upside) + ', potential BUY signal';
   } else if (upside > -10) {
     badge.className = 'status-badge amber';
-    badge.innerHTML = '⚠️ Fairly valued — ' + fmtPct(upside) + ' vs market';
+    badge.innerHTML = '⚠️ Fairly valued, ' + fmtPct(upside) + ' vs market';
   } else {
     badge.className = 'status-badge red';
-    badge.innerHTML = '❌ Overvalued by ' + fmtPct(Math.abs(upside)) + ' — SELL signal';
+    badge.innerHTML = '❌ Overvalued by ' + fmtPct(Math.abs(upside)) + ', SELL signal';
   }
 
   // Result grid

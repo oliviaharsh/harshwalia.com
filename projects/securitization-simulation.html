@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Securitisation Simulator — MSc Risk Management</title>
+<title>Securitisation Simulator: MSc Risk Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -151,7 +151,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
 .wf-status{font-weight:600}
 .wf-status.s{color:var(--green)}.wf-status.w{color:var(--orange)}.wf-status.d{color:var(--red)}
 
-/* ── CHARTS — BIG ── */
+/* ── CHARTS, BIG ── */
 .charts-full{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
 .chart-solo{margin-bottom:18px}
 .cc{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:22px 24px 16px;box-shadow:var(--sh)}
@@ -301,7 +301,7 @@ canvas{display:block;width:100%}
 
 <!-- STEP 1: POOL -->
 <div class="sec">
-  <div class="sec-lbl"><div class="badge">1</div>Mortgage Pool — 100 Residential Loans <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any house to default it</span></div>
+  <div class="sec-lbl"><div class="badge">1</div>Mortgage Pool: 100 Residential Loans <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any house to default it</span></div>
   <div class="card">
     <div class="hg" id="houseGrid"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -368,7 +368,7 @@ canvas{display:block;width:100%}
 
 <!-- STEP 3: TRANCHES -->
 <div class="sec">
-  <div class="sec-lbl"><div class="badge">3</div>ABS Security — Tranches &amp; Valuation <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any tranche for pricing detail</span></div>
+  <div class="sec-lbl"><div class="badge">3</div>ABS Security: Tranches &amp; Valuation <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any tranche for pricing detail</span></div>
   <div class="card">
     <div class="tranche-layout">
       <div>
@@ -388,13 +388,13 @@ canvas{display:block;width:100%}
         <div style="font-family:'Lora',serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">How We Value This Security</div>
         <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">PV of expected cash flows, discounted at tranche-specific rates, allocated by waterfall priority.</div>
         <div class="formula-box">
-          <span class="f-step">Step 1 — Pool Cash Flow</span>
+          <span class="f-step">Step 1: Pool Cash Flow</span>
           <span class="f-eq">CF<sub>pool</sub> = Σ B<sub>i</sub> × (r<sub>i</sub>/12) × (1 − PD<sub>i</sub>) × (1 − LGD)</span>
           <span class="f-note">B = loan balance · r = mortgage rate · PD = default prob · LGD = 60%</span>
-          <span class="f-step">Step 2 — PV per Tranche</span>
+          <span class="f-step">Step 2: PV per Tranche</span>
           <span class="f-eq">PV<sub>k</sub> = CF<sub>k</sub>/d<sub>k</sub> × [1−(1+d<sub>k</sub>)<sup>−n</sup>] + Face<sub>k</sub> × (1+d<sub>k</sub>)<sup>−n</sup></span>
           <span class="f-note">d<sub>k</sub> = risk-free + tranche credit spread · n = 300 months</span>
-          <span class="f-step">Step 3 — Waterfall Allocation</span>
+          <span class="f-step">Step 3: Waterfall Allocation</span>
           <span class="f-eq">NetLoss = Defaults × AvgBalance × LGD</span>
           <span class="f-eq">V<sub>equity</sub> = max(Face<sub>EQ</sub> − NetLoss, 0)</span>
           <span class="f-eq">V<sub>mezz</sub> = max(Face<sub>M</sub> − max(Loss−Face<sub>EQ</sub>,0), 0)</span>
@@ -424,7 +424,7 @@ canvas{display:block;width:100%}
         <div class="cl">Default Rate (% of pool)</div>
         <div class="cv" id="cvDR">0%</div>
         <input type="range" id="slDR" min="0" max="60" step="1" value="0" oninput="onSlider()">
-        <div class="cs"><span>0% — Normal</span><span>20% — Severe</span><span>60% — GFC 2008</span></div>
+        <div class="cs"><span>0%, Normal</span><span>20%, Severe</span><span>60%, GFC 2008</span></div>
       </div>
       <div class="ci">
         <div class="cl">Risk-Free Rate</div>
@@ -447,7 +447,7 @@ canvas{display:block;width:100%}
         <div class="wf-seg" id="wfBBB" style="flex:5;background:var(--purple)">BBB</div>
         <div class="wf-seg" id="wfA"   style="flex:15;background:var(--teal)">A</div>
         <div class="wf-seg" id="wfAA"  style="flex:15;background:#1e40af">AA</div>
-        <div class="wf-seg" id="wfAAA" style="flex:55;background:var(--blue)">AAA — 55%</div>
+        <div class="wf-seg" id="wfAAA" style="flex:55;background:var(--blue)">AAA, 55%</div>
       </div>
       <div class="wf-track"><div class="wf-fill" id="lossBar" style="width:0%"></div></div>
       <div class="wf-meta">
@@ -479,7 +479,7 @@ canvas{display:block;width:100%}
     <div class="cc">
       <div class="cc-head">
         <div class="cc-title">Security Value Sensitivity by Tranche</div>
-        <div class="cc-sub">Each tranche loses value at a different default rate threshold — equity first (10%), then mezzanine, then senior. <strong>LO1: Tranche structure & protection.</strong></div>
+        <div class="cc-sub">Each tranche loses value at a different default rate threshold, equity first (10%), then mezzanine, then senior. <strong>LO1: Tranche structure & protection.</strong></div>
         <div class="cc-legend">
           <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--blue)"></div>AAA</div>
           <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--teal)"></div>Mezz A+BBB</div>
@@ -524,11 +524,11 @@ canvas{display:block;width:100%}
 <div class="sec">
   <div class="sec-lbl"><div class="badge">6</div>Risk Management Implications</div>
   <div class="impl-grid">
-    <div class="icard lo1"><div class="ic-icon">🏗️</div><div class="ic-tag">LO1 — Core Structure</div><div class="ic-title">Economic Benefits</div><div class="ic-body">Originators transfer credit risk off-balance-sheet via SPV. Illiquid 25-year mortgages become tradeable ABS. Widens investor base, reduces funding cost for banks.</div></div>
-    <div class="icard lo2"><div class="ic-icon">⚡</div><div class="ic-tag">LO2 — Risk Transfer</div><div class="ic-title">Credit, Liquidity &amp; Market Risk</div><div class="ic-body">Credit risk redistributed by tranching. Liquidity risk reduced for originator. Market risk remains for investors via spread widening. Operational risk in SPV servicing.</div></div>
-    <div class="icard lo3"><div class="ic-icon">🏦</div><div class="ic-tag">LO3 — Strategic</div><div class="ic-title">Capital Efficiency &amp; Basel III</div><div class="ic-body">Reduces risk-weighted assets. Freeing regulatory capital enables new lending. ~8% RWA reduction per £1M securitised. Improves balance sheet efficiency materially.</div></div>
-    <div class="icard risk"><div class="ic-icon">⚠️</div><div class="ic-tag">LO2 — Key Limitation</div><div class="ic-title">Information Asymmetry</div><div class="ic-body">Originator knows more than investors (lemon problem). "Originate-to-distribute" removes underwriting incentives. Rating agencies systematically mispriced risk pre-2008.</div></div>
-    <div class="icard gfccard"><div class="ic-icon">📉</div><div class="ic-tag">LO1 — Limitation</div><div class="ic-title">Correlation &amp; Systemic Risk</div><div class="ic-body">Defaults cluster in downturns. AAA tranches priced on flawed independence assumptions. In 2008, 28%+ default rates impaired even senior tranches — destroying investor confidence.</div></div>
+    <div class="icard lo1"><div class="ic-icon">🏗️</div><div class="ic-tag">LO1, Core Structure</div><div class="ic-title">Economic Benefits</div><div class="ic-body">Originators transfer credit risk off-balance-sheet via SPV. Illiquid 25-year mortgages become tradeable ABS. Widens investor base, reduces funding cost for banks.</div></div>
+    <div class="icard lo2"><div class="ic-icon">⚡</div><div class="ic-tag">LO2, Risk Transfer</div><div class="ic-title">Credit, Liquidity &amp; Market Risk</div><div class="ic-body">Credit risk redistributed by tranching. Liquidity risk reduced for originator. Market risk remains for investors via spread widening. Operational risk in SPV servicing.</div></div>
+    <div class="icard lo3"><div class="ic-icon">🏦</div><div class="ic-tag">LO3, Strategic</div><div class="ic-title">Capital Efficiency &amp; Basel III</div><div class="ic-body">Reduces risk-weighted assets. Freeing regulatory capital enables new lending. ~8% RWA reduction per £1M securitised. Improves balance sheet efficiency materially.</div></div>
+    <div class="icard risk"><div class="ic-icon">⚠️</div><div class="ic-tag">LO2, Key Limitation</div><div class="ic-title">Information Asymmetry</div><div class="ic-body">Originator knows more than investors (lemon problem). "Originate-to-distribute" removes underwriting incentives. Rating agencies systematically mispriced risk pre-2008.</div></div>
+    <div class="icard gfccard"><div class="ic-icon">📉</div><div class="ic-tag">LO1, Limitation</div><div class="ic-title">Correlation &amp; Systemic Risk</div><div class="ic-body">Defaults cluster in downturns. AAA tranches priced on flawed independence assumptions. In 2008, 28%+ default rates impaired even senior tranches, destroying investor confidence.</div></div>
     <div class="icard dyn" id="dynCard" style="background:var(--green-l);border:1.5px solid var(--green-m)"><div class="ic-icon" id="dynIcon">✅</div><div class="ic-tag" id="dynTag" style="color:var(--green)">LIVE STATUS</div><div class="ic-title" id="dynTitle">Current: Stable</div><div class="ic-body" id="dynBody">Default rate 0%. All tranches protected. Security at par (£25.00M). Cash flow unimpaired.</div></div>
   </div>
 </div>
@@ -541,7 +541,7 @@ canvas{display:block;width:100%}
 <div class="gfc-overlay hidden" id="gfcOverlay">
   <div class="gfc-header">
     <div>
-      <div class="gfc-title">🎬 The 2008 Global Financial Crisis — Securitisation Replay</div>
+      <div class="gfc-title">🎬 The 2008 Global Financial Crisis, Securitisation Replay</div>
       <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px" id="gfcStageName">Loading…</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
@@ -782,13 +782,13 @@ function recalc(){
       if(p==='d')el.textContent=(r.disc*100).toFixed(2)+'%';
       else if(p==='c')el.textContent='£'+Math.round(r.cf).toLocaleString();
       else if(p==='vt')el.textContent='£'+fmtK(r.val);
-      else{const d=r.val-r.face;el.textContent=d===0?'—':(d>0?'+':'')+' £'+fmtK(Math.abs(d));el.style.color=d>=0?'var(--green)':'var(--red)';}
+      else{const d=r.val-r.face;el.textContent=d===0?', ':(d>0?'+':'')+' £'+fmtK(Math.abs(d));el.style.color=d>=0?'var(--green)':'var(--red)';}
     });
   });
   document.getElementById('totalSecVal').textContent=fmt(V.totVal);
   document.getElementById('tvTot').textContent=fmt(V.totVal);
   const td=V.totVal-TOTAL_BAL;
-  document.getElementById('tvDelt').textContent=td===0?'—':(td>0?'+':'')+' £'+fmtK(Math.abs(td));
+  document.getElementById('tvDelt').textContent=td===0?', ':(td>0?'+':'')+' £'+fmtK(Math.abs(td));
   document.getElementById('tvDelt').style.color=td>=0?'var(--green)':'var(--red)';
 
   document.getElementById('lossBar').style.width=Math.min(V.nlPct*100,100)+'%';
@@ -812,9 +812,9 @@ function recalc(){
   const dc=document.getElementById('dynCard'),di=document.getElementById('dynIcon'),dt=document.getElementById('dynTitle'),db=document.getElementById('dynBody'),dtg=document.getElementById('dynTag');
   if(dr===0){dc.style.cssText='background:var(--green-l);border:1.5px solid var(--green-m)';di.textContent='✅';dtg.style.color='var(--green)';dt.textContent='Stable Market';db.textContent='All tranches protected. Security at par.'}
   else if(dr<.05){dc.style.cssText='background:var(--green-l);border:1.5px solid var(--green-m)';di.textContent='📊';dtg.style.color='var(--green)';dt.textContent='Low Stress';db.textContent=`${V.totDef} defaults. Equity absorbing. Senior untouched. Value: ${fmt(V.totVal)}.`}
-  else if(dr<.15){dc.style.cssText='background:var(--orange-l);border:1.5px solid var(--orange-m)';di.textContent='⚠️';dtg.style.color='var(--orange)';dt.textContent='Moderate — Equity Impaired';db.textContent=`${V.totDef} defaults. BBB exposed. Value fell to ${fmt(V.totVal)}.`}
-  else if(dr<.35){dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='🔴';dtg.style.color='var(--red)';dt.textContent='Severe — Mezzanine Impaired';db.textContent=`${V.totDef} defaults. Equity wiped. Mezz impaired. Mirrors 2008 US subprime. Value: ${fmt(V.totVal)}.`}
-  else{dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='💀';dtg.style.color='var(--red)';dt.textContent='GFC — Senior Tranches Impaired';db.textContent=`${V.totDef} defaults (${(dr*100).toFixed(0)}%). AAA impaired. Value: ${fmt(V.totVal)} vs £25M face. Systemic collapse.`}
+  else if(dr<.15){dc.style.cssText='background:var(--orange-l);border:1.5px solid var(--orange-m)';di.textContent='⚠️';dtg.style.color='var(--orange)';dt.textContent='Moderate, Equity Impaired';db.textContent=`${V.totDef} defaults. BBB exposed. Value fell to ${fmt(V.totVal)}.`}
+  else if(dr<.35){dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='🔴';dtg.style.color='var(--red)';dt.textContent='Severe, Mezzanine Impaired';db.textContent=`${V.totDef} defaults. Equity wiped. Mezz impaired. Mirrors 2008 US subprime. Value: ${fmt(V.totVal)}.`}
+  else{dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='💀';dtg.style.color='var(--red)';dt.textContent='GFC, Senior Tranches Impaired';db.textContent=`${V.totDef} defaults (${(dr*100).toFixed(0)}%). AAA impaired. Value: ${fmt(V.totVal)} vs £25M face. Systemic collapse.`}
 
   drawCharts(V);
 }
@@ -1042,10 +1042,10 @@ function drawSP(V){
 // MODAL
 // ═══════════════════════════════════════════════
 const MINFO={
-  aaa:{title:'AAA Senior A — First Claim',sub:'Only impaired when cumulative losses exceed 45% of pool.',col:'#1d4ed8'},
-  aa: {title:'AA Senior B — Near-Senior',sub:'Absorbs losses after equity, BBB, A exhausted (>30% pool loss).',col:'#1e40af'},
-  a:  {title:'A Mezzanine — Middle Buffer',sub:'Protected by equity (10%) and BBB (5%) below. Impaired >15% loss.',col:'#0f766e'},
-  bbb:{title:'BBB Mezzanine — Second Buffer',sub:'Exposed once losses exceed 10% (after equity absorbed).',col:'#6d28d9'},
+  aaa:{title:'AAA Senior A, First Claim',sub:'Only impaired when cumulative losses exceed 45% of pool.',col:'#1d4ed8'},
+  aa: {title:'AA Senior B, Near-Senior',sub:'Absorbs losses after equity, BBB, A exhausted (>30% pool loss).',col:'#1e40af'},
+  a:  {title:'A Mezzanine, Middle Buffer',sub:'Protected by equity (10%) and BBB (5%) below. Impaired >15% loss.',col:'#0f766e'},
+  bbb:{title:'BBB Mezzanine, Second Buffer',sub:'Exposed once losses exceed 10% (after equity absorbed).',col:'#6d28d9'},
   eq: {title:'Equity / First-Loss Piece',sub:'Absorbs all losses first. Residual cash flows. 100% loss at 10% pool default.',col:'#c2410c'},
 };
 function openModal(key){
@@ -1090,12 +1090,12 @@ function resetAll(){
 // 2008 GFC REPLAY
 // ═══════════════════════════════════════════════
 const GFC_STAGES=[
-  {year:'2003–05',title:'The Subprime Boom',sub:'Low Fed rates (1%) drive a US housing boom. Banks originate millions of subprime mortgages — lending to NINJA borrowers (No Income, No Job, No Assets). These are packaged into MBS and rated AAA.',defRate:1, hpi:188, chartType:'boom',events:[{t:'2003',txt:'Fed cuts rates to 1% — cheapest money in 45 years',cls:'info'},{t:'2004',txt:'Subprime mortgage originations double to $540bn',cls:'warn'},{t:'2005',txt:'Rating agencies stamp AAA on 80% of CDO tranches',cls:'warn'},{t:'2005',txt:'House prices up 15% YoY — "it can only go up"',cls:'info'}]},
-  {year:'2006',title:'Peak & Cracks Appear',sub:'House prices peak in Q2 2006 then start falling. Subprime delinquency rates begin rising. Banks are still originating and securitising. CDO-squared products proliferate.',defRate:5, hpi:184, chartType:'peak',events:[{t:'Q2 2006',txt:'US HPI peaks — Case-Shiller index at all-time high',cls:'warn'},{t:'Q4 2006',txt:'Subprime delinquency rates hit 13.3% — first alarm bells',cls:'crisis'},{t:'2006',txt:'$600bn of subprime mortgages originated — record high',cls:'warn'},{t:'2006',txt:'Equity tranches begin losing value silently',cls:'crisis'}]},
-  {year:'2007 Q1',title:'The Cracks Widen',sub:'Defaults accelerate. New Century Financial — the 2nd largest subprime lender — files for bankruptcy. Bear Stearns hedge funds collapse. CDO market freezes.',defRate:12, hpi:165, chartType:'crack',events:[{t:'Feb 2007',txt:'HSBC writes down $10.5bn subprime losses — first major bank casualty',cls:'crisis'},{t:'Apr 2007',txt:'New Century Financial files bankruptcy — 54,000 employees',cls:'crisis'},{t:'Jun 2007',txt:'Two Bear Stearns hedge funds (CDO-heavy) collapse',cls:'crisis'},{t:'Jul 2007',txt:'AAA CDO spreads widen 200bps overnight — panic begins',cls:'crisis'}]},
-  {year:'2007–08',title:'Mezzanine Tranches Impaired',sub:'Interbank lending freezes (LIBOR spikes). Northern Rock collapses in UK. Equity and BBB tranches are worthless. A-rated mezzanine tranches — previously "safe" — begin taking losses.',defRate:22, hpi:140, chartType:'impair',events:[{t:'Aug 2007',txt:'BNP Paribas freezes 3 funds — €2.2bn unable to price',cls:'crisis'},{t:'Sep 2007',txt:'Northern Rock bank run — first in UK since 1866',cls:'crisis'},{t:'Nov 2007',txt:'Citigroup writes down $11bn. ABX index (AAA) falls 40%',cls:'crisis'},{t:'Mar 2008',txt:'Bear Stearns collapses — JPMorgan buys for $2/share',cls:'crisis'}]},
-  {year:'Sep 2008',title:'Full Crisis — AAA Impaired',sub:'Lehman Brothers files for Chapter 11 ($613bn debt). AIG requires $182bn bailout. Money market funds "break the buck". Even AAA-rated MBS tranches are losing 30–50%. The model assumptions were catastrophically wrong.',defRate:32, hpi:118, chartType:'crash',events:[{t:'Sep 7',txt:'Fannie Mae & Freddie Mac seized by US govt ($5.4tn GSEs)',cls:'crisis'},{t:'Sep 15',txt:'LEHMAN BROTHERS BANKRUPT — $613bn in debt',cls:'crisis'},{t:'Sep 16',txt:'AIG $182bn govt bailout — CDS exposure $440bn',cls:'crisis'},{t:'Sep 29',txt:'TARP $700bn bank bailout bill passes US Congress',cls:'crisis'}]},
-  {year:'2009–10',title:'Aftermath & Reform',sub:'US house prices fall 34% peak-to-trough. 10 million Americans lose homes. Global recession. Dodd-Frank Act passes. Basel III introduces stricter capital requirements. Securitisation never fully recovers pre-crisis volumes.',defRate:18, hpi:110, chartType:'reform',events:[{t:'2009',txt:'US house prices -34% from peak. $11tn wealth destroyed',cls:'warn'},{t:'2010',txt:'Dodd-Frank Act — risk retention rules ("skin in game")',cls:'info'},{t:'2010',txt:'Basel III — stricter capital requirements for securitisation',cls:'info'},{t:'2013',txt:'ABS volumes recover to just 25% of 2006 peak levels',cls:'info'}]},
+  {year:'2003–05',title:'The Subprime Boom',sub:'Low Fed rates (1%) drive a US housing boom. Banks originate millions of subprime mortgages, lending to NINJA borrowers (No Income, No Job, No Assets). These are packaged into MBS and rated AAA.',defRate:1, hpi:188, chartType:'boom',events:[{t:'2003',txt:'Fed cuts rates to 1%, cheapest money in 45 years',cls:'info'},{t:'2004',txt:'Subprime mortgage originations double to $540bn',cls:'warn'},{t:'2005',txt:'Rating agencies stamp AAA on 80% of CDO tranches',cls:'warn'},{t:'2005',txt:'House prices up 15% YoY, "it can only go up"',cls:'info'}]},
+  {year:'2006',title:'Peak & Cracks Appear',sub:'House prices peak in Q2 2006 then start falling. Subprime delinquency rates begin rising. Banks are still originating and securitising. CDO-squared products proliferate.',defRate:5, hpi:184, chartType:'peak',events:[{t:'Q2 2006',txt:'US HPI peaks, Case-Shiller index at all-time high',cls:'warn'},{t:'Q4 2006',txt:'Subprime delinquency rates hit 13.3%, first alarm bells',cls:'crisis'},{t:'2006',txt:'$600bn of subprime mortgages originated, record high',cls:'warn'},{t:'2006',txt:'Equity tranches begin losing value silently',cls:'crisis'}]},
+  {year:'2007 Q1',title:'The Cracks Widen',sub:'Defaults accelerate. New Century Financial, the 2nd largest subprime lender, files for bankruptcy. Bear Stearns hedge funds collapse. CDO market freezes.',defRate:12, hpi:165, chartType:'crack',events:[{t:'Feb 2007',txt:'HSBC writes down $10.5bn subprime losses, first major bank casualty',cls:'crisis'},{t:'Apr 2007',txt:'New Century Financial files bankruptcy, 54,000 employees',cls:'crisis'},{t:'Jun 2007',txt:'Two Bear Stearns hedge funds (CDO-heavy) collapse',cls:'crisis'},{t:'Jul 2007',txt:'AAA CDO spreads widen 200bps overnight, panic begins',cls:'crisis'}]},
+  {year:'2007–08',title:'Mezzanine Tranches Impaired',sub:'Interbank lending freezes (LIBOR spikes). Northern Rock collapses in UK. Equity and BBB tranches are worthless. A-rated mezzanine tranches, previously "safe", begin taking losses.',defRate:22, hpi:140, chartType:'impair',events:[{t:'Aug 2007',txt:'BNP Paribas freezes 3 funds, €2.2bn unable to price',cls:'crisis'},{t:'Sep 2007',txt:'Northern Rock bank run, first in UK since 1866',cls:'crisis'},{t:'Nov 2007',txt:'Citigroup writes down $11bn. ABX index (AAA) falls 40%',cls:'crisis'},{t:'Mar 2008',txt:'Bear Stearns collapses, JPMorgan buys for $2/share',cls:'crisis'}]},
+  {year:'Sep 2008',title:'Full Crisis, AAA Impaired',sub:'Lehman Brothers files for Chapter 11 ($613bn debt). AIG requires $182bn bailout. Money market funds "break the buck". Even AAA-rated MBS tranches are losing 30–50%. The model assumptions were catastrophically wrong.',defRate:32, hpi:118, chartType:'crash',events:[{t:'Sep 7',txt:'Fannie Mae & Freddie Mac seized by US govt ($5.4tn GSEs)',cls:'crisis'},{t:'Sep 15',txt:'LEHMAN BROTHERS BANKRUPT, $613bn in debt',cls:'crisis'},{t:'Sep 16',txt:'AIG $182bn govt bailout, CDS exposure $440bn',cls:'crisis'},{t:'Sep 29',txt:'TARP $700bn bank bailout bill passes US Congress',cls:'crisis'}]},
+  {year:'2009–10',title:'Aftermath & Reform',sub:'US house prices fall 34% peak-to-trough. 10 million Americans lose homes. Global recession. Dodd-Frank Act passes. Basel III introduces stricter capital requirements. Securitisation never fully recovers pre-crisis volumes.',defRate:18, hpi:110, chartType:'reform',events:[{t:'2009',txt:'US house prices -34% from peak. $11tn wealth destroyed',cls:'warn'},{t:'2010',txt:'Dodd-Frank Act, risk retention rules ("skin in game")',cls:'info'},{t:'2010',txt:'Basel III, stricter capital requirements for securitisation',cls:'info'},{t:'2013',txt:'ABS volumes recover to just 25% of 2006 peak levels',cls:'info'}]},
 ];
 
 let gfcStageIdx=0, gfcHouses=[], gfcInterval=null, gfcDefaultQueue=[];
@@ -1190,7 +1190,7 @@ function updateGFCMetrics(st){
   const fmtM=n=>n>=1e6?'£'+(n/1e6).toFixed(2)+'M':'£'+Math.round(n).toLocaleString();
   document.getElementById('gfcDR').textContent=st.defRate+'%';
   document.getElementById('gfcDR').className='gfc-m-val'+(dr>.2?' danger':dr>.08?' warn':'');
-  document.getElementById('gfcDRd').textContent=dr>.25?'Catastrophic — GFC level':dr>.15?'Severe — mezzanine impaired':dr>.08?'Elevated — equity absorbed':'Subprime baseline';
+  document.getElementById('gfcDRd').textContent=dr>.25?'Catastrophic, GFC level':dr>.15?'Severe, mezzanine impaired':dr>.08?'Elevated, equity absorbed':'Subprime baseline';
   document.getElementById('gfcHPI').textContent=st.hpi;
   document.getElementById('gfcHPI').className='gfc-m-val'+(st.hpi<130?'danger':st.hpi<160?' warn':' ok');
   const hpiChg=st.hpi>180?'+12% YoY boom':st.hpi>160?'-5% declining':st.hpi>130?'-20% falling':'-40% crash';

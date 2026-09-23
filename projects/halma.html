@@ -187,7 +187,7 @@
     const data = await res.json();
 
     // ---- KPI Cards ----
-    const fmtGBP = (x) => (typeof x === "number" ? `£${x.toFixed(2)}` : "—");
+    const fmtGBP = (x) => (typeof x === "number" ? `£${x.toFixed(2)}` : ", ");
 
     const fairValueEl = document.getElementById("fairValue");
     const ddmEl = document.getElementById("ddmValue");
