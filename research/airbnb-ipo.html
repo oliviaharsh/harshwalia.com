@@ -111,23 +111,19 @@
             nav, .no-print { display: none !important; }
             body { background: white; }
         }
-            /* ── Scroll affordance for wide tables on narrow screens ──
-           The comps tables are wider than a phone. They already scroll, but a column cut
-           mid-header reads as broken rather than swipeable. Classic scroll-shadow trick:
-           the white covers scroll WITH the content (background-attachment: local) while the
-           shadows stay pinned (scroll), so a shadow appears only on the side that still has
-           content off-screen and disappears at each end. No JS, no markup change. */
-        .overflow-x-auto {
-            -webkit-overflow-scrolling: touch;
-            background:
-                linear-gradient(to right, #fff 30%, rgba(255,255,255,0)) left center,
-                linear-gradient(to left,  #fff 30%, rgba(255,255,255,0)) right center,
-                radial-gradient(farthest-side at 0 50%, rgba(37,99,235,0.18), transparent) left center,
-                radial-gradient(farthest-side at 100% 50%, rgba(37,99,235,0.18), transparent) right center;
-            background-repeat: no-repeat;
-            background-size: 36px 100%, 36px 100%, 12px 100%, 12px 100%;
-            background-attachment: local, local, scroll, scroll;
+            /* ── Wide-table affordance ──
+           Two comps tables are wider than a phone. They scroll, but a column cut off
+           mid-header reads as broken. A scroll shadow on the container was tried first and
+           is invisible here, because the table cells paint over it. So the hint is explicit,
+           and inserted by script only where a table genuinely overflows. */
+        .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+        .swipe-hint {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; color: #2563EB; margin: 0 0 6px;
+            letter-spacing: .04em; text-transform: uppercase; font-weight: 600;
         }
+        .swipe-hint::after { content: '92'; animation: nudge 1.4s ease-in-out infinite; }
+        @keyframes nudge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -556,6 +552,31 @@ window.addEventListener('load', () => {
         });
     });
 });
+</script>
+
+<script>
+/* Show a swipe hint above any table that is actually wider than its container.
+   Re-evaluated on resize so it disappears when the viewport is wide enough. */
+(function () {
+  function sync() {
+    document.querySelectorAll('.overflow-x-auto').forEach(function (box) {
+      var overflows = box.scrollWidth > box.clientWidth + 2;
+      var hint = box.previousElementSibling;
+      var has = hint && hint.classList && hint.classList.contains('swipe-hint');
+      if (overflows && !has) {
+        var el = document.createElement('div');
+        el.className = 'swipe-hint';
+        el.textContent = 'Swipe for more columns';
+        box.parentNode.insertBefore(el, box);
+      } else if (!overflows && has) {
+        hint.remove();
+      }
+    });
+  }
+  window.addEventListener('load', sync);
+  window.addEventListener('resize', sync);
+  if (document.readyState === 'complete') sync();
+})();
 </script>
 </body>
 </html>
