@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harsh Walia | MSc Investments — Valuation, Financial Modelling &amp; Python</title>
-    <meta name="description" content="Harsh Walia — MSc Investments (University of Birmingham). Equity research, DCF and DDM valuation models, and Python-built financial tools. Portfolio of investment analysis and interactive valuation dashboards.">
+    <title>Harsh Walia | Equity Research, Valuation and Financial Modelling</title>
+    <meta name="description" content="Harsh Walia, MSc Investments, University of Birmingham. Equity research, DCF and DDM valuation models, and Python-built financial tools. Portfolio of investment analysis and interactive valuation dashboards.">
     <meta name="author" content="Harsh Walia">
     <link rel="canonical" href="https://harshwalia.com/">
 
@@ -17,7 +17,7 @@
     <meta name="twitter:title" content="Harsh Walia | MSc Investments">
     <meta name="twitter:description" content="Equity research, DCF &amp; DDM valuation models, and Python-built financial tools.">
 
-    <!-- Favicon (inline SVG monogram — no extra file needed) -->
+    <!-- Favicon (inline SVG monogram, no extra file needed) -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563EB'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'%3EHW%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
@@ -133,7 +133,7 @@
                     I research companies and build the models behind the numbers.
                 </h2>
                 <p class="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
-                    MSc Investments at the University of Birmingham. I cover <strong class="text-gray-800">transport, travel and logistics</strong> — capacity, utilisation, pricing, fuel, labour and operating leverage — and I build the valuation tools I use to produce the research, in Python and Excel.
+                    MSc Investments at the University of Birmingham. I cover <strong class="text-gray-800">transport, travel and logistics</strong>: capacity, utilisation, pricing, fuel, labour and operating leverage. I build the valuation tools I use to produce the research, in Python and Excel.
                 </p>
                 <p class="text-base text-gray-500 mb-8 leading-relaxed max-w-2xl">
                     Every forecast driver is traced to a published source, and the bear and bull cases are inherited from that source's own scenarios rather than invented. Where a number is not verified at source, the note says so.
@@ -181,7 +181,7 @@
         <div class="mb-10">
             <h2 class="text-3xl font-bold mb-2 text-gray-900">Investment Research</h2>
             <p class="text-gray-500 mb-2">Company notes with a stated method, a target and the reasoning behind it</p>
-            <p class="text-gray-400 text-sm mb-8 max-w-3xl">Coverage is deliberately narrow: <strong class="text-gray-600">transport, travel and logistics</strong>, where the same drivers recur — capacity, load, price per unit, fuel and operating leverage — so each note compounds on the last rather than starting from zero.</p>
+            <p class="text-gray-400 text-sm mb-8 max-w-3xl">Coverage is deliberately narrow: <strong class="text-gray-600">transport, travel and logistics</strong>, where the same drivers recur: capacity, load, price per unit, fuel and operating leverage. Each note compounds on the last rather than starting from zero.</p>
             <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
                 <div class="relative w-full lg:w-80">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +215,7 @@
         </div>
     </section>
 
-    <!-- Research snapshot modal (summary only — full report is separate page) -->
+    <!-- Research snapshot modal (summary only, full report is a separate page) -->
     <div id="researchModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeResearchModal()"></div>
         <div id="researchModalInner" class="relative bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-blue-100 shadow-2xl modal-enter">
@@ -342,7 +342,7 @@
     // RESEARCH DATA
     // ────────────────────────────────────────────────
     // reportUrl: path to your research/firm-name.html page.
-    // Leave as '' if you haven't built the detail page yet —
+    // Leave as '' if you haven't built the detail page yet:
     // the "Read Full Report" button will simply not appear.
     // ────────────────────────────────────────────────
     const researchItems = [
@@ -360,15 +360,15 @@
             method: 'Bottom-up DCF · EUROCONTROL capacity scenarios',
             publishDate: '16 Sep 2026',
             reportUrl: 'research/easyjet.html',
-            summary: 'Special situation. Apollo has agreed a 715p cash offer valuing the equity at c.£5.7bn. Built from the bottom up — seats flown, load factor, passengers, revenue per seat — with capacity growth inherited from EUROCONTROL\'s published traffic scenarios. Base case 752p, so the offer is light by 5.2%. Recommendation: do not accept at 715p.',
+            summary: 'Apollo\'s 715p cash offer looks light. Built bottom up from seats flown, load factor and revenue per seat, with capacity inherited from EUROCONTROL\'s published scenarios. Base case 752p. Verdict: do not accept.',
             thesis: [
                 'Margin recovery unfinished: FY25 profit per seat of £6.39 vs management\'s own £7–£10 target, reached only in FY28 on our base case',
-                '£602m net cash in a sector that rarely has any — c.80p per share of the offer is paid with easyJet\'s own money',
+                '£602m net cash in a sector that rarely has any, so c.80p per share of the offer is paid with easyJet\'s own money',
                 'easyJet holidays compounds off an existing customer base: higher margin, asset-light, already-acquired passengers',
-                'Working capital is a structural tailwind — unearned revenue rose £209m in FY25; the earlier model assumed zero'
+                'Working capital is a structural tailwind: unearned revenue rose £209m in FY25, and the earlier model assumed zero'
             ],
             risks: [
-                'The unit wedge is only £3.99 a seat — 50bp of annual cost drift takes profit per seat to £1.74 by FY31 with no recession required',
+                'The unit wedge is only £3.99 a seat, so 50bp of annual cost drift takes profit per seat to £1.74 by FY31 with no recession required',
                 'Fuel modelled as a cost per seat at a fixed growth rate, not off the forward curve and disclosed hedge book',
                 'Terminal value is 63.9% of enterprise value',
                 'Not yet three-statement: the balance sheet is not rolled forward and cash ties are not proven'
@@ -388,17 +388,17 @@
             method: 'DCF + Trading Comps',
             publishDate: '10 Dec 2020',
             reportUrl: 'research/airbnb-ipo.html',
-            summary: 'Pre-IPO DCF and comparables analysis of Airbnb\'s NASDAQ listing. Base-case DCF implies fair value of $40/share vs $68 IPO price — market is pricing in a recovery trajectory not supported by conservative fundamental assumptions.',
+            summary: 'At $68 the market was buying the narrative, not the business. A five year DCF anchored to UNWTO recovery scenarios puts base case fair value at $40.28. Historical case study, December 2020.',
             thesis: [
                 'Strong platform economics: ~75% gross margin, take rate rising from 11.4% to 14.1%',
                 'Domestic STR demand outpacing international travel recovery post-COVID',
-                'Brand moat maturing — S&M spend declining from 43% to 22% of revenue',
+                'Brand moat maturing, with S&M spend declining from 43% to 22% of revenue',
                 'FCF-generative at scale: $505M FCF in FY2018'
             ],
             risks: [
-                'IPO priced at $68 implies ~$100B Day-1 EV — far above any DCF scenario',
+                'IPO priced at $68 implies ~$100B Day-1 EV, far above any DCF scenario',
                 'Adj. EBITDA negative in FY2019 and FY2020; profitability timeline uncertain',
-                'Revenue fell 32% YoY in 9M 2020 — COVID recovery speed is the key model assumption',
+                'Revenue fell 32% YoY in 9M 2020, so COVID recovery speed is the key model assumption',
                 'Heavy post-IPO SBC and $2B emergency debt burden'
             ]
         }

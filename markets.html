@@ -205,7 +205,7 @@
     <h1 class="brand-font text-3xl font-bold mb-1">
       <span class="gradient-text">Market Monitor</span>
     </h1>
-    <p class="text-gray-500 text-sm">Click any event in the news panel → opens TradingView at that exact date</p>
+    <p class="text-gray-500 text-sm">Click any event to open TradingView at that date</p>
   </div>
 
   <!-- Index selector + active info -->
@@ -311,8 +311,8 @@
           </div>
           <!-- Scheduled dates lead, outcomes follow. Scheduled entries are published a year
                ahead so they do not rot; outcomes carry the issuing institution as the source. -->
-          <p class="text-xs text-gray-400 mb-2">Fed &middot; BoE &middot; BLS &mdash; scheduled dates
-            and verified outcomes. Updated <span class="mono">23 Sep 2026</span>. Not a live feed.</p>
+          <p class="text-xs text-gray-400 mb-2">Fed, BoE and BLS. Scheduled dates and verified
+            outcomes. Updated <span class="mono">23 Sep 2026</span>. Not a live feed.</p>
           <!-- Category filters -->
           <div class="flex flex-wrap gap-1.5" id="filter-bar">
             <button class="filter-btn active text-xs px-2.5 py-1 rounded-full font-medium transition-all border"
@@ -353,75 +353,76 @@ let activeFilter  = 'all';
 // ── EVENTS DATA ───────────────────────────────────────────────────────────────
 // date format: YYYY-MM-DD  (used to build TradingView deep-link)
 const EVENTS = [
-  // ── Verified at source 23 Sep 2026. Past entries carry the issuing institution's own
-  //    figure; scheduled entries are published calendar dates.
-  //    Fed:  federalreserve.gov/monetarypolicy/openmarket.htm + fomccalendars.htm
-  //    BoE:  bankofengland.co.uk/monetary-policy/the-interest-rate-bank-rate
-  //          bankofengland.co.uk/monetary-policy/upcoming-mpc-dates
-  //    CPI:  bls.gov/news.release/cpi.nr0.htm + bls.gov/schedule/news_release/cpi.htm
-  //    When a scheduled date passes, replace it with the outcome AND its source.
+  // Ordered the way an analyst reads it: the most recent results first, because they are
+  // the current state of the world, then the schedule ahead in date order.
+  // Verified at source 23 Sep 2026.
+  //   Fed:  federalreserve.gov/monetarypolicy/openmarket.htm + fomccalendars.htm
+  //   BoE:  bankofengland.co.uk/monetary-policy/the-interest-rate-bank-rate
+  //         bankofengland.co.uk/monetary-policy/upcoming-mpc-dates
+  //   CPI:  bls.gov/news.release/cpi.nr0.htm + bls.gov/schedule/news_release/cpi.htm
+  // When a scheduled date passes, replace it with the outcome and its source, and move it up.
+
+  // ── Latest results ──────────────────────────────────────────────────────
+  {
+    id: 1, date: '2026-09-17', cat: 'fed',
+    title: 'FOMC sets target range at 3.75 to 4.00%',
+    desc: 'Federal funds target range set at 3.75 to 4.00%, effective 17 September 2026, following the 15 to 16 September meeting. Source: Federal Reserve open market operations page.',
+    impact: 'neutral'
+  },
+  {
+    id: 2, date: '2026-09-17', cat: 'boe',
+    title: 'BoE holds Bank Rate at 3.75%',
+    desc: 'The MPC maintained Bank Rate at 3.75%, a third consecutive hold after June and July. Source: Bank of England.',
+    impact: 'neutral'
+  },
+  {
+    id: 3, date: '2026-09-11', cat: 'cpi',
+    title: 'US CPI August 2026: 3.4% YoY',
+    desc: 'All items CPI-U rose 3.4% over the 12 months to August. Core, excluding food and energy, rose 2.4%. Source: BLS news release.',
+    impact: 'neutral'
+  },
 
   // ── Scheduled ───────────────────────────────────────────────────────────
   {
-    id: 1, date: '2026-12-17', cat: 'boe',
-    title: 'BoE MPC — December decision',
-    desc: 'Final Monetary Policy Committee announcement of 2026. Scheduled date per the Bank of England.',
+    id: 4, date: '2026-10-14', cat: 'cpi',
+    title: 'US CPI: September data',
+    desc: 'BLS release, 08:30 ET. Covers the September 2026 reference month. The next read on the 3.4% headline.',
     impact: 'neutral'
   },
   {
-    id: 2, date: '2026-12-10', cat: 'cpi',
-    title: 'US CPI — November data',
-    desc: 'BLS release, 08:30 ET. Covers the November 2026 reference month.',
+    id: 5, date: '2026-10-28', cat: 'fed',
+    title: 'FOMC: October meeting',
+    desc: 'Two day meeting, 27 to 28 October. No Summary of Economic Projections at this one.',
     impact: 'neutral'
   },
   {
-    id: 3, date: '2026-12-09', cat: 'fed',
-    title: 'FOMC — December meeting (with projections)',
-    desc: 'Two-day meeting, 8–9 December. Accompanied by a Summary of Economic Projections, so the dot plot moves with it.',
-    impact: 'neutral'
-  },
-  {
-    id: 4, date: '2026-11-10', cat: 'cpi',
-    title: 'US CPI — October data',
-    desc: 'BLS release, 08:30 ET. Covers the October 2026 reference month.',
-    impact: 'neutral'
-  },
-  {
-    id: 5, date: '2026-11-05', cat: 'boe',
-    title: 'BoE MPC — November decision',
+    id: 6, date: '2026-11-05', cat: 'boe',
+    title: 'BoE MPC: November decision',
     desc: 'Monetary Policy Committee announcement. Bank Rate currently 3.75%.',
     impact: 'neutral'
   },
   {
-    id: 6, date: '2026-10-28', cat: 'fed',
-    title: 'FOMC — October meeting',
-    desc: 'Two-day meeting, 27–28 October. No Summary of Economic Projections at this one.',
+    id: 7, date: '2026-11-10', cat: 'cpi',
+    title: 'US CPI: October data',
+    desc: 'BLS release, 08:30 ET. Covers the October 2026 reference month.',
     impact: 'neutral'
   },
   {
-    id: 7, date: '2026-10-14', cat: 'cpi',
-    title: 'US CPI — September data',
-    desc: 'BLS release, 08:30 ET. Covers the September 2026 reference month. Next read on the 3.4% headline.',
-    impact: 'neutral'
-  },
-
-  // ── Occurred ────────────────────────────────────────────────────────────
-  {
-    id: 8, date: '2026-09-17', cat: 'fed',
-    title: 'FOMC — target range 3.75–4.00%',
-    desc: 'Federal funds target range set at 3.75–4.00%, effective 17 September 2026, following the 15–16 September meeting. Source: Federal Reserve open market operations page.',
+    id: 8, date: '2026-12-09', cat: 'fed',
+    title: 'FOMC: December meeting, with projections',
+    desc: 'Two day meeting, 8 to 9 December, accompanied by a Summary of Economic Projections, so the dot plot moves with it.',
     impact: 'neutral'
   },
   {
-    id: 9, date: '2026-09-17', cat: 'boe',
-    title: 'BoE — Bank Rate held at 3.75%',
-    desc: 'MPC maintained Bank Rate at 3.75%, the third consecutive hold after June and July. Source: Bank of England.',
+    id: 9, date: '2026-12-10', cat: 'cpi',
+    title: 'US CPI: November data',
+    desc: 'BLS release, 08:30 ET. Covers the November 2026 reference month.',
     impact: 'neutral'
   },
   {
-    id: 10, date: '2026-09-11', cat: 'cpi',
-    title: 'US CPI August 2026 — 3.4% YoY',
-    desc: 'All-items CPI-U rose 3.4% over the 12 months to August. Core, excluding food and energy, rose 2.4%. Source: BLS news release.',
+    id: 10, date: '2026-12-17', cat: 'boe',
+    title: 'BoE MPC: December decision',
+    desc: 'Final Monetary Policy Committee announcement of 2026. Scheduled date per the Bank of England.',
     impact: 'neutral'
   },
 ];

@@ -1,27 +1,27 @@
 # harshwalia.com
 
-Source for [harshwalia.com](https://harshwalia.com) — equity research notes and the valuation
+Source for [harshwalia.com](https://harshwalia.com). Equity research notes and the valuation
 tools used to produce them.
 
 Coverage is deliberately narrow: **transport, travel and logistics**, where the same drivers
-recur — capacity, load, price per unit, fuel and operating leverage.
+recur: capacity, load, price per unit, fuel and operating leverage.
 
 ## Contents
 
 | Path | |
 |---|---|
-| `index.html` | Home — research index, projects, writing |
+| `index.html` | Home, research index, projects, writing |
 | `research/` | Published company notes |
 | `markets.html` | Market monitor: live TradingView chart, policy rates, event archive |
-| `projects/` | Valuation tools — DCF, DDM, residual income, securitisation, retirement |
+| `projects/` | Valuation tools: DCF, DDM, residual income, securitisation, retirement |
 | `assets/` | Charts and data for published notes |
 
 ## Research notes
 
-- **easyJet plc (EZJ.L)** — bottom-up valuation against Apollo's 715p cash offer. Capacity
+- **easyJet plc (EZJ.L)**. Bottom-up valuation against Apollo's 715p cash offer. Capacity
   inherited from EUROCONTROL's published traffic scenarios; beta re-estimated by OLS on a clean
   pre-offer window rather than taken off a screen.
-- **Airbnb, Inc. (ABNB)** — pre-IPO DCF and comparables, December 2020.
+- **Airbnb, Inc. (ABNB)**. Pre-IPO DCF and comparables, December 2020.
 
 Each note states its method, its sources and their dates, and what would prove it wrong. Where a
 figure is not verified at source, the note says so.
@@ -29,7 +29,7 @@ figure is not verified at source, the note says so.
 ## Stack
 
 Static HTML, Tailwind via CDN, Chart.js, and a small amount of PHP for the market-data proxies.
-No build step — the repository is the site.
+No build step: the repository is the site.
 
 ## Local development
 
