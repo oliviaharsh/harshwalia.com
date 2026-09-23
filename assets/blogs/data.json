@@ -1,0 +1,20 @@
+{
+  "blogPosts": [
+    {
+      "id": "value-investing",
+      "title": "The Resurgence of Value Investing",
+      "category": "Equity Research",
+      "date": "Jan 2026",
+      "excerpt": "Why value stocks may outperform in rising rate environments.",
+      "content": "## Why Value Is Back\n\nAfter a decade of **growth dominance**, value stocks are outperforming.\n\n### Key Drivers\n- Higher interest rates\n- Mean reversion in multiples\n- Earnings breadth improving\n\n### Market Context\nThe shift from growth to value has been dramatic. As interest rates have risen, the discount rate applied to future earnings has increased, disproportionately affecting *high-growth* companies with distant cash flows.\n\n### Portfolio Implications\nInvestors should consider rebalancing towards value sectors:\n- **Financials**\n- **Energy**\n- **Industrials**\n- **Materials**\n\nThese sectors typically benefit from rising rate environments and exhibit stronger correlation with economic cycles."
+    },
+    {
+      "id": "dcf-valuation",
+      "title": "Mastering DCF Valuation Models",
+      "category": "Financial Modeling",
+      "date": "Feb 2026",
+      "excerpt": "A practical guide to building robust discounted cash flow models.",
+      "content": "## Understanding DCF\n\n**Discounted Cash Flow (DCF)** analysis is fundamental to equity valuation.\n\n### The Three Steps\n1. **Project Future Cash Flows** - Forecast revenue, EBITDA, and free cash flows\n2. **Calculate Terminal Value** - Estimate company value beyond projection period\n3. **Discount to Present Value** - Apply WACC to get today's value\n\n### Common Mistakes\n- *Overly optimistic* growth assumptions\n- Using inconsistent WACC across periods\n- Neglecting working capital changes\n\n### Best Practices\nAlways conduct **sensitivity analysis** on key assumptions:\n- Discount rate (±1-2%)\n- Terminal growth rate (±0.5%)\n- Revenue growth (±5%)\n\nThis helps you understand the **range of possible outcomes**."
+    }
+  ]
+}

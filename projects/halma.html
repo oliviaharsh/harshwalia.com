@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Halma PLC Valuation | Harsh Walia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-panel {
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(59,130,246,0.15);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.08);
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-800">
+
+<!-- Top Navigation -->
+<nav class="w-full border-b border-blue-100 bg-white sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="../index.html" class="text-2xl font-bold brand-font gradient-text">
+            HW
+        </a>
+        <a href="../index.html#home" class="text-sm text-blue-600 hover:underline">
+            ← Back to Projects
+        </a>
+    </div>
+</nav>
+
+<!-- Header Section -->
+<section class="max-w-6xl mx-auto px-6 py-16">
+    <div class="max-w-3xl">
+        <p class="text-sm uppercase tracking-widest text-blue-600 font-medium mb-4">
+            Equity Valuation • Residual Income & DDM
+        </p>
+
+        <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6">
+            Halma PLC: <span class="gradient-text">Intrinsic Value Assessment</span>
+        </h1>
+
+        <p class="text-lg text-gray-600 leading-relaxed">
+            Comprehensive valuation of Halma plc using Residual Income Model and Dividend Discount Model, 
+            supported by financial statement projections and sensitivity analysis.
+        </p>
+    </div>
+</section>
+
+<section class="max-w-6xl mx-auto px-6 pb-20">
+  <h2 class="text-2xl font-bold mb-8 text-gray-900">Forecast Summary</h2>
+
+  <div class="glass-panel rounded-xl p-6 overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-600 border-b border-blue-100">
+          <th class="py-3 pr-6">Year</th>
+          <th class="py-3 pr-6">Revenue (£m)</th>
+          <th class="py-3 pr-6">EBIT (£m)</th>
+          <th class="py-3 pr-6">Net Income (£m)</th>
+          <th class="py-3 pr-2">EPS (p)</th>
+        </tr>
+      </thead>
+      <tbody id="forecastTableBody" class="text-gray-700">
+        <tr>
+          <td class="py-3 pr-6 text-gray-500 italic" colspan="5">
+            Forecast table will load from Python output.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="max-w-6xl mx-auto px-6 pb-24">
+  <div class="text-center text-sm text-gray-500">
+    Want the full workings?
+    <a id="modelLink" href="#" target="_blank" class="text-blue-600 hover:underline font-medium">
+      View Full Excel/Google Sheets Model
+    </a>
+  </div>
+</section>
+
+<!-- Key Outputs -->
+<section class="max-w-6xl mx-auto px-6 pb-16">
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <div class="glass-panel rounded-xl p-8 text-center">
+            <p class="text-3xl font-bold text-blue-600 mb-2" id="fairValue">£10.43</p>
+            <p class="text-sm text-gray-500">Intrinsic Value (RIM)</p>
+        </div>
+
+        <div class="glass-panel rounded-xl p-8 text-center">
+            <p class="text-3xl font-bold text-blue-600 mb-2" id="ddmValue">£5.64</p>
+            <p class="text-sm text-gray-500">Intrinsic Value (DDM)</p>
+        </div>
+
+        <div class="glass-panel rounded-xl p-8 text-center">
+            <p class="text-3xl font-bold text-blue-600 mb-2" id="marketPrice">£35.30</p>
+            <p class="text-sm text-gray-500">Current Market Price</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- Investment Thesis -->
+<section class="max-w-6xl mx-auto px-6 pb-20">
+    <div class="grid md:grid-cols-2 gap-12">
+
+        <div>
+            <h2 class="text-2xl font-bold mb-6 text-blue-600">Investment Thesis</h2>
+            <ul class="space-y-4 text-gray-600 leading-relaxed">
+                <li>• Strong historical revenue CAGR (~9.5%)</li>
+                <li>• Growth driven by Photonics and healthcare safety segments</li>
+                <li>• Resilient operating margins</li>
+                <li>• FX headwinds may moderate near-term growth</li>
+                <li>• Current valuation implies high growth expectations</li>
+            </ul>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-bold mb-6 text-orange-500">Key Risks</h2>
+            <ul class="space-y-4 text-gray-600 leading-relaxed">
+                <li>• Overvaluation relative to intrinsic value models</li>
+                <li>• Margin compression risk</li>
+                <li>• Currency volatility impact</li>
+                <li>• Slower-than-expected growth in core segments</li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- Forecast Charts -->
+<section class="max-w-6xl mx-auto px-6 pb-20">
+    <h2 class="text-2xl font-bold mb-8 text-gray-900">Financial Projections</h2>
+
+    <div class="grid md:grid-cols-2 gap-10">
+
+        <div class="glass-panel rounded-xl p-6">
+            <h3 class="font-semibold mb-4 text-blue-600">Revenue Forecast</h3>
+            <img src="../assets/halma/revenue.png" alt="Revenue Forecast">
+        </div>
+
+        <div class="glass-panel rounded-xl p-6">
+            <h3 class="font-semibold mb-4 text-blue-600">EPS Forecast</h3>
+            <img src="../assets/halma/eps.png" alt="EPS Forecast">
+        </div>
+
+    </div>
+</section>
+
+<!-- Sensitivity -->
+<section class="max-w-6xl mx-auto px-6 pb-24">
+    <h2 class="text-2xl font-bold mb-8 text-gray-900">Sensitivity Analysis</h2>
+
+    <div class="glass-panel rounded-xl p-8">
+        <img src="../assets/halma/sensitivity.png" alt="DCF Sensitivity">
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="border-t border-blue-100 py-10 text-center text-sm text-gray-500">
+    © 2026 Harsh Walia • Equity Research Portfolio
+</footer>
+
+<script>
+(async function loadSummary(){
+  try {
+    const res = await fetch("/assets/halma/summary.json?ts=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+
+    const data = await res.json();
+
+    // ---- KPI Cards ----
+    const fmtGBP = (x) => (typeof x === "number" ? `£${x.toFixed(2)}` : "—");
+
+    const fairValueEl = document.getElementById("fairValue");
+    const ddmEl = document.getElementById("ddmValue");
+    const mktEl = document.getElementById("marketPrice");
+
+    if (fairValueEl) fairValueEl.textContent = fmtGBP(data["Fair Value RIM_GBP"]);
+    if (ddmEl) ddmEl.textContent = fmtGBP(data["Fair Value DDM_GBP"]);
+    if (mktEl) mktEl.textContent = fmtGBP(data["Market Price_GBP"]);
+
+    // ---- Model Link ----
+    const modelLink = document.getElementById("modelLink");
+    if (modelLink && data.model_url) modelLink.href = data.model_url;
+
+    // ---- Forecast Table ----
+    const tbody = document.getElementById("forecastTableBody");
+    const rows = data.forecast_rows;
+
+    if (!tbody) return;
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("No forecast_rows found in summary.json");
+
+    tbody.innerHTML = rows.map(r => `
+      <tr class="border-b border-blue-50">
+        <td class="py-3 pr-6 font-medium">${String(r.Year).replace(".0","")}</td>
+        <td class="py-3 pr-6">${r.Revenue_m ?? ""}</td>
+        <td class="py-3 pr-6">${r.EBIT_m ?? ""}</td>
+        <td class="py-3 pr-6">${r.NetIncome_m ?? ""}</td>
+        <td class="py-3 pr-2">${r.EPS_p ?? ""}</td>
+      </tr>
+    `).join("");
+
+  } catch (err) {
+    console.error("Summary load failed:", err);
+    const tbody = document.getElementById("forecastTableBody");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td class="py-3 pr-6 text-red-600 text-sm" colspan="5">
+            ❌ Could not load summary.json: ${err.message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

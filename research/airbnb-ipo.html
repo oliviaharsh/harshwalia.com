@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airbnb IPO | Equity Research | HW</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .brand-font { font-family: 'Space Grotesk', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* ── Page chrome ── */
+        .gradient-text {
+            background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(59,130,246,0.15);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.06);
+        }
+
+        /* ── Research report specific ── */
+        .report-header {
+            background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 60%);
+            border-bottom: 1px solid rgba(59,130,246,0.12);
+        }
+        .badge-overvalued { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge-undervalued { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-fairvalue { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+
+        /* ── Section dividers like a research note ── */
+        .section-label {
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        /* ── Metric cards ── */
+        .metric-card {
+            background: #f8faff;
+            border: 1px solid rgba(59,130,246,0.12);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .metric-val { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700; }
+        .metric-lbl { font-size: 11px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+
+        /* ── Scenario bar ── */
+        .scenario-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .scenario-bar.bull { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .scenario-bar.base { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .scenario-bar.bear { background: #fff7ed; border: 1px solid #fed7aa; }
+
+        /* ── Sensitivity table ── */
+        .sens-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        .sens-table th, .sens-table td { padding: 8px 12px; text-align: center; border: 1px solid rgba(59,130,246,0.12); }
+        .sens-table th { background: rgba(37,99,235,0.06); font-weight: 600; color: #1e3a8a; }
+        .sens-table td.highlight { background: rgba(37,99,235,0.08); font-weight: 600; color: #1d4ed8; }
+        .sens-table td.above { background: #dcfce7; color: #166534; }
+        .sens-table td.below { background: #fee2e2; color: #991b1b; }
+
+        /* ── Pull quotes ── */
+        .pull-quote {
+            border-left: 3px solid #2563EB;
+            padding: 12px 20px;
+            background: #f0f6ff;
+            border-radius: 0 10px 10px 0;
+            font-style: italic;
+            color: #1e40af;
+            margin: 24px 0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* ── Comps table ── */
+        .comps-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        .comps-table th { background: rgba(37,99,235,0.05); font-weight: 600; color: #1e3a8a; padding: 10px 14px; text-align: right; border-bottom: 2px solid rgba(59,130,246,0.15); }
+        .comps-table th:first-child { text-align: left; }
+        .comps-table td { padding: 9px 14px; text-align: right; border-bottom: 1px solid rgba(59,130,246,0.08); color: #374151; }
+        .comps-table td:first-child { text-align: left; font-weight: 500; color: #111827; }
+        .comps-table tr.airbnb-row td { background: rgba(37,99,235,0.05); font-weight: 600; color: #1d4ed8; }
+        .comps-table tr:hover td { background: rgba(59,130,246,0.03); }
+
+        /* ── Chart container ── */
+        .chart-box { position: relative; height: 260px; }
+
+        /* ── Disclosure footer ── */
+        .disclosure { font-size: 11px; color: #9ca3af; line-height: 1.7; padding-top: 16px; border-top: 1px solid rgba(59,130,246,0.1); }
+
+        /* ── Print / download feel ── */
+        @media print {
+            nav, .no-print { display: none !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- ═══ NAV ═══ -->
+<nav class="w-full border-b border-blue-100 bg-white sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="../index.html" class="text-2xl font-bold brand-font gradient-text">HW</a>
+        <div class="flex items-center gap-6 text-sm">
+            <a href="../index.html" onclick="sessionStorage.setItem('openSection','research')"
+               class="text-blue-600 hover:text-blue-700 transition flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Research
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══ REPORT HEADER ═══ -->
+<header class="report-header">
+    <div class="max-w-5xl mx-auto px-6 py-14">
+
+        <!-- Meta row -->
+        <div class="flex flex-wrap items-center gap-3 mb-6 text-sm">
+            <span class="badge-overvalued px-3 py-1 rounded-full text-xs font-bold">▼ Overvalued</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Travel & Leisure</span>
+            <span class="text-gray-400">NASDAQ: ABNB</span>
+            <span class="text-gray-300">·</span>
+            <span class="text-gray-400">Pre-IPO Analysis · December 10, 2020</span>
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-3 brand-font">
+            Airbnb, Inc. — IPO Valuation
+        </h1>
+        <p class="text-xl text-blue-600 font-medium mb-6 serif">
+            "Exceptional platform, extraordinary price."
+        </p>
+        <p class="text-gray-600 text-base leading-relaxed max-w-3xl">
+            A pre-IPO DCF and trading comparables analysis of Airbnb's NASDAQ listing on December 10, 2020. 
+            Base-case intrinsic value of <strong>$40.28/share</strong> vs IPO price of <strong>$68</strong> — 
+            implying the market priced in a recovery trajectory significantly ahead of conservative fundamental assumptions.
+        </p>
+
+        <!-- Firm logo + key stats strip -->
+        <div class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="metric-card">
+                <div class="metric-val text-blue-600">$40.28</div>
+                <div class="metric-lbl">Base DCF Target</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val text-gray-700">$68.00</div>
+                <div class="metric-lbl">IPO Price</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val text-red-500">-40.8%</div>
+                <div class="metric-lbl">Downside</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val text-gray-700">6.79%</div>
+                <div class="metric-lbl">WACC</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val text-gray-700">$146</div>
+                <div class="metric-lbl">Day-1 Open</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ═══ BODY ═══ -->
+<main class="max-w-5xl mx-auto px-6 py-14 space-y-16">
+
+    <!-- ── 1. EXECUTIVE SUMMARY ── -->
+    <section>
+        <span class="section-label">01 · Executive Summary</span>
+        <div class="prose max-w-none text-gray-700 leading-relaxed text-[15px] space-y-4">
+            <p>
+                Airbnb represents one of the most compelling marketplace businesses of the last decade — a two-sided platform with genuine network effects, a 75% gross margin, and a demonstrably improving take rate. The business had FCF-positive years in FY2017–FY2019, and the structural shift toward alternative accommodation is real and durable.
+            </p>
+            <p>
+                However, at the $68 IPO price, the market was not buying the business — it was buying the narrative. Our five-year DCF, anchored to UNWTO tourism recovery scenarios, WACC of 6.79%, and conservative margin assumptions, yields a base-case intrinsic value of <strong>$40.28/share</strong>. Even under an aggressive bull case (rapid vaccine rollout, 90%+ domestic recovery, 35% terminal EBITDA margin), fair value reaches only <strong>$65.04</strong> — still below IPO price.
+            </p>
+        </div>
+        <div class="pull-quote mt-6">
+            The Day-1 open of $146 (+115% above IPO price) suggests the market was pricing in a post-COVID platform supercycle that no bottom-up model could support at the time. This is a textbook case of sentiment-driven IPO pricing detaching from fundamental value.
+        </div>
+    </section>
+
+    <!-- ── 2. BUSINESS OVERVIEW ── -->
+    <section>
+        <span class="section-label">02 · Business Overview</span>
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-panel rounded-xl p-6">
+                <h4 class="font-semibold text-blue-600 mb-3 text-sm uppercase tracking-wide">Revenue Model</h4>
+                <p class="text-sm text-gray-600 leading-relaxed">Platform fee charged to hosts (~3%) and guests (~12–14%). Take rate grew from 11.4% in FY2015 to 14.1% in 9M 2020 — evidence of increasing pricing power.</p>
+            </div>
+            <div class="glass-panel rounded-xl p-6">
+                <h4 class="font-semibold text-blue-600 mb-3 text-sm uppercase tracking-wide">Scale</h4>
+                <p class="text-sm text-gray-600 leading-relaxed">326.9M nights booked in FY2019 across 4M+ listings in 220 countries. Gross Booking Value of $38.0B. Revenue of $4.8B. COVID cut bookings 41% in FY2020E.</p>
+            </div>
+            <div class="glass-panel rounded-xl p-6">
+                <h4 class="font-semibold text-blue-600 mb-3 text-sm uppercase tracking-wide">Unit Economics</h4>
+                <p class="text-sm text-gray-600 leading-relaxed">75% gross margin (stable 2015–2020). ADR rose from $111 to $124 despite COVID — mix shift to rural/premium properties. FCF positive in 2017–2019.</p>
+            </div>
+        </div>
+
+        <!-- Historical financials chart -->
+        <div class="glass-panel rounded-2xl p-6">
+            <h4 class="font-semibold text-gray-900 mb-1">Revenue & Adj. EBITDA — FY2015 to 9M FY2020 ($M)</h4>
+            <p class="text-xs text-gray-400 mb-4">Source: Airbnb S-1 Prospectus, SEC EDGAR</p>
+            <div class="chart-box">
+                <canvas id="revChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 3. INVESTMENT THESIS ── -->
+    <section>
+        <span class="section-label">03 · Investment Thesis</span>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <h3 class="font-semibold text-emerald-700 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <span class="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center text-xs">▲</span>
+                    Bull Case Drivers
+                </h3>
+                <ul class="space-y-4">
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-emerald-500 mt-0.5 flex-shrink-0 font-bold">▲</span>
+                        <span><strong class="text-gray-800">Platform moat deepening.</strong> Marketing spend fell from 43% to 22% of revenue (2015–2020), indicating brand is sustaining demand without paid acquisition — Booking Holdings spends 35%+.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-emerald-500 mt-0.5 flex-shrink-0 font-bold">▲</span>
+                        <span><strong class="text-gray-800">Domestic STR outperforming.</strong> US domestic STR demand was +24% vs 2019 by H1 2021 (AirDNA). Work-from-anywhere extended stays; average stay length +6.2% since 2019.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-emerald-500 mt-0.5 flex-shrink-0 font-bold">▲</span>
+                        <span><strong class="text-gray-800">Take rate structurally higher.</strong> Rose from 11.4% (2015) to 14.1% (2020). Hosts have limited alternatives; pricing power is real and not competed away.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-emerald-500 mt-0.5 flex-shrink-0 font-bold">▲</span>
+                        <span><strong class="text-gray-800">Capital light, FCF-generative at scale.</strong> $505M FCF in FY2018. Structural FCF margin of 13.8% in peak year, no physical assets on balance sheet.</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-red-600 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <span class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center text-xs">▼</span>
+                    Bear Case / Key Risks
+                </h3>
+                <ul class="space-y-4">
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-red-400 mt-0.5 flex-shrink-0 font-bold">▼</span>
+                        <span><strong class="text-gray-800">Valuation implies ~$100B EV at IPO.</strong> Day-1 open at $146 implies EV/Rev 2019 of 20x — Booking Holdings trades at 5.4x. Requires sustained hyper-growth to justify.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-red-400 mt-0.5 flex-shrink-0 font-bold">▼</span>
+                        <span><strong class="text-gray-800">Profitability timeline is uncertain.</strong> Adj. EBITDA was -$253M in FY2019 (heavy investment year) and -$230M in 9M 2020. GAAP net income never positive pre-IPO.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-red-400 mt-0.5 flex-shrink-0 font-bold">▼</span>
+                        <span><strong class="text-gray-800">COVID recovery pace is the entire model.</strong> Revenue fell 32% YoY in 9M 2020. Base case assumes UNWTO 50%-of-2019 international arrivals recovery in 2021 — highly uncertain as of Dec 2020.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-600 leading-relaxed">
+                        <span class="text-red-400 mt-0.5 flex-shrink-0 font-bold">▼</span>
+                        <span><strong class="text-gray-800">Post-IPO dilution and leverage.</strong> $2B emergency debt (9.5%/15.1% tranches) + heavy SBC at IPO. FCF conversion will be penalised for several years.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 4. VALUATION — DCF ── -->
+    <section>
+        <span class="section-label">04 · DCF Valuation</span>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="glass-panel rounded-xl p-6">
+                <h4 class="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Key Assumptions</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between py-2 border-b border-blue-50"><span class="text-gray-500">WACC</span><span class="font-semibold text-gray-900">6.79%</span></div>
+                    <div class="flex justify-between py-2 border-b border-blue-50"><span class="text-gray-500">Risk-Free Rate (Dec 2020)</span><span class="font-semibold text-gray-900">0.93%</span></div>
+                    <div class="flex justify-between py-2 border-b border-blue-50"><span class="text-gray-500">Equity Risk Premium</span><span class="font-semibold text-gray-900">4.72% (Damodaran)</span></div>
+                    <div class="flex justify-between py-2 border-b border-blue-50"><span class="text-gray-500">Beta (high-growth tech)</span><span class="font-semibold text-gray-900">1.22</span></div>
+                    <div class="flex justify-between py-2 border-b border-blue-50"><span class="text-gray-500">Net Cash (IPO)</span><span class="font-semibold text-gray-900">$3.3B</span></div>
+                    <div class="flex justify-between py-2"><span class="text-gray-500">Shares Outstanding</span><span class="font-semibold text-gray-900">611M (FD)</span></div>
+                </div>
+            </div>
+            <div class="glass-panel rounded-xl p-6">
+                <h4 class="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Scenario Output</h4>
+                <div class="scenario-bar bull">
+                    <span class="text-xs font-bold text-emerald-700 w-12 flex-shrink-0">BULL</span>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Rapid recovery, 3.5% TGR</span>
+                            <span class="font-bold text-emerald-700">$65.04</span>
+                        </div>
+                        <div class="mt-1 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-400 rounded-full" style="width:96%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-bar base">
+                    <span class="text-xs font-bold text-blue-700 w-12 flex-shrink-0">BASE</span>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Gradual recovery, 2.5% TGR</span>
+                            <span class="font-bold text-blue-700">$40.28</span>
+                        </div>
+                        <div class="mt-1 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-400 rounded-full" style="width:59%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-bar bear">
+                    <span class="text-xs font-bold text-orange-700 w-12 flex-shrink-0">BEAR</span>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Slow recovery, 1.5% TGR</span>
+                            <span class="font-bold text-orange-700">$23.64</span>
+                        </div>
+                        <div class="mt-1 h-1.5 bg-orange-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-orange-400 rounded-full" style="width:35%"></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-4">vs IPO price $68 — all three scenarios below IPO price.</p>
+            </div>
+        </div>
+
+        <!-- Sensitivity table -->
+        <div class="glass-panel rounded-xl p-6">
+            <h4 class="font-semibold text-gray-900 mb-1 text-sm uppercase tracking-wide">Sensitivity: Price/Share vs WACC</h4>
+            <p class="text-xs text-gray-400 mb-4">Highlighted row = base WACC of 6.79%. Green = above IPO price $68. Red = furthest below.</p>
+            <div class="overflow-x-auto">
+                <table class="sens-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left">WACC</th>
+                            <th>Bull ($)</th>
+                            <th>Base ($)</th>
+                            <th>Bear ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-left font-medium text-gray-600">5.76%</td>
+                            <td class="above">92.99</td>
+                            <td class="above">51.76</td>
+                            <td>28.20</td>
+                        </tr>
+                        <tr>
+                            <td class="text-left font-medium text-gray-600 highlight">6.79% ★</td>
+                            <td class="highlight">65.04</td>
+                            <td class="highlight">40.28</td>
+                            <td class="highlight">23.64</td>
+                        </tr>
+                        <tr>
+                            <td class="text-left font-medium text-gray-600">7.60%</td>
+                            <td>52.78</td>
+                            <td>34.45</td>
+                            <td>21.11</td>
+                        </tr>
+                        <tr>
+                            <td class="text-left font-medium text-gray-600">8.56%</td>
+                            <td>43.37</td>
+                            <td>29.57</td>
+                            <td>18.87</td>
+                        </tr>
+                        <tr>
+                            <td class="text-left font-medium text-gray-600">9.43%</td>
+                            <td>37.50</td>
+                            <td class="below">26.34</td>
+                            <td class="below">17.32</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 5. COMPARABLES ── -->
+    <section>
+        <span class="section-label">05 · Trading Comparables</span>
+        <p class="text-sm text-gray-500 mb-5">All multiples as of December 10, 2020. LTM = FY2019 (pre-COVID). Airbnb metrics from S-1 Prospectus.</p>
+        <div class="glass-panel rounded-2xl p-4 overflow-x-auto">
+            <table class="comps-table">
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>EV/Rev (LTM)</th>
+                        <th>EV/EBITDA</th>
+                        <th>EV/GBV</th>
+                        <th>Gross Margin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Booking Holdings (BKNG)</td><td>5.4x</td><td>13.9x</td><td>0.85x</td><td>~85%</td></tr>
+                    <tr><td>Expedia Group (EXPE)</td><td>2.0x</td><td>11.2x</td><td>0.22x</td><td>~78%</td></tr>
+                    <tr><td>TripAdvisor (TRIP)</td><td>2.2x</td><td>14.2x</td><td>N/D</td><td>~76%</td></tr>
+                    <tr><td>Marriott International (MAR)</td><td>2.2x</td><td>13.7x</td><td>N/A</td><td>~30%</td></tr>
+                    <tr><td>Hilton Worldwide (HLT)</td><td>3.4x</td><td>13.3x</td><td>N/A</td><td>~30%</td></tr>
+                    <tr><td>Uber Technologies (UBER)</td><td>6.1x</td><td>N/M</td><td>1.34x</td><td>~54%</td></tr>
+                    <tr><td>Etsy (ETSY)</td><td>21.6x</td><td>62.8x</td><td>3.41x</td><td>~68%</td></tr>
+                    <tr class="airbnb-row">
+                        <td>Airbnb — at IPO $68 ★</td>
+                        <td>~14.1x</td>
+                        <td>N/M</td>
+                        <td>1.77x</td>
+                        <td>75%</td>
+                    </tr>
+                    <tr class="airbnb-row">
+                        <td>Airbnb — at DCF Base $40</td>
+                        <td>~8.3x</td>
+                        <td>N/M</td>
+                        <td>1.04x</td>
+                        <td>75%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pull-quote mt-6">
+            At the $68 IPO price, Airbnb's EV/Rev was ~14x on FY2019 revenue — 2.5× Booking Holdings and in line with Etsy, despite being EBITDA-negative and COVID-impaired. The comps analysis confirms the IPO premium was entirely sentiment and scarcity-driven, not fundamentals.
+        </div>
+    </section>
+
+    <!-- ── 6. CONCLUSION ── -->
+    <section>
+        <span class="section-label">06 · Conclusion</span>
+        <div class="glass-panel rounded-2xl p-8">
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600 brand-font mb-1">$40.28</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide">Base DCF Fair Value</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-red-500 brand-font mb-1">▼ Overvalued</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide">vs $68 IPO Price</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gray-700 brand-font mb-1">DCF + Comps</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide">Methodology</div>
+                </div>
+            </div>
+            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                Airbnb is a structurally excellent business — platform economics, strong gross margins, genuine moat. But the $68 IPO price and $146 Day-1 open reflect sentiment, scarcity of newly-listed quality growth names, and post-COVID optimism that a bottom-up DCF cannot validate. Our base case implies the stock needed to fall to $40 for it to be fairly priced on fundamentals.
+            </p>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                This analysis demonstrates a core principle of pre-IPO valuation: DCF models set a floor, not a ceiling, for high-growth consumer platforms in a low rate, risk-on environment. The analyst's job is to understand where the market is pricing in narrative — and whether that narrative has a reasonable path to fruition.
+            </p>
+        </div>
+    </section>
+
+    <!-- Disclosure -->
+    <div class="disclosure">
+        <p><strong>Disclosure:</strong> This report is produced for educational and portfolio demonstration purposes only. It does not constitute investment advice. All data sourced from Airbnb S-1 Prospectus (filed November 16, 2020, SEC EDGAR), UNWTO World Tourism Barometer (December 2020), AirDNA, and publicly available market data as of December 10, 2020. Past analysis does not guarantee future results.</p>
+        <p class="mt-2">© 2026 Harsh Walia · Equity Research Portfolio</p>
+    </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="border-t border-blue-100 bg-white py-8 text-center text-sm text-gray-400 mt-8">
+    <a href="../index.html" class="text-blue-600 hover:underline font-medium brand-font">HW</a>
+    <span class="mx-3 text-gray-200">·</span>
+    Equity Research Portfolio
+</footer>
+
+<script>
+// ── Revenue + EBITDA chart ──
+const ctx = document.getElementById('revChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['FY2015','FY2016','FY2017','FY2018','FY2019','9M 2020'],
+        datasets: [
+            {
+                label: 'Revenue ($M)',
+                data: [919, 1656, 2562, 3652, 4805, 2519],
+                backgroundColor: 'rgba(37,99,235,0.75)',
+                borderRadius: 5,
+                order: 2
+            },
+            {
+                label: 'Adj. EBITDA ($M)',
+                data: [-94, -53, 60, 171, -253, -230],
+                type: 'line',
+                borderColor: '#f97316',
+                backgroundColor: 'rgba(249,115,22,0.1)',
+                pointBackgroundColor: '#f97316',
+                pointRadius: 5,
+                tension: 0.3,
+                fill: false,
+                order: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top', labels: { font: { size: 12 }, boxWidth: 14 } },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}M`
+                }
+            }
+        },
+        scales: {
+            y: {
+                grid: { color: 'rgba(59,130,246,0.06)' },
+                ticks: { callback: v => '$'+v.toLocaleString()+'M', font: { size: 11 } }
+            },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+    }
+});
+
+// ── Back-navigation: restore research section ──
+window.addEventListener('load', () => {
+    const backLinks = document.querySelectorAll('a[href*="index.html"]');
+    backLinks.forEach(l => {
+        l.addEventListener('click', () => {
+            sessionStorage.setItem('openSection', 'research');
+        });
+    });
+});
+</script>
+</body>
+</html>

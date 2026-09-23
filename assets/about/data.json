@@ -1,0 +1,63 @@
+{
+  "about": {
+    "name": "Harsh Walia",
+    "title": "MSc Investments",
+    "bio": "I am an MSc Investments student at the University of Birmingham. I research listed companies, build the valuation models behind that research, and publish both here. Most of my work is in equity research and valuation — discounted cash flow, dividend discount and residual income models — built in Excel and Python.",
+    "technicalSkills": [
+      {
+        "name": "Valuation modelling — DCF, DDM, residual income, trading comparables"
+      },
+      {
+        "name": "Financial statement analysis and forecasting"
+      },
+      {
+        "name": "Python and Stata for financial data and econometrics"
+      },
+      {
+        "name": "Excel — financial modelling, Power Query, VBA"
+      }
+    ],
+    "education": {
+      "degree": "MSc Investments",
+      "university": "University of Birmingham",
+      "duration": "2025–2026"
+    }
+  },
+  "projects": [
+    {
+      "id": "valuation-workbench",
+      "title": "Valuation Workbench",
+      "summary": "Takes a company's financials and produces a full DCF with sensitivity analysis, replacing hours of repetitive modelling."
+    },
+    {
+      "id": "halma",
+      "title": "Halma PLC — Valuation Model",
+      "summary": "Residual income and dividend discount models for Halma, with forecast statements and sensitivity output. Method and limitations stated."
+    },
+    {
+      "id": "securitization-simulation",
+      "title": "Securitisation Dashboard",
+      "summary": "How a securitisation is structured, tranched and priced, with a runnable simulation of cash flows and losses."
+    },
+    {
+      "id": "dcf-practice",
+      "title": "DCF Practice Tool",
+      "summary": "Randomised DCF exercises across three difficulty modes, with sensitivity charts and worked solutions."
+    },
+    {
+      "id": "residual-practice",
+      "title": "Residual Income Practice Tool",
+      "summary": "Randomised residual income model exercises with step-by-step worked solutions."
+    },
+    {
+      "id": "ddm-practice",
+      "title": "Dividend Discount Practice Tool",
+      "summary": "Randomised DDM exercises across three modes, with sensitivity charts and worked solutions."
+    },
+    {
+      "id": "retirement-calculator",
+      "title": "Retirement Planner",
+      "summary": "Python-backed retirement calculator — solve for retirement age, required contribution, or final corpus, in multiple currencies."
+    }
+  ]
+}

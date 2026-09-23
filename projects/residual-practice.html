@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIM Practice Tool | HW Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#2563EB; --blue-d:#1d4ed8; --blue-l:#eff6ff; --blue-m:#dbeafe;
+  --dark:#0f172a; --mid:#334155; --muted:#64748b; --border:#e2e8f0;
+  --bg:#f8fafc; --white:#fff; --green:#10b981; --green-p:#d1fae5;
+  --red:#ef4444; --red-p:#fee2e2; --amber:#f59e0b; --amber-p:#fef3c7;
+  --violet:#7c3aed; --violet-l:#f5f3ff; --violet-m:#ede9fe;
+  --mono:'IBM Plex Mono',monospace; --head:'Space Grotesk',sans-serif; --body:'Lato',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--bg);color:var(--dark);min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.logo{font-family:var(--head);font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-back{font-size:.82rem;color:var(--blue);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:.4rem}
+.nav-back:hover{text-decoration:underline}
+.hero{padding:3rem 2rem 2rem;max-width:1300px;margin:80px auto 0}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue-l);color:var(--blue);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;margin-bottom:1rem;border:1px solid var(--blue-m)}
+.hero h1{font-family:var(--head);font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:.95rem;color:var(--muted);max-width:560px;line-height:1.75;margin-bottom:1.75rem}
+.score-chips{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem}
+.sc{background:white;border:1px solid var(--border);border-radius:8px;padding:.4rem .85rem;font-family:var(--head);font-size:.72rem;font-weight:700;display:flex;align-items:center;gap:.45rem}
+.sc .v{font-family:var(--mono);font-size:.88rem}
+.sc.g .v{color:var(--green)}.sc.r .v{color:var(--red)}.sc.b .v{color:var(--blue)}.sc.a .v{color:var(--amber)}
+.prog-wrap{flex:1;min-width:100px;height:5px;background:var(--border);border-radius:100px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),#06b6d4);border-radius:100px;transition:width .4s;width:0%}
+.mode-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+.mode-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.mp{padding:.45rem 1.1rem;border-radius:8px;font-family:var(--head);font-size:.78rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.mp.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.mp:not(.active):hover{background:var(--blue-l);color:var(--blue)}
+.diff-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.dp{padding:.45rem 1rem;border-radius:8px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.dp.active{color:white;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.dp[data-d="easy"].active{background:#10b981}.dp[data-d="medium"].active{background:#f59e0b}.dp[data-d="hard"].active{background:#ef4444}
+.dp:not(.active):hover{background:var(--bg)}
+.refresh-btn{margin-left:auto;display:flex;align-items:center;gap:.6rem;padding:.55rem 1.4rem;background:var(--blue);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.refresh-btn:hover{background:var(--blue-d);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.refresh-btn svg{transition:transform .5s}.refresh-btn:hover svg{transform:rotate(180deg)}
+.main-grid{max-width:1300px;margin:0 auto;padding:0 2rem 5rem;display:grid;grid-template-columns:1fr 420px;gap:1.5rem;align-items:start}
+.panel{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.panel-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.panel-head h3{font-family:var(--head);font-size:.85rem;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:.5rem}
+.ph-icon{width:26px;height:26px;border-radius:7px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:.82rem}
+.panel-body{padding:1.25rem}
+.tab-bar{display:flex;gap:.35rem;padding:.3rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.tab{padding:.4rem .9rem;border-radius:7px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .15s}
+.tab.active{background:white;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tab:not(.active):hover{color:var(--dark)}
+.co-header{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#0891b2 100%);color:white;padding:1.5rem 1.75rem;border-radius:14px;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.co-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%}
+.co-header::after{content:'';position:absolute;bottom:-30px;right:60px;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%}
+.co-name{font-family:var(--head);font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem}
+.co-sector{font-size:.72rem;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+.co-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.co-kpi{background:rgba(255,255,255,.12);border-radius:8px;padding:.6rem .75rem}
+.co-kpi-label{font-size:.6rem;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.2rem}
+.co-kpi-val{font-family:var(--mono);font-size:.9rem;font-weight:600}
+.fin-table{width:100%;font-size:.78rem;border-collapse:collapse}
+.fin-table th{font-family:var(--head);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:.6rem .75rem;text-align:right;border-bottom:2px solid var(--border);background:var(--bg)}
+.fin-table th:first-child{text-align:left}
+.fin-table td{padding:.55rem .75rem;text-align:right;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.78rem;color:var(--mid)}
+.fin-table td:first-child{text-align:left;font-family:var(--body);font-weight:600;color:var(--dark);font-size:.78rem}
+.fin-table tr:last-child td{border-bottom:none}
+.fin-table tr.subtotal td{background:var(--blue-l);font-weight:700;color:var(--blue-d)}
+.fin-table tr.total-row td{background:#1e3a8a;color:white;font-weight:700}
+.fin-table tr.total-row td:first-child{color:white}
+.fin-table .neg{color:var(--red)}.fin-table .pos{color:var(--green)}
+.fin-table .indent{padding-left:1.5rem;color:var(--muted);font-weight:400}
+.section-label{font-family:var(--head);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);padding:.5rem .75rem;background:var(--blue-l);border-radius:6px;margin:.75rem 0 .4rem}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.info-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem}
+.info-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.info-val{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--dark)}
+.info-card.hl{background:var(--blue-l);border-color:var(--blue-m)}.info-card.hl .info-val{color:var(--blue)}
+.info-card.hl-green{background:var(--green-p);border-color:#a7f3d0}.info-card.hl-green .info-val{color:#065f46}
+.info-card.hl-amber{background:var(--amber-p);border-color:#fde68a}.info-card.hl-amber .info-val{color:#92400e}
+.info-card.full{grid-column:1/-1}
+.formula-box{background:var(--blue-l);border:1px solid var(--blue-m);border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem;font-size:.76rem;line-height:1.8;color:var(--mid)}
+.formula-box .eq{font-family:var(--mono);font-size:.72rem;color:#1e40af;display:block;margin:.25rem 0;padding:.2rem .5rem;background:rgba(37,99,235,.07);border-radius:4px}
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;background:var(--violet-l);border:1px solid var(--violet-m);border-radius:10px;margin-bottom:1rem;cursor:pointer;user-select:none}
+.toggle-label-wrap .t-label{font-size:.78rem;font-weight:700;color:var(--violet);font-family:var(--head)}
+.toggle-label-wrap .t-sub{font-size:.66rem;color:var(--muted);margin-top:.1rem}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:#cbd5e1;border-radius:100px;transition:.3s;cursor:pointer}
+.slider::before{content:'';position:absolute;width:16px;height:16px;background:white;border-radius:50%;bottom:3px;left:3px;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked + .slider{background:var(--violet)}
+input:checked + .slider::before{transform:translateX(16px)}
+/* RI BREAKDOWN */
+.ri-breakdown{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem;animation:fDn .25s ease}
+@keyframes fDn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ri-break-head{background:#f5f3ff;padding:.55rem 1rem;font-family:var(--head);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--violet);border-bottom:1px solid var(--violet-m)}
+.ri-step-table{width:100%;font-size:.77rem;border-collapse:collapse}
+.ri-step-table td{padding:.45rem .9rem;border-bottom:1px solid var(--border)}
+.ri-step-table td:first-child{color:var(--mid)}
+.ri-step-table td:last-child{font-family:var(--mono);text-align:right;font-weight:600}
+.ri-step-table tr:last-child td{border-bottom:none}
+.ri-step-table tr.ri-total td{background:var(--blue-l);color:var(--blue-d);font-weight:700}
+.ri-step-table .pos{color:var(--green)}.ri-step-table .neg{color:var(--red)}.ri-step-table .blue{color:var(--blue)}
+/* ANSWER PANEL */
+.ans-section{display:flex;flex-direction:column;gap:1rem}
+.ans-group{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem}
+.ans-title{font-family:var(--head);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--mid);margin-bottom:.75rem}
+.ans-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.ans-row:last-child{margin-bottom:0}
+.ans-label{font-size:.78rem;color:var(--mid);flex:1;line-height:1.4}
+.ans-input-wrap{display:flex;align-items:center;gap:.4rem}
+.ans-input{width:115px;padding:.45rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--dark);background:white;outline:none;transition:border-color .2s;text-align:right}
+.ans-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.ans-input.correct{border-color:var(--green);background:var(--green-p);color:#065f46}
+.ans-input.wrong{border-color:var(--red);background:var(--red-p);color:#991b1b}
+.ans-unit{font-size:.68rem;color:var(--muted);font-weight:700;font-family:var(--head);white-space:nowrap;min-width:32px}
+.check-btn{width:100%;padding:.7rem;background:var(--blue);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.5rem}
+.check-btn:hover{background:var(--blue-d);transform:translateY(-1px)}
+.reveal-btn{width:100%;padding:.55rem;background:white;color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:var(--head);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.4rem}
+.reveal-btn:hover{background:var(--bg);color:var(--dark)}
+.result-banner{padding:.7rem 1rem;border-radius:10px;font-size:.78rem;font-weight:700;align-items:flex-start;gap:.5rem;margin-top:.75rem;line-height:1.55;display:none}
+.result-banner.show{display:flex}
+.result-banner.pass{background:var(--green-p);color:#065f46;border:1px solid #6ee7b7}
+.result-banner.fail{background:var(--red-p);color:#991b1b;border:1px solid #fca5a5}
+/* WORKINGS */
+.workings{display:none}
+.workings.show{display:block}
+.work-head{font-family:var(--head);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--mid);margin:1rem 0 .5rem;display:flex;align-items:center;gap:.5rem}
+.work-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.work-table{width:100%;font-size:.76rem;border-collapse:collapse;margin-bottom:.65rem}
+.work-table th{font-family:var(--head);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:.45rem .7rem;text-align:right;border-bottom:2px solid var(--border);background:var(--bg)}
+.work-table th:first-child{text-align:left}
+.work-table td{padding:.42rem .7rem;text-align:right;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.74rem;color:var(--mid)}
+.work-table td:first-child{text-align:left;font-family:var(--body);font-weight:500;color:var(--dark)}
+.work-table tr:last-child td{border-bottom:none}
+.work-table tr.sub td{background:var(--blue-l);font-weight:700;color:var(--blue-d);border-top:1px solid var(--blue-m)}
+.work-table tr.grand td{background:#1e3a8a;color:white;font-weight:700}
+.work-table .neg{color:var(--red)}.work-table .pos{color:var(--green)}
+/* HINT */
+.hint-toggle{background:none;border:none;font-size:.72rem;color:var(--blue);cursor:pointer;font-family:var(--head);font-weight:600;padding:.3rem .5rem;border-radius:6px;transition:background .2s}
+.hint-toggle:hover{background:var(--blue-l)}
+.hint-box{background:var(--amber-p);border:1px solid #fde68a;border-radius:9px;padding:.8rem 1rem;margin-top:.5rem;font-size:.77rem;color:var(--mid);line-height:1.75;display:none}
+.hint-box.show{display:block}
+.hint-box strong{color:#92400e}
+.mode-badge{display:inline-flex;align-items:center;background:var(--amber-p);border:1px solid #fde68a;color:#92400e;font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .75rem;border-radius:100px;margin-bottom:.85rem}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">HW</a>
+  <a href="../index.html#home" class="nav-back">← Back to Projects</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">📊 Valuation Practice</div>
+  <h1>Residual Income<br><span>Model Practice</span></h1>
+  <p>Master RIM valuation — from computing a single period's residual income to deriving equity value from raw financial statements. Three modes, unlimited problems.</p>
+  <div class="score-chips">
+    <div class="sc g"><span class="v" id="sc-correct">0</span> Correct</div>
+    <div class="sc r"><span class="v" id="sc-wrong">0</span> Wrong</div>
+    <div class="sc b"><span class="v" id="sc-total">0</span> Attempts</div>
+    <div class="sc a"><span class="v" id="sc-streak">0🔥</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="progressFill"></div></div>
+  </div>
+  <div class="mode-bar">
+    <div class="mode-pills">
+      <button class="mp active" data-m="guided"   onclick="setMode('guided',this)">Mode 1 — Guided</button>
+      <button class="mp"        data-m="standard" onclick="setMode('standard',this)">Mode 2 — Standard</button>
+      <button class="mp"        data-m="full"     onclick="setMode('full',this)">Mode 3 — Full Statements</button>
+    </div>
+    <div class="diff-pills">
+      <button class="dp active" data-d="easy"   onclick="setDiff('easy',this)">Easy</button>
+      <button class="dp"        data-d="medium" onclick="setDiff('medium',this)">Medium</button>
+      <button class="dp"        data-d="hard"   onclick="setDiff('hard',this)">Hard</button>
+    </div>
+    <button class="refresh-btn" onclick="newQuestion()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      New Question
+    </button>
+  </div>
+</div>
+
+<div class="main-grid" id="mainGrid"></div>
+
+<footer style="border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:.78rem;color:var(--muted)">
+  © 2026 Harsh Walia · RIM Practice Tool · All calculations are for educational purposes
+</footer>
+
+<script>
+let mode='guided', difficulty='easy', q=null;
+let score={correct:0,wrong:0,total:0,streak:0};
+
+const ri =(a,b)=>Math.round(a+Math.random()*(b-a));
+const rf =(a,b,d=1)=>+(a+Math.random()*(b-a)).toFixed(d);
+const rnd=(v,d=1)=>+v.toFixed(d);
+const fmt=(v,d=1)=>v.toFixed(d);
+
+const COS=[
+  {name:'Meridian Holdings',sector:'Industrials'},
+  {name:'Apex Capital PLC',sector:'Financials'},
+  {name:'Crestwood Group',sector:'Consumer Staples'},
+  {name:'Harlow Industries',sector:'Materials'},
+  {name:'Blackwell Retail',sector:'Consumer Discretionary'},
+  {name:'Forsythe Energy',sector:'Energy'},
+  {name:'Vantage Pharma',sector:'Healthcare'},
+  {name:'Pinnacle Tech PLC',sector:'Technology'},
+];
+
+function generateQuestion(){
+  const co=COS[Math.floor(Math.random()*COS.length)];
+  let bv0,ni0,ke,shares,years,tg,niGPct,payR;
+  if(difficulty==='easy'){
+    bv0=ri(200,600);ni0=ri(40,120);ke=rf(8,12);shares=ri(50,200);
+    years=3;tg=2.0;niGPct=0;payR=0.4;
+  }else if(difficulty==='medium'){
+    bv0=ri(400,1200);ni0=ri(80,250);ke=rf(9,14);shares=ri(100,500);
+    years=4;tg=rf(1.5,3.0);niGPct=rf(3,8,1);payR=rf(0.3,0.5,2);
+  }else{
+    bv0=ri(600,2000);ni0=ri(100,400);ke=rf(10,16);shares=ri(150,800);
+    years=5;tg=rf(1.5,3.5);niGPct=rf(4,10,1);payR=rf(0.25,0.55,2);
+  }
+  const Ke=ke/100,Tg=tg/100,Ng=niGPct/100;
+  let bv=bv0,ni=ni0;
+  const proj=[];
+  for(let t=1;t<=years;t++){
+    if(t>1&&Ng>0) ni=rnd(ni*(1+Ng));
+    const ec=rnd(bv*Ke),rim=rnd(ni-ec),div=rnd(ni*payR),bvEnd=rnd(bv+ni-div),pv=rnd(rim/Math.pow(1+Ke,t));
+    proj.push({t,bvStart:rnd(bv),ni:rnd(ni),ec,rim,div,bvEnd,pv});
+    bv=bvEnd;
+  }
+  const lp=proj[years-1];
+  const termRI=rnd(lp.ni*(1+Tg)-lp.bvEnd*(1+Tg)*Ke);
+  const termTV=rnd(termRI/(Ke-Tg));
+  const pvTV=rnd(termTV/Math.pow(1+Ke,years));
+  const pvSum=rnd(proj.reduce((s,y)=>s+y.pv,0));
+  const eqVal=rnd(bv0+pvSum+pvTV);
+  const price=rnd(eqVal/shares*100);
+  // Full mode financials
+  const rev=ri(300,2000),opMgn=rf(12,30,1);
+  const ebit=rnd(rev*opMgn/100),intExp=ri(5,50),ebt=rnd(ebit-intExp);
+  const taxR=rf(18,25,1),taxAmt=rnd(ebt*taxR/100);
+  const ppe=ri(200,800),intang=ri(30,150),recv=ri(60,250),inv=ri(40,180),cashBS=ri(30,120);
+  const currA=recv+inv+cashBS,totalA=ppe+intang+currA;
+  const retE=ri(80,Math.max(100,bv0-50)),shareC=rnd(bv0-retE);
+  const totalLiab=rnd(totalA-bv0),currL=ri(50,Math.min(200,Math.round(totalLiab*0.45))),longL=rnd(totalLiab-currL);
+  return{co,bv0,ni0,ke,Ke,shares,years,tg,Tg,niGPct,Ng,payR,proj,termRI,termTV,pvTV,pvSum,eqVal,price,
+    rev,opMgn,ebit,intExp,ebt,taxR,taxAmt,ppe,intang,recv,inv,cashBS,currA,totalA,retE,shareC,totalLiab,currL,longL};
+}
+
+function render(){
+  const g=document.getElementById('mainGrid');
+  if(mode==='guided') g.innerHTML=renderGuided();
+  else if(mode==='standard') g.innerHTML=renderStandard();
+  else g.innerHTML=renderFull();
+}
+
+// ══ MODE 1 — GUIDED ══════════════════════════════════════════════════════════
+function renderGuided(){
+  const y=q.proj[0];
+  return`<div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">📐</span>${q.co.name}</h3></div>
+      <div class="panel-body">
+        <div class="mode-badge">Mode 1 — Guided · Single Year Focus</div>
+        <div class="co-header">
+          <div class="co-name">${q.co.name}</div><div class="co-sector">${q.co.sector}</div>
+          <div class="co-kpis">
+            <div class="co-kpi"><div class="co-kpi-label">BV Equity (t=0)</div><div class="co-kpi-val">£${q.bv0}m</div></div>
+            <div class="co-kpi"><div class="co-kpi-label">Net Income (Yr 1)</div><div class="co-kpi-val">£${q.ni0}m</div></div>
+            <div class="co-kpi"><div class="co-kpi-label">Cost of Equity</div><div class="co-kpi-val">${q.ke}%</div></div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-card hl"><div class="info-label">Book Value of Equity (t=0)</div><div class="info-val">£${q.bv0}m</div></div>
+          <div class="info-card hl"><div class="info-label">Net Income (Year 1)</div><div class="info-val">£${q.ni0}m</div></div>
+          <div class="info-card"><div class="info-label">Cost of Equity (Ke)</div><div class="info-val">${q.ke}%</div></div>
+          <div class="info-card"><div class="info-label">Dividends Paid (Year 1)</div><div class="info-val">£${y.div}m</div></div>
+          <div class="info-card full"><div class="info-label">Shares Outstanding</div><div class="info-val">${q.shares}m shares</div></div>
+        </div>
+        <div class="formula-box">
+          <strong style="font-family:var(--head);font-size:.73rem;color:var(--dark)">RIM Formulae</strong>
+          <span class="eq">Equity Charge  =  BV Equity(t−1)  ×  Ke</span>
+          <span class="eq">Residual Income (RI)  =  Net Income  −  Equity Charge</span>
+          <span class="eq">BV Equity(t)  =  BV(t−1) + NI − Dividends</span>
+          <span class="eq">PV(RI)  =  RI ÷ (1 + Ke)ᵗ</span>
+        </div>
+        <button class="hint-toggle" onclick="toggleHint()">💡 Show hint</button>
+        <div class="hint-box" id="hintBox">
+          <strong>Step-by-step:</strong><br>
+          1. Equity Charge = £${q.bv0}m × ${q.ke}% = <em>?</em><br>
+          2. RI = NI − EC = £${q.ni0}m − <em>your EC above</em><br>
+          3. Updated BV = £${q.bv0}m + £${q.ni0}m − £${y.div}m<br>
+          4. PV(RI) = RI ÷ (1 + ${q.ke}%)¹
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">✏️</span>Your Answers</h3></div>
+      <div class="panel-body">
+        <div class="ans-section">
+          <div class="ans-group">
+            <div class="ans-title">Step 1 — Equity Charge</div>
+            <div class="ans-row"><span class="ans-label">Equity Charge (BV₀ × Ke)</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_ec" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Step 2 — Residual Income</div>
+            <div class="ans-row"><span class="ans-label">Residual Income (NI − EC)</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_ri" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Step 3 — Updated Book Value</div>
+            <div class="ans-row"><span class="ans-label">BV Equity end of Year 1</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_bv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Step 4 — PV of Residual Income</div>
+            <div class="ans-row"><span class="ans-label">PV of Year 1 RI</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_pv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <button class="check-btn" onclick="checkGuided()">Check Answers</button>
+          <button class="reveal-btn" onclick="revealGuided()">Reveal Answers</button>
+          <div class="result-banner" id="resultBanner"></div>
+          <div class="workings" id="workings"></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function checkGuided(){
+  const y=q.proj[0];
+  const ok=markFields([{id:'in_ec',ans:y.ec},{id:'in_ri',ans:y.rim},{id:'in_bv',ans:y.bvEnd},{id:'in_pv',ans:y.pv}],1.5);
+  updateScore(ok);
+  showBanner(ok,`EC=£${y.ec}m · RI=£${y.rim}m · BV₁=£${y.bvEnd}m · PV=£${y.pv}m`);
+  showGuidedWork();
+}
+function revealGuided(){
+  const y=q.proj[0];
+  sv('in_ec',y.ec,'correct');sv('in_ri',y.rim,'correct');sv('in_bv',y.bvEnd,'correct');sv('in_pv',y.pv,'correct');
+  showBanner(true,'Answers revealed.');showGuidedWork();
+}
+function showGuidedWork(){
+  const y=q.proj[0];
+  const w=document.getElementById('workings');w.className='workings show';
+  w.innerHTML=`<div class="work-head">Solution Workings</div>
+  <table class="work-table">
+    <thead><tr><th>Step</th><th>Calculation</th><th>£m</th></tr></thead>
+    <tbody>
+      <tr><td>Equity Charge</td><td>£${q.bv0}m × ${q.ke}%</td><td>${fmt(y.ec)}</td></tr>
+      <tr><td>Residual Income</td><td>£${q.ni0}m − £${y.ec}m</td><td>${fmt(y.rim)}</td></tr>
+      <tr><td>Dividends paid</td><td>Given</td><td class="neg">(${fmt(y.div)})</td></tr>
+      <tr><td>BV Equity (end Yr 1)</td><td>£${q.bv0}m + £${q.ni0}m − £${y.div}m</td><td>${fmt(y.bvEnd)}</td></tr>
+      <tr class="sub"><td>PV of RI (Yr 1)</td><td>£${y.rim}m ÷ (1+${q.ke}%)¹</td><td>${fmt(y.pv)}</td></tr>
+    </tbody>
+  </table>`;
+}
+
+// ══ MODE 2 — STANDARD ════════════════════════════════════════════════════════
+function renderStandard(){
+  const rows=q.proj.map((y,i)=>`<tr>
+    <td>Year ${y.t}</td><td>${fmt(y.bvStart)}</td><td>${fmt(y.ni)}</td>
+    <td>${i===0?'—':q.niGPct+'%'}</td><td>${fmt(y.div)}</td></tr>`).join('');
+  return`<div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">📊</span>${q.co.name}</h3></div>
+      <div class="panel-body">
+        <div class="mode-badge">Mode 2 — Standard · ${q.years}-Year Model</div>
+        <div class="co-header">
+          <div class="co-name">${q.co.name}</div><div class="co-sector">${q.co.sector}</div>
+          <div class="co-kpis">
+            <div class="co-kpi"><div class="co-kpi-label">BV Equity (t=0)</div><div class="co-kpi-val">£${q.bv0}m</div></div>
+            <div class="co-kpi"><div class="co-kpi-label">Cost of Equity</div><div class="co-kpi-val">${q.ke}%</div></div>
+            <div class="co-kpi"><div class="co-kpi-label">Terminal Growth</div><div class="co-kpi-val">${q.tg}%</div></div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-card hl"><div class="info-label">BV Equity (t=0)</div><div class="info-val">£${q.bv0}m</div></div>
+          <div class="info-card hl"><div class="info-label">Cost of Equity (Ke)</div><div class="info-val">${q.ke}%</div></div>
+          <div class="info-card"><div class="info-label">Terminal Growth Rate</div><div class="info-val">${q.tg}%</div></div>
+          <div class="info-card"><div class="info-label">Shares Outstanding</div><div class="info-val">${q.shares}m</div></div>
+          ${q.niGPct>0?`<div class="info-card hl-amber full"><div class="info-label">NI Growth Rate (Years 2+)</div><div class="info-val">${q.niGPct}%</div></div>`:''}
+        </div>
+        <div class="section-label">Annual Data — Given</div>
+        <table class="fin-table">
+          <thead><tr><th>Year</th><th>BV Start (£m)</th><th>Net Income (£m)</th><th>NI Growth</th><th>Dividends (£m)</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="formula-box" style="margin-top:.9rem">
+          <strong style="font-family:var(--head);font-size:.73rem;color:var(--dark)">Formulae</strong>
+          <span class="eq">Equity Charge(t)  =  BV(t−1) × Ke</span>
+          <span class="eq">RI(t)  =  NI(t) − Equity Charge(t)</span>
+          <span class="eq">Terminal RI  =  NI(T)×(1+g) − BV(T)×(1+g)×Ke</span>
+          <span class="eq">Terminal Value  =  Terminal RI ÷ (Ke − g)</span>
+          <span class="eq">Equity Value  =  BV₀  +  Σ PV(RIₜ)  +  PV(Terminal Value)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">✏️</span>Key Answers</h3></div>
+      <div class="panel-body">
+        <div class="ans-section">
+          <div class="ans-group">
+            <div class="ans-title">Terminal Value</div>
+            <div class="ans-row"><span class="ans-label">Terminal Residual Income</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_termri" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+            <div class="ans-row"><span class="ans-label">Terminal Value (TV)</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_tv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Equity Valuation</div>
+            <div class="ans-row"><span class="ans-label">Total Equity Value</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_ev" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+            <div class="ans-row"><span class="ans-label">Intrinsic Share Price</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_sp" type="number" placeholder="0" step="1"><span class="ans-unit">pence</span></div></div>
+          </div>
+          <button class="check-btn" onclick="checkStandard()">Check Answers</button>
+          <button class="reveal-btn" onclick="revealStandard()">Reveal Answers</button>
+          <div class="result-banner" id="resultBanner"></div>
+          <div class="workings" id="workings"></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function checkStandard(){
+  const ok=markFields([{id:'in_termri',ans:q.termRI},{id:'in_tv',ans:q.termTV},{id:'in_ev',ans:q.eqVal},{id:'in_sp',ans:q.price}],2.5,{in_sp:6});
+  updateScore(ok);
+  showBanner(ok,`TermRI=£${q.termRI}m · TV=£${q.termTV}m · Equity=£${q.eqVal}m · Price=${q.price}p`);
+  showStandardWork();
+}
+function revealStandard(){
+  sv('in_termri',q.termRI,'correct');sv('in_tv',q.termTV,'correct');sv('in_ev',q.eqVal,'correct');sv('in_sp',q.price,'correct');
+  showBanner(true,'Answers revealed.');showStandardWork();
+}
+function showStandardWork(){
+  const lp=q.proj[q.years-1];
+  const rows=q.proj.map(y=>`<tr>
+    <td>Year ${y.t}</td><td>${fmt(y.bvStart)}</td><td>${fmt(y.ni)}</td>
+    <td class="neg">(${fmt(y.ec)})</td><td class="${y.rim>=0?'pos':'neg'}">${fmt(y.rim)}</td><td>${fmt(y.pv)}</td></tr>`).join('');
+  const w=document.getElementById('workings');w.className='workings show';
+  w.innerHTML=`
+  <div class="work-head">Year-by-Year RI</div>
+  <table class="work-table">
+    <thead><tr><th>Year</th><th>BV Start</th><th>NI</th><th>Eq Charge</th><th>RI</th><th>PV(RI)</th></tr></thead>
+    <tbody>${rows}
+      <tr class="sub"><td colspan="5">Σ PV of Residual Incomes</td><td>${fmt(q.pvSum)}</td></tr>
+    </tbody>
+  </table>
+  <div class="work-head">Terminal Value</div>
+  <table class="work-table"><tbody>
+    <tr><td>NI(T)×(1+g)</td><td>${fmt(lp.ni)}×(1+${q.tg}%)</td><td>${fmt(lp.ni*(1+q.Tg))}</td></tr>
+    <tr><td>BV(T)×(1+g)×Ke</td><td>${fmt(lp.bvEnd)}×(1+${q.tg}%)×${q.ke}%</td><td class="neg">(${fmt(lp.bvEnd*(1+q.Tg)*q.Ke)})</td></tr>
+    <tr><td>Terminal RI</td><td></td><td>${fmt(q.termRI)}</td></tr>
+    <tr><td>TV = TermRI ÷ (Ke−g)</td><td>${fmt(q.termRI)} ÷ (${q.ke}%−${q.tg}%)</td><td>${fmt(q.termTV)}</td></tr>
+    <tr class="sub"><td>PV of TV</td><td>÷ (1+${q.ke}%)^${q.years}</td><td>${fmt(q.pvTV)}</td></tr>
+  </tbody></table>
+  <div class="work-head">Equity Value Bridge</div>
+  <table class="work-table"><tbody>
+    <tr><td>BV Equity (t=0)</td><td></td><td>${fmt(q.bv0)}</td></tr>
+    <tr><td>+ Σ PV of RIs</td><td></td><td class="pos">+${fmt(q.pvSum)}</td></tr>
+    <tr><td>+ PV of Terminal Value</td><td></td><td class="pos">+${fmt(q.pvTV)}</td></tr>
+    <tr class="grand"><td>Equity Value</td><td></td><td>${fmt(q.eqVal)}</td></tr>
+    <tr class="sub"><td>Intrinsic Share Price</td><td>£${fmt(q.eqVal)}m ÷ ${q.shares}m × 100</td><td>${fmt(q.price)}p</td></tr>
+  </tbody></table>`;
+}
+
+// ══ MODE 3 — FULL STATEMENTS ═════════════════════════════════════════════════
+function renderFull(){
+  const y1=q.proj[0];
+  return`<div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">📋</span>${q.co.name} — Financial Statements</h3></div>
+      <div class="panel-body">
+        <div class="mode-badge">Mode 3 — Full Statements · Derive everything from scratch</div>
+        <div class="tab-bar">
+          <button class="tab active" onclick="showTab('is',this)">Income Statement</button>
+          <button class="tab" onclick="showTab('bs',this)">Balance Sheet</button>
+        </div>
+        <div id="tab-is">
+          <div class="section-label">Income Statement — Year 1</div>
+          <table class="fin-table">
+            <thead><tr><th>Line Item</th><th>£m</th></tr></thead>
+            <tbody>
+              <tr><td>Revenue</td><td>${fmt(q.rev)}</td></tr>
+              <tr><td class="indent">Cost of Sales</td><td class="neg">(${fmt(q.rev-q.ebit)})</td></tr>
+              <tr class="subtotal"><td>EBIT</td><td>${fmt(q.ebit)}</td></tr>
+              <tr><td class="indent">Net Interest Expense</td><td class="neg">(${fmt(q.intExp)})</td></tr>
+              <tr class="subtotal"><td>Profit Before Tax</td><td>${fmt(q.ebt)}</td></tr>
+              <tr><td class="indent">Income Tax (${fmt(q.taxR,0)}%)</td><td class="neg">(${fmt(q.taxAmt)})</td></tr>
+              <tr class="total-row"><td>Net Income</td><td style="color:#fbbf24;font-style:italic;font-weight:700">→ You derive this</td></tr>
+            </tbody>
+          </table>
+          <div class="info-grid" style="margin-top:.85rem">
+            <div class="info-card"><div class="info-label">NI Growth (Years 2+)</div><div class="info-val">${q.niGPct>0?q.niGPct+'%':'Flat'}</div></div>
+            <div class="info-card"><div class="info-label">Payout Ratio</div><div class="info-val">${fmt(q.payR*100,0)}% of NI</div></div>
+          </div>
+        </div>
+        <div id="tab-bs" style="display:none">
+          <div class="section-label">Balance Sheet — t = 0 (Start of Year 1)</div>
+          <table class="fin-table">
+            <thead><tr><th>Assets</th><th>£m</th><th>Liabilities & Equity</th><th>£m</th></tr></thead>
+            <tbody>
+              <tr><td>PPE (net)</td><td>${q.ppe}</td><td>Long-term Liabilities</td><td>${fmt(q.longL)}</td></tr>
+              <tr><td>Intangibles</td><td>${q.intang}</td><td>Current Liabilities</td><td>${q.currL}</td></tr>
+              <tr><td>Trade Receivables</td><td>${q.recv}</td><td>Total Liabilities</td><td>${fmt(q.totalLiab)}</td></tr>
+              <tr><td>Inventory</td><td>${q.inv}</td><td>Share Capital</td><td>${fmt(q.shareC)}</td></tr>
+              <tr><td>Cash & Equivalents</td><td>${q.cashBS}</td><td>Retained Earnings</td><td>${q.retE}</td></tr>
+              <tr class="subtotal"><td>Total Assets</td><td>${fmt(q.totalA)}</td><td>Total Equity (BV₀)</td><td style="color:#f59e0b;font-style:italic">→ You derive this</td></tr>
+            </tbody>
+          </table>
+          <div class="info-grid" style="margin-top:.85rem">
+            <div class="info-card hl-green full"><div class="info-label">Hint: Balance Sheet Identity</div><div class="info-val" style="font-size:.8rem">Total Assets = Total Liabilities + Total Equity</div></div>
+          </div>
+        </div>
+        <div class="section-label" style="margin-top:.9rem">Valuation Parameters — Given</div>
+        <div class="info-grid">
+          <div class="info-card hl"><div class="info-label">Cost of Equity (Ke)</div><div class="info-val">${q.ke}%</div></div>
+          <div class="info-card hl"><div class="info-label">Terminal Growth (g)</div><div class="info-val">${q.tg}%</div></div>
+          <div class="info-card"><div class="info-label">Projection Horizon</div><div class="info-val">${q.years} years</div></div>
+          <div class="info-card"><div class="info-label">Shares Outstanding</div><div class="info-val">${q.shares}m</div></div>
+        </div>
+        <label class="toggle-row" onclick="toggleRIBreak()">
+          <div class="toggle-label-wrap">
+            <div class="t-label">Show how RI is calculated from Net Income</div>
+            <div class="t-sub">Reveals Year 1 step-by-step RI derivation</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="riToggle" onchange="toggleRIBreak()">
+            <span class="slider"></span>
+          </label>
+        </label>
+        <div id="riBreakBox" style="display:none">
+          <div class="ri-breakdown">
+            <div class="ri-break-head">📐 Year 1 — Deriving RI from Net Income</div>
+            <table class="ri-step-table">
+              <tr><td>Net Income (IS: PBT − Tax = £${fmt(q.ebt)}m − £${fmt(q.taxAmt)}m)</td><td class="pos">£${fmt(q.ni0)}m</td></tr>
+              <tr><td>Book Value of Equity t=0 (BS: Total Assets − Total Liabilities)</td><td>£${fmt(q.bv0)}m</td></tr>
+              <tr><td>Equity Charge = BV₀ × Ke = £${fmt(q.bv0)}m × ${q.ke}%</td><td class="neg">−£${fmt(y1.ec)}m</td></tr>
+              <tr class="ri-total"><td><strong>Residual Income = NI − Equity Charge</strong></td><td class="${y1.rim>=0?'blue':'neg'}">£${fmt(y1.rim)}m</td></tr>
+              <tr><td>Dividends (${fmt(q.payR*100,0)}% × NI)</td><td class="neg">−£${fmt(y1.div)}m</td></tr>
+              <tr><td>BV Equity (end Yr 1) = BV₀ + NI − Div</td><td>£${fmt(y1.bvEnd)}m</td></tr>
+              <tr><td>PV(RI₁) = £${fmt(y1.rim)}m ÷ (1 + ${q.ke}%)¹</td><td class="blue">£${fmt(y1.pv)}m</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <div class="panel-head"><h3><span class="ph-icon">✏️</span>Key Answers</h3></div>
+      <div class="panel-body">
+        <div class="ans-section">
+          <div class="ans-group">
+            <div class="ans-title">Extract from Statements</div>
+            <div class="ans-row"><span class="ans-label">Net Income Year 1 (from IS)</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_ni" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+            <div class="ans-row"><span class="ans-label">Book Value of Equity t=0 (from BS)</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_bv0" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Terminal Value</div>
+            <div class="ans-row"><span class="ans-label">Terminal Residual Income</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_termri" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+            <div class="ans-row"><span class="ans-label">Terminal Value</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_tv" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+          </div>
+          <div class="ans-group">
+            <div class="ans-title">Equity Value</div>
+            <div class="ans-row"><span class="ans-label">Total Equity Value</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_ev" type="number" placeholder="0.0" step="0.1"><span class="ans-unit">£m</span></div></div>
+            <div class="ans-row"><span class="ans-label">Intrinsic Share Price</span>
+              <div class="ans-input-wrap"><input class="ans-input" id="in_sp" type="number" placeholder="0" step="1"><span class="ans-unit">pence</span></div></div>
+          </div>
+          <button class="check-btn" onclick="checkFull()">Check Answers</button>
+          <button class="reveal-btn" onclick="revealFull()">Reveal Answers</button>
+          <div class="result-banner" id="resultBanner"></div>
+          <div class="workings" id="workings"></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function checkFull(){
+  const ok=markFields([{id:'in_ni',ans:q.ni0},{id:'in_bv0',ans:q.bv0},{id:'in_termri',ans:q.termRI},{id:'in_tv',ans:q.termTV},{id:'in_ev',ans:q.eqVal},{id:'in_sp',ans:q.price}],2.5,{in_sp:6});
+  updateScore(ok);
+  showBanner(ok,`NI=£${q.ni0}m · BV₀=£${q.bv0}m · TV=£${q.termTV}m · Equity=£${q.eqVal}m · Price=${q.price}p`);
+  showFullWork();
+}
+function revealFull(){
+  sv('in_ni',q.ni0,'correct');sv('in_bv0',q.bv0,'correct');sv('in_termri',q.termRI,'correct');
+  sv('in_tv',q.termTV,'correct');sv('in_ev',q.eqVal,'correct');sv('in_sp',q.price,'correct');
+  showBanner(true,'Answers revealed.');showFullWork();
+}
+function showFullWork(){
+  const lp=q.proj[q.years-1];
+  const rows=q.proj.map(y=>`<tr>
+    <td>Year ${y.t}</td><td>${fmt(y.bvStart)}</td><td>${fmt(y.ni)}</td>
+    <td class="neg">(${fmt(y.ec)})</td><td class="${y.rim>=0?'pos':'neg'}">${fmt(y.rim)}</td><td>${fmt(y.pv)}</td></tr>`).join('');
+  const w=document.getElementById('workings');w.className='workings show';
+  w.innerHTML=`
+  <div class="work-head">Step 1 — From Statements</div>
+  <table class="work-table"><tbody>
+    <tr><td>Net Income (PBT − Tax = £${fmt(q.ebt)}m − £${fmt(q.taxAmt)}m)</td><td class="pos">£${fmt(q.ni0)}m</td></tr>
+    <tr><td>BV Equity t=0 (Total Assets − Total Liabilities = £${fmt(q.totalA)}m − £${fmt(q.totalLiab)}m)</td><td class="pos">£${fmt(q.bv0)}m</td></tr>
+  </tbody></table>
+  <div class="work-head">Step 2 — Year-by-Year RI</div>
+  <table class="work-table">
+    <thead><tr><th>Year</th><th>BV Start</th><th>NI</th><th>Eq Charge</th><th>RI</th><th>PV(RI)</th></tr></thead>
+    <tbody>${rows}
+      <tr class="sub"><td colspan="5">Σ PV of Residual Incomes</td><td>${fmt(q.pvSum)}</td></tr>
+    </tbody>
+  </table>
+  <div class="work-head">Step 3 — Terminal Value</div>
+  <table class="work-table"><tbody>
+    <tr><td>NI(T)×(1+g)</td><td>${fmt(lp.ni)}×(1+${q.tg}%)</td><td>${fmt(lp.ni*(1+q.Tg))}</td></tr>
+    <tr><td>BV(T)×(1+g)×Ke</td><td>${fmt(lp.bvEnd)}×(1+${q.tg}%)×${q.ke}%</td><td class="neg">(${fmt(lp.bvEnd*(1+q.Tg)*q.Ke)})</td></tr>
+    <tr><td>Terminal RI</td><td></td><td>${fmt(q.termRI)}</td></tr>
+    <tr><td>TV = TermRI ÷ (Ke−g)</td><td>${fmt(q.termRI)} ÷ (${q.ke}%−${q.tg}%)</td><td>${fmt(q.termTV)}</td></tr>
+    <tr class="sub"><td>PV of TV</td><td>÷ (1+${q.ke}%)^${q.years}</td><td>${fmt(q.pvTV)}</td></tr>
+  </tbody></table>
+  <div class="work-head">Step 4 — Equity Value</div>
+  <table class="work-table"><tbody>
+    <tr><td>BV Equity (t=0)</td><td></td><td>${fmt(q.bv0)}</td></tr>
+    <tr><td>+ Σ PV of RIs</td><td></td><td class="pos">+${fmt(q.pvSum)}</td></tr>
+    <tr><td>+ PV of Terminal Value</td><td></td><td class="pos">+${fmt(q.pvTV)}</td></tr>
+    <tr class="grand"><td>Equity Value</td><td></td><td>${fmt(q.eqVal)}</td></tr>
+    <tr class="sub"><td>Share Price</td><td>£${fmt(q.eqVal)}m ÷ ${q.shares}m × 100</td><td>${fmt(q.price)}p</td></tr>
+  </tbody></table>`;
+}
+
+// ── SHARED ────────────────────────────────────────────────────────────────
+function markFields(fields,defTol,custom={}){
+  let all=true;
+  fields.forEach(({id,ans})=>{
+    const el=document.getElementById(id);if(!el)return;
+    const tol=custom[id]??defTol,val=parseFloat(el.value);
+    const ok=!isNaN(val)&&Math.abs(val-ans)<=tol;
+    el.className='ans-input '+(ok?'correct':'wrong');
+    if(!ok)all=false;
+  });
+  return all;
+}
+function sv(id,v,cls){
+  const el=document.getElementById(id);if(!el)return;
+  el.value=typeof v==='number'?v.toFixed(1):v;
+  if(cls)el.className='ans-input '+cls;
+}
+function showBanner(ok,msg){
+  const b=document.getElementById('resultBanner');if(!b)return;
+  b.className='result-banner show '+(ok?'pass':'fail');
+  b.innerHTML=(ok?'✅ <strong>Correct!</strong> ':'❌ <strong>Not quite.</strong> ')+msg;
+}
+function toggleHint(){
+  const h=document.getElementById('hintBox');if(!h)return;
+  h.classList.toggle('show');
+  const btn=document.querySelector('.hint-toggle');
+  if(btn)btn.textContent=h.classList.contains('show')?'🙈 Hide hint':'💡 Show hint';
+}
+function toggleRIBreak(){
+  const box=document.getElementById('riBreakBox'),chk=document.getElementById('riToggle');
+  if(!box)return;
+  const show=box.style.display==='none';
+  box.style.display=show?'block':'none';
+  if(chk)chk.checked=show;
+}
+function showTab(id,el){
+  ['is','bs'].forEach(t=>{const p=document.getElementById('tab-'+t);if(p)p.style.display=t===id?'block':'none';});
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+function updateScore(ok){
+  score.total++;
+  if(ok){score.correct++;score.streak++;}else{score.wrong++;score.streak=0;}
+  document.getElementById('sc-correct').textContent=score.correct;
+  document.getElementById('sc-wrong').textContent=score.wrong;
+  document.getElementById('sc-total').textContent=score.total;
+  document.getElementById('sc-streak').textContent=score.streak+'🔥';
+  document.getElementById('progressFill').style.width=Math.min(score.total/10*100,100)+'%';
+}
+function setMode(m,el){
+  mode=m;document.querySelectorAll('.mp').forEach(b=>b.classList.remove('active'));el.classList.add('active');newQuestion();
+}
+function setDiff(d,el){
+  difficulty=d;document.querySelectorAll('.dp').forEach(b=>b.classList.remove('active'));el.classList.add('active');newQuestion();
+}
+function newQuestion(){q=generateQuestion();render();window.scrollTo({top:0,behavior:'smooth'});}
+newQuestion();
+</script>
+</body>
+</html>

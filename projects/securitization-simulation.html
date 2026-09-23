@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Securitisation Simulator — MSc Risk Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f7f4;--white:#fff;--border:#e0dbd2;--border2:#cbc4b8;
+  --ink:#1a1814;--ink2:#44403a;--ink3:#857e76;
+  --blue:#1d4ed8;--blue-l:#dbeafe;--blue-m:#93c5fd;
+  --teal:#0f766e;--teal-l:#ccfbf1;--teal-m:#5eead4;
+  --purple:#6d28d9;--purple-l:#ede9fe;--purple-m:#c4b5fd;
+  --orange:#c2410c;--orange-l:#fff7ed;--orange-m:#fed7aa;
+  --red:#b91c1c;--red-l:#fee2e2;--red-m:#fca5a5;
+  --green:#15803d;--green-l:#dcfce7;--green-m:#86efac;
+  --sh:0 1px 4px rgba(0,0,0,.07),0 4px 18px rgba(0,0,0,.06);
+  --sh2:0 4px 28px rgba(0,0,0,.13);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5}
+
+/* HEADER */
+.hdr{background:var(--white);border-bottom:1.5px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.hdr-title{font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--ink)}
+.hdr-title span{color:var(--blue)}
+.hdr-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.hdr-stats{display:flex;gap:22px;align-items:center}
+.hs{text-align:center}
+.hs-v{font-family:'Lora',serif;font-size:16px;font-weight:700}
+.hs-v.g{color:var(--green)}.hs-v.r{color:var(--red)}.hs-v.b{color:var(--blue)}
+.hs-l{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--green)}
+.live::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:lp 2s infinite}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* PAGE */
+.page{max-width:1320px;margin:0 auto;padding:28px 40px 70px}
+.sec{margin-bottom:28px}
+.sec-lbl{font-family:'Lora',serif;font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.badge{background:var(--ink);color:#fff;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--sh)}
+
+/* STATS */
+.stat-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.sb{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:15px 18px;box-shadow:var(--sh)}
+.sb-v{font-family:'Lora',serif;font-size:21px;font-weight:700;color:var(--ink)}
+.sb-v.b{color:var(--blue)}.sb-v.g{color:var(--green)}.sb-v.r{color:var(--red)}.sb-v.o{color:var(--orange)}
+.sb-l{font-size:10px;color:var(--ink3);font-weight:500;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* HOUSES */
+.hg{display:grid;grid-template-columns:repeat(20,1fr);gap:5px;margin-bottom:12px}
+.hcell{display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;user-select:none}
+.hcell svg{width:100%;transition:transform .18s ease;transform-origin:bottom center}
+.hcell:hover svg{transform:scale(1.25) translateY(-2px)}
+.hcell:hover .htt{opacity:1}
+.hv{font-size:5.5px;color:var(--ink3);margin-top:1px;text-align:center;font-weight:500}
+.htt{position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:7px 10px;border-radius:8px;font-size:10.5px;white-space:nowrap;opacity:0;pointer-events:none;z-index:300;line-height:1.7;box-shadow:var(--sh2);transition:opacity .15s}
+.htt::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
+.hcell.gone svg{animation:boom .6s ease-out forwards;pointer-events:none}
+@keyframes boom{0%{transform:scale(1);opacity:1}40%{transform:scale(1.3) rotate(-8deg);opacity:1}100%{transform:scale(0) rotate(20deg) translateY(-20px);opacity:0}}
+.hcell.gone .hv{opacity:0}
+.leg{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}
+.lic{width:16px;height:16px;flex-shrink:0}
+
+/* FLOW */
+.flow-row{display:grid;grid-template-columns:1fr 90px 200px 90px 1fr;gap:0;align-items:center;min-height:180px;padding:8px 0}
+.fn{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fn-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3)}
+.fn-v{font-family:'Lora',serif;font-size:18px;font-weight:700}
+.fn-s{font-size:11px;color:var(--ink3)}
+.farrow{width:100%;height:80px;display:block}
+.spv-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.spv-body-row{display:flex;height:52px;width:168px;position:relative}
+.spv-cargo{flex:1;background:var(--blue-l);border:2px solid var(--blue-m);border-radius:7px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.spv-cabin{width:50px;background:var(--blue);border-radius:0 7px 0 0;display:flex;align-items:center;justify-content:center}
+.spv-win{width:30px;height:18px;background:#bfdbfe;border-radius:3px}
+.spv-under{height:13px;width:168px;background:var(--border);border-radius:0 0 5px 5px}
+.spv-wheels{display:flex;justify-content:space-between;padding:0 20px;margin-top:-6px;position:relative;z-index:2;width:168px}
+.spv-w{width:22px;height:22px;border-radius:50%;background:var(--ink);border:3px solid var(--border);position:relative}
+.spv-w::after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--border2)}
+.spv-tag{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue)}
+.spv-val{font-family:'Lora',serif;font-size:13px;font-weight:700;color:var(--blue)}
+.spv-pulse{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--blue-m);animation:spvp 2.5s ease-in-out infinite;opacity:0}
+@keyframes spvp{0%{opacity:.7;transform:scale(.9)}100%{opacity:0;transform:scale(1.1)}}
+
+/* TRANCHES */
+.tranche-layout{display:grid;grid-template-columns:230px 1fr;gap:28px;align-items:start}
+.bldg{display:flex;flex-direction:column;gap:3px}
+.bldg-title{text-align:center;font-family:'Lora',serif;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
+.tb{border-radius:9px;padding:11px 14px;cursor:pointer;border:2px solid transparent;transition:transform .15s,box-shadow .2s}
+.tb:hover{transform:translateX(4px);box-shadow:var(--sh2)}
+.tb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.tb-name{font-size:13px;font-weight:700}
+.rtag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
+.tb-row{display:flex;justify-content:space-between;align-items:flex-end}
+.tb-yield{font-family:'Lora',serif;font-size:17px;font-weight:700}
+.tb-ylbl{font-size:9px;color:var(--ink3)}
+.tb-val{font-family:'Lora',serif;font-size:14px;font-weight:700;text-align:right}
+.tb-sz{font-size:9px;color:var(--ink3);text-align:right}
+.tb-bar{height:3px;background:rgba(0,0,0,.07);border-radius:99px;margin-top:7px;overflow:hidden}
+.tb-fill{height:100%;border-radius:99px;transition:width .9s ease}
+.t-aaa{background:var(--blue-l);border-color:var(--blue-m)}.t-aaa .tb-name,.t-aaa .tb-yield,.t-aaa .tb-val{color:var(--blue)}.t-aaa .rtag{background:var(--blue-m);color:var(--blue)}.t-aaa .tb-fill{background:var(--blue)}
+.t-aa{background:#eff6ff;border-color:#bfdbfe}.t-aa .tb-name,.t-aa .tb-yield,.t-aa .tb-val{color:#1e40af}.t-aa .rtag{background:#bfdbfe;color:#1e40af}.t-aa .tb-fill{background:#1e40af}
+.t-a{background:var(--teal-l);border-color:var(--teal-m)}.t-a .tb-name,.t-a .tb-yield,.t-a .tb-val{color:var(--teal)}.t-a .rtag{background:var(--teal-m);color:var(--teal)}.t-a .tb-fill{background:var(--teal)}
+.t-bbb{background:var(--purple-l);border-color:var(--purple-m)}.t-bbb .tb-name,.t-bbb .tb-yield,.t-bbb .tb-val{color:var(--purple)}.t-bbb .rtag{background:var(--purple-m);color:var(--purple)}.t-bbb .tb-fill{background:var(--purple)}
+.t-eq{background:var(--orange-l);border-color:var(--orange-m)}.t-eq .tb-name,.t-eq .tb-yield,.t-eq .tb-val{color:var(--orange)}.t-eq .rtag{background:var(--orange-m);color:var(--orange)}.t-eq .tb-fill{background:var(--orange)}
+.loss-hint{text-align:center;font-size:10px;color:var(--ink3);margin-top:6px;font-style:italic}
+.total-box{margin-top:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;display:flex;justify-content:space-between;align-items:center}
+.total-lbl{font-size:12px;font-weight:600;color:var(--ink2)}
+.total-v{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--ink)}
+
+/* FORMULA / VAL TABLE */
+.formula-box{background:#fafaf8;border:1.5px solid var(--border);border-radius:10px;padding:15px 18px;font-size:13px;line-height:1.95;color:var(--ink2);margin-bottom:14px}
+.f-step{font-weight:600;color:var(--ink);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-top:8px;margin-bottom:1px}
+.f-step:first-child{margin-top:0}
+.f-eq{display:block;font-family:'Lora',serif;font-size:13.5px;color:var(--blue);padding:2px 0 2px 12px;border-left:3px solid var(--blue-m);margin:3px 0}
+.f-note{font-size:11px;color:var(--ink3);padding-left:12px;display:block}
+.vt{width:100%;border-collapse:collapse;font-size:12px}
+.vt th{background:var(--bg);text-align:left;padding:7px 11px;font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1.5px solid var(--border)}
+.vt td{padding:8px 11px;border-bottom:1px solid #f0ece6;vertical-align:middle}
+.vt tr:last-child td{border-bottom:none}
+.vt tr:hover td{background:#fafaf8}
+.vt tfoot td{font-weight:700;border-top:2px solid var(--border);border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* CONTROLS */
+.ctrl-row{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.ci{display:flex;flex-direction:column;gap:7px}
+.cl{font-size:12px;font-weight:600;color:var(--ink2)}
+.cv{font-family:'Lora',serif;font-size:30px;font-weight:700;color:var(--red)}
+.cv.neu{color:var(--ink)}
+input[type=range]{width:100%;height:5px;-webkit-appearance:none;background:var(--border);border-radius:99px;cursor:pointer;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.2);transition:transform .15s}
+input[type=range].neu::-webkit-slider-thumb{background:var(--blue)}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.cs{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:-2px}
+.wf-section{margin-top:20px}
+.wf-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.wf-labels{display:flex;gap:4px;margin-bottom:6px;font-size:10px;font-weight:700}
+.wf-bar{display:flex;height:36px;border-radius:8px;overflow:hidden;gap:2px;margin-bottom:8px}
+.wf-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;transition:all .8s;overflow:hidden;white-space:nowrap}
+.wf-seg.imp{opacity:.35}
+.wf-track{height:8px;background:#f0ece6;border-radius:99px;overflow:hidden}
+.wf-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--orange),var(--red));transition:width .9s ease}
+.wf-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-top:5px}
+.wf-status{font-weight:600}
+.wf-status.s{color:var(--green)}.wf-status.w{color:var(--orange)}.wf-status.d{color:var(--red)}
+
+/* ── CHARTS — BIG ── */
+.charts-full{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.chart-solo{margin-bottom:18px}
+.cc{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:22px 24px 16px;box-shadow:var(--sh)}
+.cc-head{margin-bottom:16px}
+.cc-title{font-family:'Lora',serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.cc-sub{font-size:12px;color:var(--ink3);line-height:1.5}
+.cc-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.cc-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2)}
+.cc-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+canvas{display:block;width:100%}
+
+/* GFC BUTTON */
+.gfc-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;background:#1a1814;color:#fff;font-family:'Lora',serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s;box-shadow:var(--sh2);letter-spacing:.2px}
+.gfc-btn:hover{background:#2d2926;transform:translateY(-1px)}
+.gfc-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.gfc-btn.stop{background:var(--red)}
+.reset-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:99px;border:1.5px solid var(--border2);background:transparent;color:var(--ink2);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.reset-btn:hover{background:var(--bg);border-color:var(--ink2)}
+
+/* GFC OVERLAY */
+.gfc-overlay{position:fixed;inset:0;background:rgba(10,8,6,.92);z-index:1000;display:flex;flex-direction:column;overflow:hidden}
+.gfc-overlay.hidden{display:none}
+.gfc-header{padding:20px 32px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+.gfc-title{font-family:'Lora',serif;font-size:20px;font-weight:700;color:#fff}
+.gfc-year{font-family:'Lora',serif;font-size:32px;font-weight:700;color:#ef4444;min-width:80px;text-align:right}
+.gfc-main{flex:1;display:grid;grid-template-columns:1fr 320px;gap:0;overflow:hidden}
+.gfc-stage{position:relative;padding:24px 28px;overflow:hidden}
+.gfc-sidebar{border-left:1px solid rgba(255,255,255,.08);padding:20px 22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+
+/* GFC HOUSES */
+.gfc-hg{display:grid;grid-template-columns:repeat(20,1fr);gap:4px;margin-bottom:20px}
+.gfc-hcell{display:flex;align-items:center;justify-content:center;transition:all .3s}
+.gfc-hcell svg{width:100%;transition:all .3s}
+.gfc-hcell.default svg{animation:gfcboom .5s ease-out forwards}
+@keyframes gfcboom{0%{transform:scale(1);opacity:1}35%{transform:scale(1.25) rotate(-6deg);opacity:1}100%{transform:scale(0);opacity:0}}
+
+/* GFC NARRATIVE */
+.gfc-stage-title{font-family:'Lora',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.gfc-stage-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:20px;line-height:1.6}
+.gfc-progress{margin-bottom:20px}
+.gfc-progress-label{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.gfc-steps{display:flex;gap:4px}
+.gfc-step{flex:1;height:4px;background:rgba(255,255,255,.12);border-radius:99px;transition:background .4s}
+.gfc-step.done{background:#ef4444}
+.gfc-step.active{background:#f97316;animation:stepPulse 1s ease-in-out infinite}
+@keyframes stepPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* GFC CANVAS */
+#gfcChart{display:block;width:100%;border-radius:8px}
+
+/* GFC Sidebar */
+.gfc-metric{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}
+.gfc-m-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.gfc-m-val{font-family:'Lora',serif;font-size:22px;font-weight:700;color:#fff}
+.gfc-m-val.danger{color:#ef4444}
+.gfc-m-val.warn{color:#f97316}
+.gfc-m-val.ok{color:#22c55e}
+.gfc-m-delta{font-size:11px;margin-top:2px}
+
+/* GFC EVENTS FEED */
+.gfc-feed{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+.gfc-event{padding:8px 10px;border-radius:7px;font-size:11px;line-height:1.6;animation:feedIn .4s ease-out}
+@keyframes feedIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.gfc-event.crisis{background:rgba(239,68,68,.15);border-left:3px solid #ef4444;color:#fca5a5}
+.gfc-event.warn{background:rgba(249,115,22,.12);border-left:3px solid #f97316;color:#fed7aa}
+.gfc-event.info{background:rgba(255,255,255,.05);border-left:3px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7)}
+.gfc-event-time{font-weight:700;margin-right:4px}
+.gfc-tranche-bars{display:flex;flex-direction:column;gap:5px}
+.gfc-tb-row{display:flex;align-items:center;gap:8px}
+.gfc-tb-label{font-size:10px;color:rgba(255,255,255,.5);width:36px;text-align:right;flex-shrink:0}
+.gfc-tb-track{flex:1;height:10px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.gfc-tb-fill{height:100%;border-radius:99px;transition:width 1s ease}
+.gfc-tb-pct{font-size:10px;font-weight:600;width:36px;flex-shrink:0}
+.gfc-close-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.gfc-close-btn:hover{background:rgba(255,255,255,.15)}
+.gfc-next-btn{background:#ef4444;border:none;color:#fff;padding:10px 22px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Lora',serif;transition:all .2s;flex-shrink:0}
+.gfc-next-btn:hover{background:#dc2626}
+.gfc-next-btn:disabled{opacity:.4;cursor:not-allowed}
+.gfc-btn-row{display:flex;gap:10px;align-items:center;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* IMPLICATIONS */
+.impl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.icard{border-radius:10px;padding:18px;border:1.5px solid transparent}
+.icard.lo1{background:var(--blue-l);border-color:var(--blue-m)}
+.icard.lo2{background:var(--purple-l);border-color:var(--purple-m)}
+.icard.lo3{background:var(--teal-l);border-color:var(--teal-m)}
+.icard.risk{background:var(--orange-l);border-color:var(--orange-m)}
+.icard.gfccard{background:var(--red-l);border-color:var(--red-m)}
+.icard.dyn{transition:all .4s}
+.ic-icon{font-size:22px;margin-bottom:7px}
+.ic-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.lo1 .ic-tag{color:var(--blue)}.lo2 .ic-tag{color:var(--purple)}.lo3 .ic-tag{color:var(--teal)}.risk .ic-tag{color:var(--orange)}.gfccard .ic-tag{color:var(--red)}
+.ic-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.ic-body{font-size:12px;color:var(--ink2);line-height:1.72}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,24,20,.45);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--white);border-radius:16px;padding:30px;max-width:480px;width:92%;box-shadow:var(--sh2);position:relative}
+.modal-close{position:absolute;top:12px;right:12px;background:var(--bg);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--border)}
+
+/* PARTICLES */
+.ptcl{position:fixed;pointer-events:none;z-index:9999;border-radius:50%;animation:fly .7s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:scale(1) translate(0,0)}100%{opacity:0;transform:scale(0) translate(var(--dx),var(--dy))}}
+
+@media(max-width:900px){
+  .page{padding:18px 16px 50px}
+  .stat-strip{grid-template-columns:repeat(3,1fr)}
+  .hg{grid-template-columns:repeat(10,1fr)}
+  .flow-row{grid-template-columns:1fr;gap:14px}
+  .tranche-layout{grid-template-columns:1fr}
+  .charts-full{grid-template-columns:1fr}
+  .impl-grid{grid-template-columns:1fr}
+  .ctrl-row{grid-template-columns:1fr}
+  .gfc-main{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Securitisation <span>Simulator</span></div>
+    <div class="hdr-sub">MSc Investments · Risk Management in Financial Markets · Dr Anandadeep Mandal</div>
+  </div>
+  <div class="hdr-stats">
+    <div class="hs"><div class="hs-v b" id="hPool">£25.0M</div><div class="hs-l">Pool</div></div>
+    <div class="hs"><div class="hs-v g" id="hCF">£112,500</div><div class="hs-l">Monthly CF</div></div>
+    <div class="hs"><div class="hs-v" id="hSec">£25.0M</div><div class="hs-l">Security</div></div>
+    <div class="hs"><div class="hs-v r" id="hDef">0</div><div class="hs-l">Defaults</div></div>
+    <div class="live">Live</div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- STATS -->
+<div class="stat-strip">
+  <div class="sb"><div class="sb-v b" id="svPool">£25.0M</div><div class="sb-l">Surviving Pool</div></div>
+  <div class="sb"><div class="sb-v g" id="svCF">£112,500</div><div class="sb-l">Monthly Cash Flow</div></div>
+  <div class="sb"><div class="sb-v"   id="svWAC">5.40%</div><div class="sb-l">Wtd. Avg. Coupon</div></div>
+  <div class="sb"><div class="sb-v"   id="svSec">£25.00M</div><div class="sb-l">Security Value</div></div>
+  <div class="sb"><div class="sb-v r" id="svDR">0%</div><div class="sb-l">Default Rate</div></div>
+</div>
+
+<!-- STEP 1: POOL -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">1</div>Mortgage Pool — 100 Residential Loans <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any house to default it</span></div>
+  <div class="card">
+    <div class="hg" id="houseGrid"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div class="leg">
+        <div class="li"><svg class="lic" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.2"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/><rect x="11" y="19" width="6" height="12" rx="1" fill="#1d4ed8"/><rect x="3" y="15" width="6" height="6" rx="1" fill="#93c5fd"/><rect x="19" y="15" width="6" height="6" rx="1" fill="#93c5fd"/></svg>Performing</div>
+        <div class="li"><svg class="lic" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#fff7ed" stroke="#c2410c" stroke-width="1.2"/><polygon points="14,0 28,12 0,12" fill="#c2410c"/><rect x="11" y="19" width="6" height="12" rx="1" fill="#c2410c"/><rect x="3" y="15" width="6" height="6" rx="1" fill="#fed7aa"/><rect x="19" y="15" width="6" height="6" rx="1" fill="#fed7aa"/></svg>Stressed</div>
+        <div class="li"><svg class="lic" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.2"/><polygon points="14,0 28,12 0,12" fill="#b91c1c"/><rect x="11" y="19" width="6" height="12" rx="1" fill="#b91c1c"/><rect x="3" y="15" width="6" height="6" rx="1" fill="#fca5a5"/><rect x="19" y="15" width="6" height="6" rx="1" fill="#fca5a5"/></svg>Defaulted</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="gfc-btn" id="gfcPlayBtn" onclick="launchGFC()">🎬 Replay 2008 Crisis</button>
+        <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: FLOW -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">2</div>Payment Flow → SPV → Investors</div>
+  <div class="card" style="padding:24px 28px">
+    <div class="flow-row">
+      <div class="fn">
+        <div class="fn-lbl">Mortgage Pool</div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:110px">
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+          <svg width="13" height="14" viewBox="0 0 28 32"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><polygon points="14,0 28,12 0,12" fill="#1d4ed8"/></svg>
+        </div>
+        <div class="fn-v" id="fnPool">£25.0M</div>
+        <div class="fn-s" id="fnActive" style="color:var(--green)">100 performing</div>
+        <div class="fn-s" style="font-size:10px;margin-top:2px">Monthly: <strong id="fnPMT" style="color:var(--green)">£112,500</strong></div>
+      </div>
+      <canvas id="arrow1" class="farrow"></canvas>
+      <div class="spv-wrap">
+        <div class="fn-lbl">Special Purpose Vehicle</div>
+        <div style="position:relative;margin:4px 0">
+          <div class="spv-pulse" style="position:absolute;inset:-8px;border-radius:10px;border:2px solid var(--blue-m);animation:spvp 2.5s ease-in-out infinite;opacity:0"></div>
+          <div class="spv-body-row">
+            <div class="spv-cargo"><div class="spv-tag">SPV</div><div class="spv-val" id="spvVal">£25.0M</div></div>
+            <div class="spv-cabin"><div class="spv-win"></div></div>
+          </div>
+          <div class="spv-under"></div>
+          <div class="spv-wheels"><div class="spv-w"></div><div class="spv-w"></div><div class="spv-w"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--ink3);text-align:center">Collecting: <strong id="spvMo" style="color:var(--green)">£112,500/mo</strong></div>
+        <div style="font-size:10px;color:var(--ink3);text-align:center">Bankruptcy-remote entity</div>
+      </div>
+      <canvas id="arrow2" class="farrow"></canvas>
+      <div class="fn">
+        <div class="fn-lbl">Investors</div>
+        <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:160px">
+          <div style="padding:7px 10px;background:var(--blue-l);border-radius:7px;font-size:11px;font-weight:600;color:var(--blue);display:flex;justify-content:space-between;align-items:center">🏛️ Pension Fund<span style="font-size:10px">AAA</span></div>
+          <div style="padding:7px 10px;background:var(--teal-l);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);display:flex;justify-content:space-between;align-items:center">🏦 Insurance Co<span style="font-size:10px">A/BBB</span></div>
+          <div style="padding:7px 10px;background:var(--orange-l);border-radius:7px;font-size:11px;font-weight:600;color:var(--orange);display:flex;justify-content:space-between;align-items:center">📈 Hedge Fund<span style="font-size:10px">Equity</span></div>
+        </div>
+        <div style="font-size:10px;color:var(--ink3);text-align:center;margin-top:4px">Receive tranched cash flows</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: TRANCHES -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">3</div>ABS Security — Tranches &amp; Valuation <span style="font-size:11px;font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0;margin-left:8px">Click any tranche for pricing detail</span></div>
+  <div class="card">
+    <div class="tranche-layout">
+      <div>
+        <div class="bldg-title">MBS / ABS Structure</div>
+        <div class="bldg">
+          <div class="tb t-aaa" onclick="openModal('aaa')"><div class="tb-top"><div class="tb-name">Senior A</div><div class="rtag">AAA</div></div><div class="tb-row"><div><div class="tb-yield" id="yAAA">3.2%</div><div class="tb-ylbl">coupon p.a.</div></div><div><div class="tb-val" id="vAAA">£13.75M</div><div class="tb-sz">55% · first paid</div></div></div><div class="tb-bar"><div class="tb-fill" id="bAAA" style="width:100%"></div></div></div>
+          <div class="tb t-aa"  onclick="openModal('aa')"><div class="tb-top"><div class="tb-name">Senior B</div><div class="rtag">AA</div></div><div class="tb-row"><div><div class="tb-yield" id="yAA">3.9%</div><div class="tb-ylbl">coupon p.a.</div></div><div><div class="tb-val" id="vAA">£3.75M</div><div class="tb-sz">15%</div></div></div><div class="tb-bar"><div class="tb-fill" id="bAA" style="width:100%"></div></div></div>
+          <div class="tb t-a"   onclick="openModal('a')"><div class="tb-top"><div class="tb-name">Mezzanine A</div><div class="rtag">A</div></div><div class="tb-row"><div><div class="tb-yield" id="yA">5.8%</div><div class="tb-ylbl">coupon p.a.</div></div><div><div class="tb-val" id="vA">£3.75M</div><div class="tb-sz">15%</div></div></div><div class="tb-bar"><div class="tb-fill" id="bA" style="width:100%"></div></div></div>
+          <div class="tb t-bbb" onclick="openModal('bbb')"><div class="tb-top"><div class="tb-name">Mezzanine B</div><div class="rtag">BBB</div></div><div class="tb-row"><div><div class="tb-yield" id="yBBB">7.5%</div><div class="tb-ylbl">coupon p.a.</div></div><div><div class="tb-val" id="vBBB">£1.25M</div><div class="tb-sz">5%</div></div></div><div class="tb-bar"><div class="tb-fill" id="bBBB" style="width:100%"></div></div></div>
+          <div class="tb t-eq"  onclick="openModal('eq')"><div class="tb-top"><div class="tb-name">Equity / First-Loss</div><div class="rtag">NR</div></div><div class="tb-row"><div><div class="tb-yield" id="yEQ">Residual</div><div class="tb-ylbl">target 12–18%</div></div><div><div class="tb-val" id="vEQ">£2.50M</div><div class="tb-sz">10% · first loss</div></div></div><div class="tb-bar"><div class="tb-fill" id="bEQ" style="width:100%"></div></div></div>
+        </div>
+        <div class="loss-hint">↑ Losses absorbed bottom-up · AAA last to be impaired</div>
+        <div class="total-box"><div class="total-lbl">Total Security Value</div><div class="total-v" id="totalSecVal">£25.00M</div></div>
+        <div style="text-align:center;font-size:11px;color:var(--ink3);margin-top:5px">Click any tranche for pricing detail</div>
+      </div>
+      <div>
+        <div style="font-family:'Lora',serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">How We Value This Security</div>
+        <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">PV of expected cash flows, discounted at tranche-specific rates, allocated by waterfall priority.</div>
+        <div class="formula-box">
+          <span class="f-step">Step 1 — Pool Cash Flow</span>
+          <span class="f-eq">CF<sub>pool</sub> = Σ B<sub>i</sub> × (r<sub>i</sub>/12) × (1 − PD<sub>i</sub>) × (1 − LGD)</span>
+          <span class="f-note">B = loan balance · r = mortgage rate · PD = default prob · LGD = 60%</span>
+          <span class="f-step">Step 2 — PV per Tranche</span>
+          <span class="f-eq">PV<sub>k</sub> = CF<sub>k</sub>/d<sub>k</sub> × [1−(1+d<sub>k</sub>)<sup>−n</sup>] + Face<sub>k</sub> × (1+d<sub>k</sub>)<sup>−n</sup></span>
+          <span class="f-note">d<sub>k</sub> = risk-free + tranche credit spread · n = 300 months</span>
+          <span class="f-step">Step 3 — Waterfall Allocation</span>
+          <span class="f-eq">NetLoss = Defaults × AvgBalance × LGD</span>
+          <span class="f-eq">V<sub>equity</sub> = max(Face<sub>EQ</sub> − NetLoss, 0)</span>
+          <span class="f-eq">V<sub>mezz</sub> = max(Face<sub>M</sub> − max(Loss−Face<sub>EQ</sub>,0), 0)</span>
+        </div>
+        <table class="vt">
+          <thead><tr><th>Tranche</th><th>Face</th><th>Disc. Rate</th><th>CF/mo</th><th class="num">Value</th><th class="num">Δ Par</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600;color:var(--blue)">AAA Senior A</td><td>£13.75M</td><td id="dAAA">5.4%</td><td id="cAAA">£3,667</td><td class="num" id="vtAAA">£13.75M</td><td class="num" id="dtAAA" style="color:var(--green)">—</td></tr>
+            <tr><td style="font-weight:600;color:#1e40af">AA Senior B</td><td>£3.75M</td><td id="dAA">5.7%</td><td id="cAA">£1,219</td><td class="num" id="vtAA">£3.75M</td><td class="num" id="dtAA" style="color:var(--green)">—</td></tr>
+            <tr><td style="font-weight:600;color:var(--teal)">A Mezzanine</td><td>£3.75M</td><td id="dA">7.3%</td><td id="cA">£1,813</td><td class="num" id="vtA">£3.75M</td><td class="num" id="dtA" style="color:var(--green)">—</td></tr>
+            <tr><td style="font-weight:600;color:var(--purple)">BBB Mezzanine</td><td>£1.25M</td><td id="dBBB">9.0%</td><td id="cBBB">£781</td><td class="num" id="vtBBB">£1.25M</td><td class="num" id="dtBBB" style="color:var(--green)">—</td></tr>
+            <tr><td style="font-weight:600;color:var(--orange)">Equity / NR</td><td>£2.50M</td><td id="dEQ">13.5%</td><td id="cEQ">£3,125</td><td class="num" id="vtEQ">£2.50M</td><td class="num" id="dtEQ" style="color:var(--green)">—</td></tr>
+          </tbody>
+          <tfoot><tr><td colspan="2"><strong>Total</strong></td><td colspan="2" id="tvWAD" style="color:var(--ink3);font-size:11px">Wt. avg. 6.9%</td><td class="num"><strong id="tvTot">£25.00M</strong></td><td class="num" id="tvDelt" style="color:var(--green)">—</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: CONTROLS -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">4</div>Default Rate Controls</div>
+  <div class="card">
+    <div class="ctrl-row">
+      <div class="ci">
+        <div class="cl">Default Rate (% of pool)</div>
+        <div class="cv" id="cvDR">0%</div>
+        <input type="range" id="slDR" min="0" max="60" step="1" value="0" oninput="onSlider()">
+        <div class="cs"><span>0% — Normal</span><span>20% — Severe</span><span>60% — GFC 2008</span></div>
+      </div>
+      <div class="ci">
+        <div class="cl">Risk-Free Rate</div>
+        <div class="cv neu" id="cvRF">4.5%</div>
+        <input type="range" class="neu" id="slRF" min="0" max="10" step="0.25" value="4.5" oninput="onSlider()">
+        <div class="cs"><span>0%</span><span>5%</span><span>10%</span></div>
+      </div>
+    </div>
+    <div class="wf-section">
+      <div class="wf-title">Loss Absorption Waterfall</div>
+      <div class="wf-labels">
+        <div style="flex:10;text-align:center;color:var(--orange)">EQUITY 10%</div>
+        <div style="flex:5;text-align:center;color:var(--purple)">BBB 5%</div>
+        <div style="flex:15;text-align:center;color:var(--teal)">A 15%</div>
+        <div style="flex:15;text-align:center;color:#1e40af">AA 15%</div>
+        <div style="flex:55;text-align:center;color:var(--blue)">AAA 55%</div>
+      </div>
+      <div class="wf-bar">
+        <div class="wf-seg" id="wfEQ"  style="flex:10;background:var(--orange)">EQ</div>
+        <div class="wf-seg" id="wfBBB" style="flex:5;background:var(--purple)">BBB</div>
+        <div class="wf-seg" id="wfA"   style="flex:15;background:var(--teal)">A</div>
+        <div class="wf-seg" id="wfAA"  style="flex:15;background:#1e40af">AA</div>
+        <div class="wf-seg" id="wfAAA" style="flex:55;background:var(--blue)">AAA — 55%</div>
+      </div>
+      <div class="wf-track"><div class="wf-fill" id="lossBar" style="width:0%"></div></div>
+      <div class="wf-meta">
+        <span>Net Loss: <strong id="nlv">£0</strong> (<span id="nlpct">0.0%</span> of pool)</span>
+        <span class="wf-status s" id="wfStatus">✓ All tranches protected</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: CHARTS (BIGGER) -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">5</div>Analysis Charts</div>
+
+  <!-- Row 1: two side by side -->
+  <div class="charts-full">
+    <div class="cc">
+      <div class="cc-head">
+        <div class="cc-title">Monthly Cash Flow vs Default Rate</div>
+        <div class="cc-sub">As defaults rise, fewer mortgages pay → SPV receives less → investor payouts fall. The green curve shows this inverse relationship. <strong>LO2: Credit Risk transfer.</strong></div>
+        <div class="cc-legend">
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--green)"></div>Cash flow (£/mo)</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--red)"></div>Current scenario</div>
+        </div>
+      </div>
+      <canvas id="gcf" height="260"></canvas>
+    </div>
+
+    <div class="cc">
+      <div class="cc-head">
+        <div class="cc-title">Security Value Sensitivity by Tranche</div>
+        <div class="cc-sub">Each tranche loses value at a different default rate threshold — equity first (10%), then mezzanine, then senior. <strong>LO1: Tranche structure & protection.</strong></div>
+        <div class="cc-legend">
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--blue)"></div>AAA</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--teal)"></div>Mezz A+BBB</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--orange)"></div>Equity</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--ink)"></div>Total</div>
+        </div>
+      </div>
+      <canvas id="gsv" height="260"></canvas>
+    </div>
+  </div>
+
+  <!-- Row 2: tranche bars + spread chart -->
+  <div class="charts-full">
+    <div class="cc">
+      <div class="cc-head">
+        <div class="cc-title">Tranche Impairment Map</div>
+        <div class="cc-sub">Vertical bars show each tranche's face value. Red overlay = losses absorbed. At current default rate, shaded portions are impaired. <strong>LO2: Loss absorption waterfall.</strong></div>
+        <div class="cc-legend">
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--blue);opacity:.8"></div>Intact value</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--red);opacity:.6"></div>Losses absorbed</div>
+        </div>
+      </div>
+      <canvas id="gtl" height="260"></canvas>
+    </div>
+
+    <div class="cc">
+      <div class="cc-head">
+        <div class="cc-title">Credit Spread Widening</div>
+        <div class="cc-sub">As default rate increases, investors demand higher yields → spreads widen → prices fall. The equity tranche spread explodes first, then mezzanine, then senior. <strong>LO3: Market risk & pricing.</strong></div>
+        <div class="cc-legend">
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--blue)"></div>AAA spread</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--purple)"></div>BBB spread</div>
+          <div class="cc-leg"><div class="cc-leg-dot" style="background:var(--orange)"></div>Equity spread</div>
+        </div>
+      </div>
+      <canvas id="gsp" height="260"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 6: IMPLICATIONS -->
+<div class="sec">
+  <div class="sec-lbl"><div class="badge">6</div>Risk Management Implications</div>
+  <div class="impl-grid">
+    <div class="icard lo1"><div class="ic-icon">🏗️</div><div class="ic-tag">LO1 — Core Structure</div><div class="ic-title">Economic Benefits</div><div class="ic-body">Originators transfer credit risk off-balance-sheet via SPV. Illiquid 25-year mortgages become tradeable ABS. Widens investor base, reduces funding cost for banks.</div></div>
+    <div class="icard lo2"><div class="ic-icon">⚡</div><div class="ic-tag">LO2 — Risk Transfer</div><div class="ic-title">Credit, Liquidity &amp; Market Risk</div><div class="ic-body">Credit risk redistributed by tranching. Liquidity risk reduced for originator. Market risk remains for investors via spread widening. Operational risk in SPV servicing.</div></div>
+    <div class="icard lo3"><div class="ic-icon">🏦</div><div class="ic-tag">LO3 — Strategic</div><div class="ic-title">Capital Efficiency &amp; Basel III</div><div class="ic-body">Reduces risk-weighted assets. Freeing regulatory capital enables new lending. ~8% RWA reduction per £1M securitised. Improves balance sheet efficiency materially.</div></div>
+    <div class="icard risk"><div class="ic-icon">⚠️</div><div class="ic-tag">LO2 — Key Limitation</div><div class="ic-title">Information Asymmetry</div><div class="ic-body">Originator knows more than investors (lemon problem). "Originate-to-distribute" removes underwriting incentives. Rating agencies systematically mispriced risk pre-2008.</div></div>
+    <div class="icard gfccard"><div class="ic-icon">📉</div><div class="ic-tag">LO1 — Limitation</div><div class="ic-title">Correlation &amp; Systemic Risk</div><div class="ic-body">Defaults cluster in downturns. AAA tranches priced on flawed independence assumptions. In 2008, 28%+ default rates impaired even senior tranches — destroying investor confidence.</div></div>
+    <div class="icard dyn" id="dynCard" style="background:var(--green-l);border:1.5px solid var(--green-m)"><div class="ic-icon" id="dynIcon">✅</div><div class="ic-tag" id="dynTag" style="color:var(--green)">LIVE STATUS</div><div class="ic-title" id="dynTitle">Current: Stable</div><div class="ic-body" id="dynBody">Default rate 0%. All tranches protected. Security at par (£25.00M). Cash flow unimpaired.</div></div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- GFC OVERLAY                                     -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="gfc-overlay hidden" id="gfcOverlay">
+  <div class="gfc-header">
+    <div>
+      <div class="gfc-title">🎬 The 2008 Global Financial Crisis — Securitisation Replay</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px" id="gfcStageName">Loading…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="gfc-year" id="gfcYear">2003</div>
+      <button class="gfc-close-btn" onclick="closeGFC()">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="gfc-main">
+    <!-- Left: stage narrative + houses + chart -->
+    <div class="gfc-stage">
+      <div style="margin-bottom:16px">
+        <div class="gfc-progress">
+          <div class="gfc-progress-label">Crisis Timeline</div>
+          <div class="gfc-steps" id="gfcSteps"></div>
+        </div>
+        <div class="gfc-stage-title" id="gfcStageTitle">The Build-Up</div>
+        <div class="gfc-stage-sub" id="gfcStageSub">Low interest rates fuel a US housing boom. Banks originate subprime mortgages and securitise them aggressively. Rating agencies stamp AAA on complex CDOs.</div>
+      </div>
+
+      <!-- Mortgage houses -->
+      <div class="gfc-hg" id="gfcHouseGrid"></div>
+
+      <!-- Chart -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px;margin-top:12px">
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px" id="gfcChartLabel">US House Price Index & Default Rate</div>
+        <canvas id="gfcChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Right: metrics + events -->
+    <div class="gfc-sidebar">
+      <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px">Live Metrics</div>
+
+      <div class="gfc-metric">
+        <div class="gfc-m-label">Default Rate</div>
+        <div class="gfc-m-val" id="gfcDR">1%</div>
+        <div class="gfc-m-delta" id="gfcDRd" style="color:rgba(255,255,255,.4)">Subprime baseline</div>
+      </div>
+      <div class="gfc-metric">
+        <div class="gfc-m-label">House Price Index</div>
+        <div class="gfc-m-val ok" id="gfcHPI">190</div>
+        <div class="gfc-m-delta" id="gfcHPId" style="color:#22c55e">+12% YoY boom</div>
+      </div>
+      <div class="gfc-metric">
+        <div class="gfc-m-label">Security Value</div>
+        <div class="gfc-m-val" id="gfcSV">£25.0M</div>
+        <div class="gfc-m-delta" id="gfcSVd" style="color:rgba(255,255,255,.4)">At par</div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Tranche Values</div>
+        <div class="gfc-tranche-bars">
+          <div class="gfc-tb-row"><div class="gfc-tb-label">AAA</div><div class="gfc-tb-track"><div class="gfc-tb-fill" id="gfc-b-aaa" style="width:100%;background:#3b82f6"></div></div><div class="gfc-tb-pct" id="gfc-p-aaa" style="color:#3b82f6">100%</div></div>
+          <div class="gfc-tb-row"><div class="gfc-tb-label">AA</div><div class="gfc-tb-track"><div class="gfc-tb-fill" id="gfc-b-aa" style="width:100%;background:#60a5fa"></div></div><div class="gfc-tb-pct" id="gfc-p-aa" style="color:#60a5fa">100%</div></div>
+          <div class="gfc-tb-row"><div class="gfc-tb-label">A</div><div class="gfc-tb-track"><div class="gfc-tb-fill" id="gfc-b-a" style="width:100%;background:#14b8a6"></div></div><div class="gfc-tb-pct" id="gfc-p-a" style="color:#14b8a6">100%</div></div>
+          <div class="gfc-tb-row"><div class="gfc-tb-label">BBB</div><div class="gfc-tb-track"><div class="gfc-tb-fill" id="gfc-b-bbb" style="width:100%;background:#a855f7"></div></div><div class="gfc-tb-pct" id="gfc-p-bbb" style="color:#a855f7">100%</div></div>
+          <div class="gfc-tb-row"><div class="gfc-tb-label">EQ</div><div class="gfc-tb-track"><div class="gfc-tb-fill" id="gfc-b-eq" style="width:100%;background:#f97316"></div></div><div class="gfc-tb-pct" id="gfc-p-eq" style="color:#f97316">100%</div></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Event Feed</div>
+        <div class="gfc-feed" id="gfcFeed"></div>
+      </div>
+
+      <div class="gfc-btn-row">
+        <button class="gfc-next-btn" id="gfcNextBtn" onclick="gfcNext()">Next Stage →</button>
+        <button class="gfc-close-btn" onclick="closeGFC()">Exit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const N=100, AVG_BAL=250000, TOTAL_BAL=N*AVG_BAL, LGD=0.60;
+const TD=[
+  {key:'aaa',face:0.55,spread:0.0095,coupon:0.032,color:'#1d4ed8'},
+  {key:'aa', face:0.15,spread:0.0135,coupon:0.039,color:'#1e40af'},
+  {key:'a',  face:0.15,spread:0.030, coupon:0.058,color:'#0f766e'},
+  {key:'bbb',face:0.05,spread:0.047, coupon:0.075,color:'#6d28d9'},
+  {key:'eq', face:0.10,spread:0.095, coupon:0.15, color:'#c2410c'},
+];
+const FLOORS={eq:0,bbb:0.10,a:0.15,aa:0.30,aaa:0.45};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let mortgages=[], defRate=0, rfRate=0.045;
+let flowPs=[], simTick=0, arrowAnimId;
+
+// ═══════════════════════════════════════════════
+// INIT / GRID
+// ═══════════════════════════════════════════════
+function initMortgages(){
+  mortgages=Array.from({length:N},(_,i)=>({
+    id:i, bal:AVG_BAL*(0.7+Math.random()*.6),
+    rate:4.5+Math.random()*2.8, status:'active', manual:false
+  }));
+}
+function houseSVG(st){
+  const C={
+    active:  ['#dbeafe','#1d4ed8','#93c5fd'],
+    stressed:['#fff7ed','#c2410c','#fed7aa'],
+    default: ['#fee2e2','#b91c1c','#fca5a5'],
+  }[st]||['#dbeafe','#1d4ed8','#93c5fd'];
+  return `<svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="14,1 27,12 27,31 1,31 1,12" fill="${C[0]}" stroke="${C[1]}" stroke-width="1.1"/>
+    <polygon points="14,0 28,12 0,12" fill="${C[1]}"/>
+    <rect x="11" y="19" width="6" height="12" rx="1" fill="${C[1]}"/>
+    <rect x="3" y="15" width="6" height="6" rx="1" fill="${C[2]}"/>
+    <rect x="19" y="15" width="6" height="6" rx="1" fill="${C[2]}"/>
+  </svg>`;
+}
+function buildGrid(){
+  const g=document.getElementById('houseGrid'); g.innerHTML='';
+  mortgages.forEach((m,i)=>{
+    const c=document.createElement('div'); c.className='hcell'; c.id=`hc${i}`;
+    c.innerHTML=houseSVG(m.status)+`<div class="hv">£${(m.bal/1000).toFixed(0)}k</div><div class="htt"><b>Loan #${i+1}</b><br>£${Math.round(m.bal).toLocaleString()}<br>Rate: ${m.rate.toFixed(2)}%<br>Monthly: £${Math.round(m.bal*m.rate/1200).toLocaleString()}<br><span style="color:#fcd99a">Click → default</span></div>`;
+    c.addEventListener('click',()=>defaultHouse(i));
+    g.appendChild(c);
+  });
+}
+function refreshCell(i){
+  const el=document.getElementById(`hc${i}`);
+  if(!el||el.classList.contains('gone'))return;
+  const sv=el.querySelector('svg'); if(sv)sv.remove();
+  const tmp=document.createElement('div'); tmp.innerHTML=houseSVG(mortgages[i].status);
+  el.insertBefore(tmp.firstChild,el.firstChild);
+}
+function defaultHouse(i){
+  const m=mortgages[i]; if(m.manual)return;
+  m.status='default'; m.manual=true;
+  document.getElementById(`hc${i}`).classList.add('gone');
+  spawnParticles(document.getElementById(`hc${i}`));
+  recalc();
+}
+function spawnParticles(el){
+  if(!el)return;
+  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const cols=['#b91c1c','#fca5a5','#fed7aa','#c2410c','#1d4ed8','#93c5fd'];
+  for(let j=0;j<12;j++){
+    const p=document.createElement('div'), a=(j/12)*Math.PI*2;
+    const d=28+Math.random()*44;
+    p.className='ptcl'; p.style.cssText=`left:${cx}px;top:${cy}px;width:${4+Math.random()*5}px;height:${4+Math.random()*5}px;background:${cols[j%cols.length]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;
+    document.body.appendChild(p); setTimeout(()=>p.remove(),750);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// VALUATION
+// ═══════════════════════════════════════════════
+function compute(dr_override, rf_override){
+  const dr=dr_override!==undefined?dr_override:defRate;
+  const rf=rf_override!==undefined?rf_override:rfRate;
+  const manDef=mortgages.filter(m=>m.manual).length;
+  const slDef=Math.round((dr/100)*N);
+  const totDef=Math.min(manDef+slDef,N);
+  const active=N-totDef;
+  const WAC=mortgages.reduce((s,m)=>s+m.rate*m.bal,0)/TOTAL_BAL;
+  const survBal=TOTAL_BAL*(active/N);
+  const monthlyCF=survBal*(WAC/1200);
+  const netLoss=TOTAL_BAL*(totDef/N)*LGD;
+  const nlPct=netLoss/TOTAL_BAL;
+  const sm=1+nlPct*4;
+  const results=TD.map(t=>{
+    const face=TOTAL_BAL*t.face;
+    const absorbed=Math.min(Math.max(0,netLoss-TOTAL_BAL*FLOORS[t.key]),face);
+    const intact=face-absorbed;
+    const d=(rf+t.spread*sm)/12, n=300;
+    const cf=monthlyCF*t.face;
+    const pv=d>0?cf*(1-Math.pow(1+d,-n))/d+intact*Math.pow(1+d,-n):intact;
+    const haircut=absorbed>0?Math.min(absorbed/face,1)*.6:0;
+    return {...t,face,absorbed,intact,cf,val:Math.max(0,pv*(1-haircut)),disc:rf+t.spread*sm};
+  });
+  const totVal=results.reduce((s,r)=>s+r.val,0);
+  return{survBal,monthlyCF,WAC,totDef,active,netLoss,nlPct,results,totVal};
+}
+
+const fmt=n=>n>=1e6?'£'+(n/1e6).toFixed(2)+'M':'£'+Math.round(n).toLocaleString();
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.round(n).toString();
+
+// ═══════════════════════════════════════════════
+// RECALC
+// ═══════════════════════════════════════════════
+function recalc(){
+  // slider house statuses
+  const slStress=Math.round(Math.round((defRate/100)*N)*.4);
+  let sc=0;
+  mortgages.forEach(m=>{
+    if(m.manual)return;
+    m.status=sc<slStress?'stressed':'active'; sc++;
+    refreshCell(m.id);
+  });
+  const V=compute();
+  const dr=V.totDef/N;
+
+  document.getElementById('hPool').textContent=fmt(V.survBal);
+  document.getElementById('hCF').textContent='£'+Math.round(V.monthlyCF).toLocaleString();
+  document.getElementById('hSec').textContent=fmt(V.totVal);
+  document.getElementById('hDef').textContent=V.totDef;
+  document.getElementById('svPool').textContent=fmt(V.survBal);
+  document.getElementById('svCF').textContent='£'+Math.round(V.monthlyCF).toLocaleString();
+  document.getElementById('svCF').className='sb-v '+(dr<.1?'g':dr<.3?'o':'r');
+  document.getElementById('svWAC').textContent=V.WAC.toFixed(2)+'%';
+  document.getElementById('svSec').textContent=fmt(V.totVal);
+  document.getElementById('svDR').textContent=(dr*100).toFixed(0)+'%';
+  document.getElementById('svDR').className='sb-v '+(dr<.05?'':dr<.2?'o':'r');
+
+  document.getElementById('fnPool').textContent=fmt(V.survBal);
+  document.getElementById('fnActive').textContent=V.active+' performing';
+  document.getElementById('fnActive').style.color=dr<.1?'var(--green)':dr<.3?'var(--orange)':'var(--red)';
+  document.getElementById('fnPMT').textContent='£'+Math.round(V.monthlyCF).toLocaleString();
+  document.getElementById('spvVal').textContent=fmt(V.survBal);
+  document.getElementById('spvMo').textContent='£'+Math.round(V.monthlyCF).toLocaleString()+'/mo';
+
+  const yBase={aaa:3.2,aa:3.9,a:5.8,bbb:7.5,eq:15};
+  V.results.forEach(r=>{
+    const K=r.key==='eq'?'EQ':r.key.toUpperCase();
+    const idx=TD.findIndex(t=>t.key===r.key);
+    const yEl=document.getElementById('y'+K), vEl=document.getElementById('v'+K), bEl=document.getElementById('b'+K);
+    if(yEl)yEl.textContent=r.key==='eq'?(dr>.35?'Wiped':dr>.1?'At Risk':(yBase[r.key]+dr*25).toFixed(1)+'%'):(yBase[r.key]+dr*8*(idx+1)*.4).toFixed(2)+'%';
+    if(vEl)vEl.textContent='£'+fmtK(r.val);
+    if(bEl)bEl.style.width=Math.max(0,(r.val/r.face)*100)+'%';
+    ['d','c','vt','dt'].forEach(p=>{
+      const el=document.getElementById(p+K); if(!el)return;
+      if(p==='d')el.textContent=(r.disc*100).toFixed(2)+'%';
+      else if(p==='c')el.textContent='£'+Math.round(r.cf).toLocaleString();
+      else if(p==='vt')el.textContent='£'+fmtK(r.val);
+      else{const d=r.val-r.face;el.textContent=d===0?'—':(d>0?'+':'')+' £'+fmtK(Math.abs(d));el.style.color=d>=0?'var(--green)':'var(--red)';}
+    });
+  });
+  document.getElementById('totalSecVal').textContent=fmt(V.totVal);
+  document.getElementById('tvTot').textContent=fmt(V.totVal);
+  const td=V.totVal-TOTAL_BAL;
+  document.getElementById('tvDelt').textContent=td===0?'—':(td>0?'+':'')+' £'+fmtK(Math.abs(td));
+  document.getElementById('tvDelt').style.color=td>=0?'var(--green)':'var(--red)';
+
+  document.getElementById('lossBar').style.width=Math.min(V.nlPct*100,100)+'%';
+  document.getElementById('nlv').textContent='£'+fmtK(V.netLoss);
+  document.getElementById('nlpct').textContent=(V.nlPct*100).toFixed(1)+'%';
+  const ws=document.getElementById('wfStatus');
+  if(V.nlPct>=.45){ws.textContent='🔴 AAA impaired';ws.className='wf-status d'}
+  else if(V.nlPct>=.30){ws.textContent='🔴 AA+ impaired';ws.className='wf-status d'}
+  else if(V.nlPct>=.15){ws.textContent='⚠️ A Mezz exposed';ws.className='wf-status w'}
+  else if(V.nlPct>=.10){ws.textContent='⚠️ BBB exposed, equity absorbed';ws.className='wf-status w'}
+  else if(V.nlPct>0){ws.textContent='⚠️ Equity absorbing';ws.className='wf-status w'}
+  else{ws.textContent='✓ All tranches protected';ws.className='wf-status s'}
+  ['EQ','BBB','A','AA','AAA'].forEach(k=>{
+    const seg=document.getElementById('wf'+k);
+    const fk=k==='AAA'?'aaa':k==='AA'?'aa':k.toLowerCase();
+    const r=V.results.find(r=>r.key===fk);
+    if(seg&&r)seg.classList.toggle('imp',r.absorbed>=r.face*.5);
+  });
+
+  // dynamic card
+  const dc=document.getElementById('dynCard'),di=document.getElementById('dynIcon'),dt=document.getElementById('dynTitle'),db=document.getElementById('dynBody'),dtg=document.getElementById('dynTag');
+  if(dr===0){dc.style.cssText='background:var(--green-l);border:1.5px solid var(--green-m)';di.textContent='✅';dtg.style.color='var(--green)';dt.textContent='Stable Market';db.textContent='All tranches protected. Security at par.'}
+  else if(dr<.05){dc.style.cssText='background:var(--green-l);border:1.5px solid var(--green-m)';di.textContent='📊';dtg.style.color='var(--green)';dt.textContent='Low Stress';db.textContent=`${V.totDef} defaults. Equity absorbing. Senior untouched. Value: ${fmt(V.totVal)}.`}
+  else if(dr<.15){dc.style.cssText='background:var(--orange-l);border:1.5px solid var(--orange-m)';di.textContent='⚠️';dtg.style.color='var(--orange)';dt.textContent='Moderate — Equity Impaired';db.textContent=`${V.totDef} defaults. BBB exposed. Value fell to ${fmt(V.totVal)}.`}
+  else if(dr<.35){dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='🔴';dtg.style.color='var(--red)';dt.textContent='Severe — Mezzanine Impaired';db.textContent=`${V.totDef} defaults. Equity wiped. Mezz impaired. Mirrors 2008 US subprime. Value: ${fmt(V.totVal)}.`}
+  else{dc.style.cssText='background:var(--red-l);border:1.5px solid var(--red-m)';di.textContent='💀';dtg.style.color='var(--red)';dt.textContent='GFC — Senior Tranches Impaired';db.textContent=`${V.totDef} defaults (${(dr*100).toFixed(0)}%). AAA impaired. Value: ${fmt(V.totVal)} vs £25M face. Systemic collapse.`}
+
+  drawCharts(V);
+}
+
+// ═══════════════════════════════════════════════
+// FLOW ARROWS
+// ═══════════════════════════════════════════════
+function initArrows(){
+  ['arrow1','arrow2'].forEach(id=>{
+    const c=document.getElementById(id); if(!c)return;
+    c.width=c.offsetWidth||80;
+    drawArrow(c);
+  });
+}
+function drawArrow(c,progress){
+  const ctx=c.getContext('2d'),w=c.width,h=c.height,mid=h/2;
+  ctx.clearRect(0,0,w,h);
+  ctx.beginPath();ctx.moveTo(10,mid);ctx.lineTo(w-14,mid);
+  ctx.setLineDash([4,5]);ctx.strokeStyle='#cbc4b8';ctx.lineWidth=1.5;ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(w-10,mid);ctx.lineTo(w-20,mid-6);ctx.lineTo(w-20,mid+6);ctx.closePath();ctx.fillStyle='#cbc4b8';ctx.fill();
+}
+function spawnFP(){
+  const V=compute(); if(V.active===0)return;
+  const intensity=Math.max(1,Math.round(V.active/25));
+  for(let i=0;i<intensity;i++){
+    flowPs.push({cid:Math.random()<.5?'arrow1':'arrow2',x:10,y:0,spd:1.5+Math.random()*2,life:1,sz:2.5+Math.random()*2});
+  }
+}
+function animateFlow(){
+  const byC={};
+  flowPs=flowPs.filter(p=>p.life>0);
+  flowPs.forEach(p=>{(byC[p.cid]=byC[p.cid]||[]).push(p)});
+  ['arrow1','arrow2'].forEach(id=>{
+    const c=document.getElementById(id); if(!c)return;
+    drawArrow(c);
+    const ctx=c.getContext('2d'),w=c.width,h=c.height,mid=h/2;
+    (byC[id]||[]).forEach(p=>{
+      p.x+=p.spd; p.life-=.012; if(p.x>w)p.life=0;
+      ctx.beginPath();ctx.arc(p.x,mid,p.sz,0,Math.PI*2);
+      ctx.fillStyle=`rgba(21,128,61,${Math.min(p.life*2,.85)})`;ctx.fill();
+    });
+  });
+  arrowAnimId=requestAnimationFrame(animateFlow);
+}
+
+// ═══════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════
+function setupC(id){
+  const c=document.getElementById(id); if(!c)return null;
+  c.width=c.offsetWidth||400;
+  return{c,ctx:c.getContext('2d'),w:c.width,h:c.height};
+}
+function gridLinesY(ctx,w,h,maxV,fmtFn,pad={l:52,t:16,b:32}){
+  ctx.strokeStyle='#f0ece6';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+(i/4)*(h-pad.t-pad.b);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-8,y);ctx.stroke();
+    ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText(fmtFn(maxV*(1-i/4)),pad.l-6,y+4);
+  }
+}
+function xAxis(ctx,w,h,labels,pad={l:52,b:32}){
+  ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';ctx.textAlign='center';
+  labels.forEach((lbl,i)=>{const x=pad.l+(i/(labels.length-1))*(w-pad.l-8);ctx.fillText(lbl,x,h-6);});
+}
+
+function drawCharts(V){drawCF(V);drawSV(V);drawTL(V);drawSP(V);}
+
+function drawCF(V){
+  const s=setupC('gcf'); if(!s)return;
+  const{ctx,w,h}=s;
+  ctx.clearRect(0,0,w,h);
+  const pad={l:58,t:18,b:36};
+  const pts=61,data=[];
+  for(let i=0;i<pts;i++) data.push(TOTAL_BAL*(1-i/100)*(V.WAC/1200));
+  const maxV=data[0];
+  gridLinesY(ctx,w,h,maxV,n=>'£'+(n/1e3).toFixed(0)+'K',pad);
+  xAxis(ctx,w,h,['0%','10%','20%','30%','40%','50%','60%'],pad);
+  ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Default Rate',w/2,h-2);
+  // area fill
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(21,128,61,.18)');grad.addColorStop(1,'rgba(21,128,61,.01)');
+  ctx.beginPath();
+  data.forEach((v,i)=>{const x=pad.l+(i/(pts-1))*(w-pad.l-8),y=pad.t+(1-v/maxV)*(h-pad.t-pad.b);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(pts-1)/(pts-1)*(w-pad.l-8),h-pad.b);ctx.lineTo(pad.l,h-pad.b);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();
+  data.forEach((v,i)=>{const x=pad.l+(i/(pts-1))*(w-pad.l-8),y=pad.t+(1-v/maxV)*(h-pad.t-pad.b);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='#15803d';ctx.lineWidth=2.5;ctx.stroke();
+  // current dot
+  const cx=pad.l+(defRate/60)*(w-pad.l-8), cv=data[Math.min(defRate,60)], cy=pad.t+(1-cv/maxV)*(h-pad.t-pad.b);
+  ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);
+  ctx.fillStyle=defRate>30?'#b91c1c':defRate>10?'#c2410c':'#15803d';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+  // value label
+  ctx.fillStyle=defRate>30?'#b91c1c':defRate>10?'#c2410c':'#15803d';ctx.font='bold 12px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText('£'+Math.round(cv/1000).toFixed(0)+'K/mo',cx,cy-12);
+}
+
+function drawSV(V){
+  const s=setupC('gsv'); if(!s)return;
+  const{ctx,w,h}=s;
+  ctx.clearRect(0,0,w,h);
+  const pad={l:58,t:18,b:36};
+  const pts=61;
+  const series=[
+    {label:'Total', data:[], col:'#1a1814',lw:2.5},
+    {label:'AAA',   data:[], col:'#1d4ed8',lw:2},
+    {label:'Mezz',  data:[], col:'#0f766e',lw:2},
+    {label:'Equity',data:[], col:'#c2410c',lw:2},
+  ];
+  for(let i=0;i<pts;i++){
+    const dr=i/100,nl=dr*LGD;
+    series[0].data.push(Math.max(0,TOTAL_BAL*(1-nl*1.05)));
+    series[1].data.push(Math.max(0,TOTAL_BAL*.55*(1-Math.max(0,nl-.45)/.55)));
+    series[2].data.push(Math.max(0,TOTAL_BAL*.35*(1-Math.max(0,nl-.10)/.35)));
+    series[3].data.push(Math.max(0,TOTAL_BAL*.10*(1-Math.min(1,nl/.10))));
+  }
+  const maxV=TOTAL_BAL;
+  gridLinesY(ctx,w,h,maxV,n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':'£'+Math.round(n),pad);
+  xAxis(ctx,w,h,['0%','10%','20%','30%','40%','50%','60%'],pad);
+  series.forEach(s2=>{
+    ctx.beginPath();
+    s2.data.forEach((v,i)=>{const x=pad.l+(i/(pts-1))*(w-pad.l-8),y=pad.t+(1-v/maxV)*(h-pad.t-pad.b);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.strokeStyle=s2.col;ctx.lineWidth=s2.lw;ctx.stroke();
+    const lv=s2.data[pts-1],ly=pad.t+(1-lv/maxV)*(h-pad.t-pad.b);
+    ctx.fillStyle=s2.col;ctx.font='bold 11px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(s2.label,w-46,Math.max(pad.t+6,Math.min(h-pad.b-4,ly)));
+  });
+  const cx=pad.l+(defRate/60)*(w-pad.l-8);
+  ctx.beginPath();ctx.moveTo(cx,pad.t);ctx.lineTo(cx,h-pad.b);
+  ctx.strokeStyle='rgba(185,28,28,.3)';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(185,28,28,.7)';ctx.font='bold 11px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText(defRate+'%',cx,pad.t-2);
+}
+
+function drawTL(V){
+  const s=setupC('gtl'); if(!s)return;
+  const{ctx,w,h}=s;
+  ctx.clearRect(0,0,w,h);
+  const segs=[
+    {k:'aaa',label:'AAA Senior A',col:'#1d4ed8',sz:.55},
+    {k:'aa', label:'AA Senior B', col:'#1e40af',sz:.15},
+    {k:'a',  label:'A Mezz',      col:'#0f766e',sz:.15},
+    {k:'bbb',label:'BBB Mezz',    col:'#6d28d9',sz:.05},
+    {k:'eq', label:'Equity',      col:'#c2410c',sz:.10},
+  ];
+  const n=segs.length, bw=Math.floor((w-60-n*8)/n), gap=8, startX=50, totalH=h-56;
+  // y axis
+  ctx.strokeStyle='#f0ece6';ctx.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=18+(1-f)*totalH;
+    ctx.beginPath();ctx.moveTo(startX-2,y);ctx.lineTo(w-8,y);ctx.stroke();
+    ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText((f*100)+'%',startX-8,y+4);
+  });
+  segs.forEach((sg,i)=>{
+    const x=startX+i*(bw+gap);
+    const r=V.results.find(r=>r.key===sg.k)||{face:TOTAL_BAL*sg.sz,absorbed:0,val:TOTAL_BAL*sg.sz};
+    const barH=sg.sz*totalH, barY=18+(1-sg.sz)*totalH;
+    // full bar
+    ctx.fillStyle=sg.col+'bb';
+    ctx.beginPath();
+    if(ctx.roundRect){ctx.roundRect(x,barY,bw,barH,5)}else{ctx.rect(x,barY,bw,barH)}
+    ctx.fill();
+    // loss overlay
+    if(r.absorbed>0){
+      const impH=(r.absorbed/r.face)*barH;
+      ctx.fillStyle='rgba(185,28,28,.4)';
+      ctx.beginPath();
+      if(ctx.roundRect){ctx.roundRect(x,barY+barH-impH,bw,impH,[0,0,5,5])}else{ctx.rect(x,barY+barH-impH,bw,impH)}
+      ctx.fill();
+      if(r.absorbed>=r.face*.4){ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='bold 14px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('✕',x+bw/2,barY+barH-impH/2+5);}
+    }
+    // value label above
+    const valK=r.val>=1e6?(r.val/1e6).toFixed(1)+'M':r.val>=1e3?(r.val/1e3).toFixed(0)+'K':Math.round(r.val).toString();
+    ctx.fillStyle=sg.col;ctx.font='bold 11px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('£'+valK,x+bw/2,Math.max(14,barY-4));
+    // label below
+    ctx.fillStyle='#44403a';ctx.font='11px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(sg.label,x+bw/2,h-8);
+    ctx.fillStyle=sg.col;ctx.font='bold 10px Inter,sans-serif';
+    ctx.fillText('('+Math.round(sg.sz*100)+'%)',x+bw/2,h+2);
+  });
+}
+
+function drawSP(V){
+  const s=setupC('gsp'); if(!s)return;
+  const{ctx,w,h}=s;
+  ctx.clearRect(0,0,w,h);
+  const pad={l:68,t:18,b:36};
+  const pts=61;
+  const series=[
+    {label:'AAA bps', data:[], col:'#1d4ed8',lw:2},
+    {label:'BBB bps', data:[], col:'#6d28d9',lw:2},
+    {label:'EQ bps',  data:[], col:'#c2410c',lw:2},
+  ];
+  const baseSpread=[95,470,950];
+  for(let i=0;i<pts;i++){
+    const nl=(i/100)*LGD, sm=1+nl*4;
+    series[0].data.push(TD[0].spread*sm*10000);
+    series[2].data.push(TD[4].spread*sm*10000);
+    series[1].data.push(TD[3].spread*sm*10000);
+  }
+  const maxV=Math.max(...series[2].data);
+  gridLinesY(ctx,w,h,maxV,n=>Math.round(n)+'bps',pad);
+  xAxis(ctx,w,h,['0%','10%','20%','30%','40%','50%','60%'],pad);
+  ctx.fillStyle='#6b7280';ctx.font='11px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Default Rate',w/2,h-2);
+  series.forEach(s2=>{
+    ctx.beginPath();
+    s2.data.forEach((v,i)=>{const x=pad.l+(i/(pts-1))*(w-pad.l-8),y=pad.t+(1-v/maxV)*(h-pad.t-pad.b);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.strokeStyle=s2.col;ctx.lineWidth=s2.lw;ctx.stroke();
+    const lv=s2.data[pts-1],ly=pad.t+(1-lv/maxV)*(h-pad.t-pad.b);
+    ctx.fillStyle=s2.col;ctx.font='bold 11px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(s2.label,w-60,Math.max(pad.t+8,Math.min(h-pad.b-4,ly)));
+  });
+  // current marker line
+  const cx=pad.l+(defRate/60)*(w-pad.l-8);
+  ctx.beginPath();ctx.moveTo(cx,pad.t);ctx.lineTo(cx,h-pad.b);
+  ctx.strokeStyle='rgba(185,28,28,.3)';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+}
+
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
+const MINFO={
+  aaa:{title:'AAA Senior A — First Claim',sub:'Only impaired when cumulative losses exceed 45% of pool.',col:'#1d4ed8'},
+  aa: {title:'AA Senior B — Near-Senior',sub:'Absorbs losses after equity, BBB, A exhausted (>30% pool loss).',col:'#1e40af'},
+  a:  {title:'A Mezzanine — Middle Buffer',sub:'Protected by equity (10%) and BBB (5%) below. Impaired >15% loss.',col:'#0f766e'},
+  bbb:{title:'BBB Mezzanine — Second Buffer',sub:'Exposed once losses exceed 10% (after equity absorbed).',col:'#6d28d9'},
+  eq: {title:'Equity / First-Loss Piece',sub:'Absorbs all losses first. Residual cash flows. 100% loss at 10% pool default.',col:'#c2410c'},
+};
+function openModal(key){
+  const V=compute(), r=V.results.find(r=>r.key===key), info=MINFO[key];
+  const pct=r.face>0?(r.val/r.face*100).toFixed(1):0;
+  document.getElementById('modalContent').innerHTML=`
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px"><div style="width:4px;height:48px;background:${info.col};border-radius:2px;flex-shrink:0;margin-top:2px"></div>
+    <div><div style="font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--ink)">${info.title}</div><div style="font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.5">${info.sub}</div></div></div>
+    <div style="background:#fafaf8;border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:${info.col};font-family:'Lora',serif;line-height:2">
+      PV<sub>${key.toUpperCase()}</sub> = CF<sub>${key}</sub>/d × [1−(1+d)<sup>−300</sup>] + Face × (1+d)<sup>−300</sup><br>
+      <span style="font-size:11px;color:var(--ink3);font-family:'Inter',sans-serif">d = ${(r.disc*100).toFixed(2)}% (rf ${(rfRate*100).toFixed(2)}% + spread ${((r.disc-rfRate)*100).toFixed(2)}%)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <div style="background:#fafaf8;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Lora',serif;font-size:16px;font-weight:700">£${fmtK(r.face)}</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">Face Value</div></div>
+      <div style="background:#fafaf8;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Lora',serif;font-size:16px;font-weight:700;color:${r.val>=r.face*.95?'var(--green)':r.val>=r.face*.5?'var(--orange)':'var(--red)'}">£${fmtK(r.val)}</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">Current Value</div></div>
+      <div style="background:#fafaf8;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Lora',serif;font-size:16px;font-weight:700;color:${r.absorbed>0?'var(--red)':'var(--green)'}">£${fmtK(r.absorbed)}</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">Absorbed Loss</div></div>
+    </div>
+    <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${info.col};border-radius:99px;transition:width .8s"></div></div>
+    <div style="font-size:11px;color:var(--ink3);margin-top:5px;text-align:right">${pct}% of face value remaining</div>`;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+
+// ═══════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════
+function onSlider(){
+  defRate=parseFloat(document.getElementById('slDR').value);
+  rfRate=parseFloat(document.getElementById('slRF').value)/100;
+  document.getElementById('cvDR').textContent=defRate+'%';
+  document.getElementById('cvRF').textContent=(rfRate*100).toFixed(2)+'%';
+  recalc();
+}
+function resetAll(){
+  defRate=0;rfRate=0.045;
+  document.getElementById('slDR').value=0;document.getElementById('slRF').value=4.5;
+  document.getElementById('cvDR').textContent='0%';document.getElementById('cvRF').textContent='4.50%';
+  initMortgages();buildGrid();recalc();
+}
+
+// ═══════════════════════════════════════════════
+// 2008 GFC REPLAY
+// ═══════════════════════════════════════════════
+const GFC_STAGES=[
+  {year:'2003–05',title:'The Subprime Boom',sub:'Low Fed rates (1%) drive a US housing boom. Banks originate millions of subprime mortgages — lending to NINJA borrowers (No Income, No Job, No Assets). These are packaged into MBS and rated AAA.',defRate:1, hpi:188, chartType:'boom',events:[{t:'2003',txt:'Fed cuts rates to 1% — cheapest money in 45 years',cls:'info'},{t:'2004',txt:'Subprime mortgage originations double to $540bn',cls:'warn'},{t:'2005',txt:'Rating agencies stamp AAA on 80% of CDO tranches',cls:'warn'},{t:'2005',txt:'House prices up 15% YoY — "it can only go up"',cls:'info'}]},
+  {year:'2006',title:'Peak & Cracks Appear',sub:'House prices peak in Q2 2006 then start falling. Subprime delinquency rates begin rising. Banks are still originating and securitising. CDO-squared products proliferate.',defRate:5, hpi:184, chartType:'peak',events:[{t:'Q2 2006',txt:'US HPI peaks — Case-Shiller index at all-time high',cls:'warn'},{t:'Q4 2006',txt:'Subprime delinquency rates hit 13.3% — first alarm bells',cls:'crisis'},{t:'2006',txt:'$600bn of subprime mortgages originated — record high',cls:'warn'},{t:'2006',txt:'Equity tranches begin losing value silently',cls:'crisis'}]},
+  {year:'2007 Q1',title:'The Cracks Widen',sub:'Defaults accelerate. New Century Financial — the 2nd largest subprime lender — files for bankruptcy. Bear Stearns hedge funds collapse. CDO market freezes.',defRate:12, hpi:165, chartType:'crack',events:[{t:'Feb 2007',txt:'HSBC writes down $10.5bn subprime losses — first major bank casualty',cls:'crisis'},{t:'Apr 2007',txt:'New Century Financial files bankruptcy — 54,000 employees',cls:'crisis'},{t:'Jun 2007',txt:'Two Bear Stearns hedge funds (CDO-heavy) collapse',cls:'crisis'},{t:'Jul 2007',txt:'AAA CDO spreads widen 200bps overnight — panic begins',cls:'crisis'}]},
+  {year:'2007–08',title:'Mezzanine Tranches Impaired',sub:'Interbank lending freezes (LIBOR spikes). Northern Rock collapses in UK. Equity and BBB tranches are worthless. A-rated mezzanine tranches — previously "safe" — begin taking losses.',defRate:22, hpi:140, chartType:'impair',events:[{t:'Aug 2007',txt:'BNP Paribas freezes 3 funds — €2.2bn unable to price',cls:'crisis'},{t:'Sep 2007',txt:'Northern Rock bank run — first in UK since 1866',cls:'crisis'},{t:'Nov 2007',txt:'Citigroup writes down $11bn. ABX index (AAA) falls 40%',cls:'crisis'},{t:'Mar 2008',txt:'Bear Stearns collapses — JPMorgan buys for $2/share',cls:'crisis'}]},
+  {year:'Sep 2008',title:'Full Crisis — AAA Impaired',sub:'Lehman Brothers files for Chapter 11 ($613bn debt). AIG requires $182bn bailout. Money market funds "break the buck". Even AAA-rated MBS tranches are losing 30–50%. The model assumptions were catastrophically wrong.',defRate:32, hpi:118, chartType:'crash',events:[{t:'Sep 7',txt:'Fannie Mae & Freddie Mac seized by US govt ($5.4tn GSEs)',cls:'crisis'},{t:'Sep 15',txt:'LEHMAN BROTHERS BANKRUPT — $613bn in debt',cls:'crisis'},{t:'Sep 16',txt:'AIG $182bn govt bailout — CDS exposure $440bn',cls:'crisis'},{t:'Sep 29',txt:'TARP $700bn bank bailout bill passes US Congress',cls:'crisis'}]},
+  {year:'2009–10',title:'Aftermath & Reform',sub:'US house prices fall 34% peak-to-trough. 10 million Americans lose homes. Global recession. Dodd-Frank Act passes. Basel III introduces stricter capital requirements. Securitisation never fully recovers pre-crisis volumes.',defRate:18, hpi:110, chartType:'reform',events:[{t:'2009',txt:'US house prices -34% from peak. $11tn wealth destroyed',cls:'warn'},{t:'2010',txt:'Dodd-Frank Act — risk retention rules ("skin in game")',cls:'info'},{t:'2010',txt:'Basel III — stricter capital requirements for securitisation',cls:'info'},{t:'2013',txt:'ABS volumes recover to just 25% of 2006 peak levels',cls:'info'}]},
+];
+
+let gfcStageIdx=0, gfcHouses=[], gfcInterval=null, gfcDefaultQueue=[];
+
+function launchGFC(){
+  gfcStageIdx=0;
+  gfcHouses=Array.from({length:100},(_,i)=>({id:i,status:'active'}));
+  buildGFCGrid();
+  buildGFCSteps();
+  renderGFCStage(0);
+  document.getElementById('gfcOverlay').classList.remove('hidden');
+}
+function closeGFC(){
+  document.getElementById('gfcOverlay').classList.add('hidden');
+  clearInterval(gfcInterval); gfcInterval=null;
+}
+
+function buildGFCGrid(){
+  const g=document.getElementById('gfcHouseGrid'); g.innerHTML='';
+  gfcHouses.forEach((h,i)=>{
+    const c=document.createElement('div'); c.className='gfc-hcell'; c.id=`gh${i}`;
+    c.innerHTML=gfcHouseSVG(h.status); g.appendChild(c);
+  });
+}
+function gfcHouseSVG(st){
+  const C={active:['#dbeafe','#1d4ed8','#93c5fd'],stressed:['#fff7ed','#c2410c','#fed7aa'],default:['rgba(0,0,0,0)','transparent','rgba(0,0,0,0)']}[st]||['#dbeafe','#1d4ed8','#93c5fd'];
+  if(st==='default')return`<svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg"><text x="14" y="26" text-anchor="middle" font-size="18">💀</text></svg>`;
+  return`<svg viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg"><polygon points="14,1 27,12 27,31 1,31 1,12" fill="${C[0]}" stroke="${C[1]}" stroke-width="1.1"/><polygon points="14,0 28,12 0,12" fill="${C[1]}"/><rect x="11" y="19" width="6" height="12" rx="1" fill="${C[1]}"/><rect x="3" y="15" width="6" height="6" rx="1" fill="${C[2]}"/><rect x="19" y="15" width="6" height="6" rx="1" fill="${C[2]}"/></svg>`;
+}
+function buildGFCSteps(){
+  const c=document.getElementById('gfcSteps'); c.innerHTML='';
+  GFC_STAGES.forEach((_,i)=>{const d=document.createElement('div');d.className='gfc-step';d.id=`gfcst${i}`;c.appendChild(d);});
+}
+
+function renderGFCStage(idx){
+  clearInterval(gfcInterval); gfcInterval=null;
+  const st=GFC_STAGES[idx];
+  document.getElementById('gfcYear').textContent=st.year;
+  document.getElementById('gfcStageName').textContent=`Stage ${idx+1} of ${GFC_STAGES.length}`;
+  document.getElementById('gfcStageTitle').textContent=st.title;
+  document.getElementById('gfcStageSub').textContent=st.sub;
+  // steps
+  GFC_STAGES.forEach((_,i)=>{
+    const el=document.getElementById(`gfcst${i}`);
+    el.className='gfc-step'+(i<idx?' done':i===idx?' active':'');
+  });
+  // next button
+  const nb=document.getElementById('gfcNextBtn');
+  nb.textContent=idx<GFC_STAGES.length-1?`Next: ${GFC_STAGES[idx+1].title} →`:'Finish';
+  nb.disabled=false;
+  // animate houses to match defRate
+  const targetDef=Math.round(st.defRate/100*100);
+  const currentDef=gfcHouses.filter(h=>h.status==='default').length;
+  const toDefault=Math.max(0,targetDef-currentDef);
+  const toRecover=Math.max(0,currentDef-targetDef);
+  // first recover some if going back
+  let recIdx=0;
+  gfcHouses.filter(h=>h.status==='default').slice(0,toRecover).forEach(h=>{
+    h.status='active';
+    const el=document.getElementById(`gh${h.id}`);
+    if(el){el.innerHTML=gfcHouseSVG('active');el.className='gfc-hcell';}
+  });
+  // then default
+  const activeH=gfcHouses.filter(h=>h.status==='active');
+  const toDefaultList=activeH.sort(()=>Math.random()-.5).slice(0,toDefault);
+  let q=0;
+  gfcInterval=setInterval(()=>{
+    if(q>=toDefaultList.length){clearInterval(gfcInterval);return;}
+    const h=toDefaultList[q]; h.status='default';
+    const el=document.getElementById(`gh${h.id}`);
+    if(el){el.classList.add('default');setTimeout(()=>{el.innerHTML=gfcHouseSVG('default');el.className='gfc-hcell';},500);}
+    q++;
+  },60);
+  // metrics
+  setTimeout(()=>updateGFCMetrics(st),400);
+  // events feed
+  const feed=document.getElementById('gfcFeed'); feed.innerHTML='';
+  st.events.forEach((ev,i)=>{
+    setTimeout(()=>{
+      const d=document.createElement('div'); d.className=`gfc-event ${ev.cls}`;
+      d.innerHTML=`<span class="gfc-event-time">${ev.t}</span>${ev.txt}`;
+      feed.insertBefore(d,feed.firstChild);
+    },i*400);
+  });
+  // chart
+  setTimeout(()=>drawGFCChart(st),200);
+}
+
+function updateGFCMetrics(st){
+  const dr=st.defRate/100;
+  const V=computeGFC(dr);
+  const fmtM=n=>n>=1e6?'£'+(n/1e6).toFixed(2)+'M':'£'+Math.round(n).toLocaleString();
+  document.getElementById('gfcDR').textContent=st.defRate+'%';
+  document.getElementById('gfcDR').className='gfc-m-val'+(dr>.2?' danger':dr>.08?' warn':'');
+  document.getElementById('gfcDRd').textContent=dr>.25?'Catastrophic — GFC level':dr>.15?'Severe — mezzanine impaired':dr>.08?'Elevated — equity absorbed':'Subprime baseline';
+  document.getElementById('gfcHPI').textContent=st.hpi;
+  document.getElementById('gfcHPI').className='gfc-m-val'+(st.hpi<130?'danger':st.hpi<160?' warn':' ok');
+  const hpiChg=st.hpi>180?'+12% YoY boom':st.hpi>160?'-5% declining':st.hpi>130?'-20% falling':'-40% crash';
+  document.getElementById('gfcHPId').textContent=hpiChg;
+  document.getElementById('gfcHPId').style.color=st.hpi>175?'#22c55e':st.hpi>150?'#f97316':'#ef4444';
+  document.getElementById('gfcSV').textContent=fmtM(V.totVal);
+  document.getElementById('gfcSV').className='gfc-m-val'+(V.totVal<TOTAL_BAL*.6?' danger':V.totVal<TOTAL_BAL*.85?' warn':'');
+  document.getElementById('gfcSVd').textContent=V.totVal>TOTAL_BAL*.98?'At par':V.totVal>TOTAL_BAL*.8?'-'+(100-V.totVal/TOTAL_BAL*100).toFixed(0)+'% impaired':'-'+(100-V.totVal/TOTAL_BAL*100).toFixed(0)+'% severe loss';
+  document.getElementById('gfcSVd').style.color=V.totVal>TOTAL_BAL*.95?'rgba(255,255,255,.4)':V.totVal>TOTAL_BAL*.7?'#f97316':'#ef4444';
+  // tranche bars
+  V.results.forEach(r=>{
+    const pct=Math.max(0,(r.val/r.face)*100).toFixed(0);
+    document.getElementById(`gfc-b-${r.key}`).style.width=pct+'%';
+    document.getElementById(`gfc-p-${r.key}`).textContent=pct+'%';
+    document.getElementById(`gfc-p-${r.key}`).style.color=pct>80?'#22c55e':pct>40?'#f97316':'#ef4444';
+  });
+}
+
+function computeGFC(dr){
+  const totDef=Math.round(dr*100);
+  const active=100-totDef;
+  const WAC=5.4/100;
+  const survBal=TOTAL_BAL*(active/100);
+  const monthlyCF=survBal*(WAC/12);
+  const netLoss=TOTAL_BAL*dr*LGD;
+  const nlPct=netLoss/TOTAL_BAL;
+  const sm=1+nlPct*4;
+  const rfR=0.05;
+  const results=TD.map(t=>{
+    const face=TOTAL_BAL*t.face;
+    const absorbed=Math.min(Math.max(0,netLoss-TOTAL_BAL*FLOORS[t.key]),face);
+    const intact=face-absorbed;
+    const d=(rfR+t.spread*sm)/12,n=300;
+    const cf=monthlyCF*t.face;
+    const pv=d>0?cf*(1-Math.pow(1+d,-n))/d+intact*Math.pow(1+d,-n):intact;
+    const haircut=absorbed>0?Math.min(absorbed/face,1)*.6:0;
+    return{...t,face,absorbed,intact,cf,val:Math.max(0,pv*(1-haircut)),disc:rfR+t.spread*sm};
+  });
+  return{totVal:results.reduce((s,r)=>s+r.val,0),results,survBal,monthlyCF,nlPct};
+}
+
+function drawGFCChart(st){
+  const c=document.getElementById('gfcChart'); if(!c)return;
+  c.width=c.offsetWidth||500;
+  const ctx=c.getContext('2d'),w=c.width,h=c.height;
+  ctx.clearRect(0,0,w,h);
+  // Data: HPI and default rate across 6 stages
+  const hpiData=[188,184,165,140,118,110];
+  const drData=[1,5,12,22,32,18];
+  const years=['2003','2005','2006','2007 Q1','Sep 2008','2010'];
+  const maxHPI=200, maxDR=40;
+  const pad={l:50,t:14,b:28,r:55};
+  const stageCount=hpiData.length;
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+(i/4)*(h-pad.t-pad.b);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+  }
+  // HPI line
+  ctx.beginPath();
+  hpiData.forEach((v,i)=>{
+    const x=pad.l+(i/(stageCount-1))*(w-pad.l-pad.r);
+    const y=pad.t+(1-v/maxHPI)*(h-pad.t-pad.b);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle='#22c55e';ctx.lineWidth=2.5;ctx.stroke();
+  // HPI dots
+  hpiData.forEach((v,i)=>{
+    const x=pad.l+(i/(stageCount-1))*(w-pad.l-pad.r);
+    const y=pad.t+(1-v/maxHPI)*(h-pad.t-pad.b);
+    ctx.beginPath();ctx.arc(x,y,i===gfcStageIdx?7:4,0,Math.PI*2);
+    ctx.fillStyle=i===gfcStageIdx?'#22c55e':'rgba(34,197,94,.5)';ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(v,x,y-10);
+  });
+  // Default rate line (right axis scale)
+  ctx.beginPath();
+  drData.forEach((v,i)=>{
+    const x=pad.l+(i/(stageCount-1))*(w-pad.l-pad.r);
+    const y=pad.t+(1-v/maxDR)*(h-pad.t-pad.b);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle='#ef4444';ctx.lineWidth=2.5;ctx.stroke();
+  drData.forEach((v,i)=>{
+    const x=pad.l+(i/(stageCount-1))*(w-pad.l-pad.r);
+    const y=pad.t+(1-v/maxDR)*(h-pad.t-pad.b);
+    ctx.beginPath();ctx.arc(x,y,i===gfcStageIdx?7:4,0,Math.PI*2);
+    ctx.fillStyle=i===gfcStageIdx?'#ef4444':'rgba(239,68,68,.5)';ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(v+'%',x,y-10);
+  });
+  // X labels
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
+  years.forEach((yr,i)=>{
+    const x=pad.l+(i/(stageCount-1))*(w-pad.l-pad.r);
+    ctx.fillText(yr,x,h-4);
+  });
+  // Left axis labels (HPI)
+  ctx.fillStyle='#22c55e';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
+  [50,100,150,200].forEach(v=>{const y=pad.t+(1-v/maxHPI)*(h-pad.t-pad.b);ctx.fillText(v,pad.l-6,y+3);});
+  ctx.save();ctx.fillStyle='#22c55e';ctx.font='9px Inter,sans-serif';ctx.translate(12,h/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText('HPI',0,0);ctx.restore();
+  // Right axis labels (DR%)
+  ctx.fillStyle='#ef4444';ctx.font='9px Inter,sans-serif';ctx.textAlign='left';
+  [0,10,20,30,40].forEach(v=>{const y=pad.t+(1-v/maxDR)*(h-pad.t-pad.b);ctx.fillText(v+'%',w-pad.r+4,y+3);});
+  // Current stage highlight
+  const hx=pad.l+(gfcStageIdx/(stageCount-1))*(w-pad.l-pad.r);
+  ctx.beginPath();ctx.moveTo(hx,pad.t);ctx.lineTo(hx,h-pad.b);
+  ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);
+}
+
+function gfcNext(){
+  if(gfcStageIdx<GFC_STAGES.length-1){
+    gfcStageIdx++;
+    renderGFCStage(gfcStageIdx);
+  } else {
+    closeGFC();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+initMortgages(); buildGrid(); initArrows(); recalc(); animateFlow();
+setInterval(()=>{spawnFP();simTick++;if(simTick%4===0)recalc();},1200);
+window.addEventListener('resize',()=>{initArrows();recalc();});
+</script>
+</body>
+</html>

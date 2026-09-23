@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Monitor | Harsh Walia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', sans-serif; }
+  h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+  code, .mono { font-family: 'DM Mono', monospace; }
+
+  .glass-panel {
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59,130,246,0.15);
+    box-shadow: 0 4px 20px rgba(59,130,246,0.08);
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .grid-pattern {
+    background-image: radial-gradient(circle at 1px 1px, rgba(59,130,246,0.08) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+  .nav-link { position: relative; }
+  .nav-link::after {
+    content: ''; position: absolute; width: 0; height: 2px;
+    bottom: -4px; left: 0; background: #2563EB; transition: width 0.3s;
+  }
+  .nav-link:hover::after { width: 100%; }
+
+  /* Index tab buttons */
+  .idx-tab {
+    padding: 0.45rem 1.1rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    border: 1.5px solid rgba(59,130,246,0.2);
+    color: #64748b;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .idx-tab:hover { border-color: #2563EB; color: #2563EB; }
+  .idx-tab.active {
+    background: #2563EB; color: white;
+    border-color: #2563EB;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  }
+
+  /* News items */
+  .news-item {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    background: white;
+  }
+  .news-item:hover {
+    border-color: rgba(59,130,246,0.35);
+    box-shadow: 0 2px 10px rgba(59,130,246,0.1);
+    transform: translateX(3px);
+  }
+  .news-item.active {
+    border-color: #2563EB;
+    background: rgba(37,99,235,0.04);
+  }
+
+  /* Category badges */
+  .badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 9999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+  .badge-fed   { background: #dbeafe; color: #1d4ed8; }
+  .badge-cpi   { background: #fce7f3; color: #9d174d; }
+  .badge-gdp   { background: #d1fae5; color: #065f46; }
+  .badge-jobs  { background: #fef3c7; color: #92400e; }
+  .badge-geo   { background: #ede9fe; color: #5b21b6; }
+  .badge-earn  { background: #e0f2fe; color: #0c4a6e; }
+  .badge-boe   { background: #f0fdf4; color: #14532d; }
+
+  /* TradingView container */
+  #tv-container {
+    width: 100%;
+    height: 520px;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  #tv-container iframe {
+    width: 100%; height: 100%;
+    border: none;
+  }
+
+  /* Ticker bar */
+  .ticker-bar {
+    background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
+    overflow: hidden;
+    position: relative;
+  }
+  .ticker-track {
+    display: flex;
+    gap: 3rem;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+    padding: 0.6rem 0;
+  }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem; color: rgba(255,255,255,0.9);
+  }
+  .ticker-up   { color: #6ee7b7; }
+  .ticker-down { color: #fca5a5; }
+
+  /* Event info card */
+  #event-card {
+    transition: all 0.3s ease;
+  }
+
+  /* Scrollbar */
+  .news-scroll::-webkit-scrollbar { width: 4px; }
+  .news-scroll::-webkit-scrollbar-track { background: transparent; }
+  .news-scroll::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius: 4px; }
+
+  /* Pulse dot */
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #10b981;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .slide-in { animation: slideIn 0.5s ease-out forwards; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
+
+<!-- NAV -->
+<nav class="sticky top-0 w-full z-50 glass-panel border-b border-blue-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+    <div class="flex justify-between items-center">
+      <a href="index.html" class="brand-font text-2xl font-bold tracking-tight">
+        <span class="gradient-text">HW</span>
+      </a>
+      <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+        <a href="index.html" class="nav-link hover:text-blue-600 transition text-gray-600">Projects</a>
+        <a href="index.html#blog" class="nav-link hover:text-blue-600 transition text-gray-600">Insights</a>
+        <a href="index.html#about" class="nav-link hover:text-blue-600 transition text-gray-600">About</a>
+        <span class="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-700 flex items-center gap-1.5">
+          <span class="live-dot"></span> Live chart
+        </span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- TICKER BAR -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="tickerTrack">
+    <!-- Policy data only. The previous strip carried hard-coded index moves
+         ("S&P 500 +0.41%") that were ~19 months stale and read as live quotes.
+         Nothing goes here without a source and a date. -->
+    <span class="ticker-item">Fed funds target <span class="ticker-up">3.75–4.00%</span></span>
+    <span class="ticker-item">BoE Bank Rate <span class="ticker-up">3.75%</span></span>
+    <span class="ticker-item">US CPI YoY <span class="ticker-down">3.4%</span></span>
+    <span class="ticker-item">US Core CPI <span class="ticker-up">2.4%</span></span>
+    <span class="ticker-item">Verified at source <span class="ticker-up">23 Sep 2026</span></span>
+    <!-- duplicated for seamless loop -->
+    <span class="ticker-item">Fed funds target <span class="ticker-up">3.75–4.00%</span></span>
+    <span class="ticker-item">BoE Bank Rate <span class="ticker-up">3.75%</span></span>
+    <span class="ticker-item">US CPI YoY <span class="ticker-down">3.4%</span></span>
+    <span class="ticker-item">US Core CPI <span class="ticker-up">2.4%</span></span>
+    <span class="ticker-item">Verified at source <span class="ticker-up">23 Sep 2026</span></span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid-pattern">
+
+  <!-- Header -->
+  <div class="mb-6 slide-in">
+    <h1 class="brand-font text-3xl font-bold mb-1">
+      <span class="gradient-text">Market Monitor</span>
+    </h1>
+    <p class="text-gray-500 text-sm">Click any event in the news panel → opens TradingView at that exact date</p>
+  </div>
+
+  <!-- Index selector + active info -->
+  <div class="flex flex-wrap items-center gap-3 mb-5">
+    <button class="idx-tab active" onclick="switchIndex('SP1!','S&P 500','SPX','USD',true)" id="tab-sp">S&amp;P 500</button>
+    <button class="idx-tab" onclick="switchIndex('NASDAQ:NDX','NASDAQ 100','NDX','USD',false)" id="tab-ndx">NASDAQ 100</button>
+    <button class="idx-tab" onclick="switchIndex('SPREADEX:FTSE','FTSE 100','UKX','GBP',false)" id="tab-ftse">FTSE 100</button>
+
+    <div class="ml-auto hidden sm:flex items-center gap-2 text-xs text-gray-400 mono">
+      <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Data via TradingView · 15-min delayed
+    </div>
+  </div>
+
+  <!-- 2-col layout: chart + news -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- LEFT: Chart (2/3) -->
+    <div class="lg:col-span-2 flex flex-col gap-4">
+
+      <!-- Chart panel -->
+      <div class="glass-panel rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <span class="brand-font font-bold text-lg text-gray-800" id="chart-label">S&amp;P 500</span>
+            <span class="ml-2 text-xs text-gray-400 mono" id="chart-sym">SP1! · CME</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-green-600 font-medium bg-green-50 px-2.5 py-1 rounded-full">
+            <span class="live-dot" style="background:#10b981"></span> Live
+          </div>
+        </div>
+        <div id="tv-container">
+          <div id="tv-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:12px;">
+            <div class="text-center">
+              <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p class="text-sm text-gray-400">Loading chart…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected event card -->
+      <div id="event-card" class="glass-panel rounded-2xl p-5 hidden">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span id="ev-badge" class="badge badge-fed">FED</span>
+              <span id="ev-date" class="mono text-xs text-gray-500"></span>
+            </div>
+            <h3 id="ev-title" class="brand-font font-semibold text-gray-800 text-base mb-1"></h3>
+            <p id="ev-desc" class="text-sm text-gray-500 leading-relaxed"></p>
+          </div>
+          <a id="ev-link" href="#" target="_blank"
+            class="ml-4 flex-shrink-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full transition flex items-center gap-1.5 shadow-lg shadow-blue-500/20">
+            View on TradingView
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Policy rates. Hand-maintained: every figure carries its as-of date and a link to the
+           issuing institution, so a stale number is visible rather than silent. Update on each
+           FOMC / MPC decision and each CPI release. -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="glass-panel rounded-xl p-4 text-center">
+          <p class="text-xs text-gray-400 mb-1 mono">FED FUNDS TARGET</p>
+          <p class="brand-font font-bold text-lg text-gray-800">3.75–4.00%</p>
+          <p class="text-xs text-gray-400">Set 17 Sep 2026 &middot;
+            <a href="https://www.federalreserve.gov/monetarypolicy/openmarket.htm"
+               target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-600">FOMC</a></p>
+        </div>
+        <div class="glass-panel rounded-xl p-4 text-center">
+          <p class="text-xs text-gray-400 mb-1 mono">US CPI YoY</p>
+          <p class="brand-font font-bold text-lg text-gray-800">3.4%</p>
+          <p class="text-xs text-gray-400">Aug 2026, rel. 11 Sep &middot;
+            <a href="https://www.bls.gov/news.release/cpi.nr0.htm"
+               target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-600">BLS</a></p>
+        </div>
+        <div class="glass-panel rounded-xl p-4 text-center">
+          <p class="text-xs text-gray-400 mb-1 mono">BOE BANK RATE</p>
+          <p class="brand-font font-bold text-lg text-gray-800">3.75%</p>
+          <p class="text-xs text-gray-400">Held 17 Sep 2026 &middot;
+            <a href="https://www.bankofengland.co.uk/monetary-policy/the-interest-rate-bank-rate"
+               target="_blank" rel="noopener" class="text-blue-500 hover:text-blue-600">BoE</a></p>
+        </div>
+      </div>
+      <p class="text-[11px] text-gray-400 mt-2 text-center">
+        Policy rates verified at source 23 Sep 2026. Core CPI 2.4% YoY (Aug 2026).
+        The chart above is live via TradingView; these three figures are hand-updated.
+      </p>
+
+    </div>
+
+    <!-- RIGHT: News panel (1/3) -->
+    <div class="lg:col-span-1">
+      <div class="glass-panel rounded-2xl h-full flex flex-col" style="max-height:780px">
+
+        <!-- Panel header + filter -->
+        <div class="p-4 border-b border-blue-50">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="brand-font font-semibold text-gray-800">Event Archive</h2>
+            <span class="text-xs text-gray-400 mono">Click → chart date</span>
+          </div>
+          <!-- Honest labelling: this list is a fixed historical set, not a live feed.
+               Presenting Feb-Mar 2025 events under a "Live" badge was the problem. -->
+          <p class="text-xs text-gray-400 mb-2">Curated set, <span class="mono">Feb–Mar 2025</span>
+            &middot; historical reference, not a live feed</p>
+          <!-- Category filters -->
+          <div class="flex flex-wrap gap-1.5" id="filter-bar">
+            <button class="filter-btn active text-xs px-2.5 py-1 rounded-full font-medium transition-all border"
+              style="background:#2563EB;color:white;border-color:#2563EB" onclick="filterEvents('all',this)">All</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('fed',this)">Fed</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('cpi',this)">CPI</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('jobs',this)">Jobs</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('gdp',this)">GDP</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('geo',this)">Macro</button>
+          </div>
+        </div>
+
+        <!-- Scrollable event list -->
+        <div class="flex-1 overflow-y-auto news-scroll p-3 space-y-2" id="event-list"></div>
+
+      </div>
+    </div>
+  </div><!-- end grid -->
+
+</main>
+
+<script>
+// ── INDEX CONFIG ──────────────────────────────────────────────────────────────
+const INDICES = {
+  'SP1!':          { label: 'S&P 500',     sym: 'SP1! · CME',          tv: 'SP1!',              tab: 'tab-sp'   },
+  'NASDAQ:NDX':    { label: 'NASDAQ 100',  sym: 'NASDAQ:NDX',          tv: 'NASDAQ:NDX',         tab: 'tab-ndx'  },
+  'SPREADEX:FTSE': { label: 'FTSE 100',    sym: 'SPREADEX:FTSE',       tv: 'SPREADEX:FTSE',      tab: 'tab-ftse' },
+};
+
+let currentSymbol = 'SP1!';
+let activeFilter  = 'all';
+
+// ── EVENTS DATA ───────────────────────────────────────────────────────────────
+// date format: YYYY-MM-DD  (used to build TradingView deep-link)
+const EVENTS = [
+  // 2025 ─────────────────────────────────────────────────────────────────
+  {
+    id: 1, date: '2025-01-29', cat: 'fed',
+    title: 'FOMC Meeting — Rate Hold',
+    desc: 'Fed holds rates at 4.25–4.50%. Powell signals patience; no cuts imminent. Markets rally briefly then fade.',
+    impact: 'neutral'
+  },
+  {
+    id: 2, date: '2025-02-12', cat: 'cpi',
+    title: 'US CPI Jan 2025 — Hotter Than Expected',
+    desc: 'CPI prints +3.0% YoY vs 2.9% expected. Core CPI +3.3%. Risk-off selloff; 10Y yields spike to 4.65%.',
+    impact: 'negative'
+  },
+  {
+    id: 3, date: '2025-02-07', cat: 'jobs',
+    title: 'NFP Jan 2025 — Solid Beat',
+    desc: '256k jobs added vs 170k forecast. Unemployment steady at 4.1%. Pushes back rate-cut timeline.',
+    impact: 'mixed'
+  },
+  {
+    id: 4, date: '2025-03-19', cat: 'fed',
+    title: 'FOMC Meeting — Dot Plot Revised',
+    desc: 'Fed revises dot plot to signal 2 cuts in 2025, down from 3. Growth forecasts lowered; stagflation fears rise.',
+    impact: 'negative'
+  },
+  {
+    id: 5, date: '2025-02-02', cat: 'geo',
+    title: 'Trump Tariffs — Canada, Mexico, China',
+    desc: '25% tariffs on Canada & Mexico; 10% on China announced. Markets drop sharply; DXY surges. Partial pause later announced.',
+    impact: 'negative'
+  },
+  {
+    id: 6, date: '2025-01-20', cat: 'geo',
+    title: 'Trump Inauguration',
+    desc: 'Trump sworn in as 47th president. Markets initially rally on deregulation hopes. Executive orders begin immediately.',
+    impact: 'positive'
+  },
+  {
+    id: 7, date: '2025-03-12', cat: 'cpi',
+    title: 'US CPI Feb 2025 — Softer Print',
+    desc: 'CPI +2.8% YoY vs 2.9% expected. Core CPI +3.1%. Modest relief rally in equities; bonds rally.',
+    impact: 'positive'
+  },
+  {
+    id: 8, date: '2025-02-06', cat: 'boe',
+    title: 'Bank of England — Rate Cut to 4.50%',
+    desc: 'BoE cuts by 25bps to 4.50% as expected. 2 of 9 MPC members voted for 50bps cut. GBP weakens vs USD.',
+    impact: 'mixed'
+  },
+  {
+    id: 9, date: '2025-01-30', cat: 'gdp',
+    title: 'US GDP Q4 2024 — Advance Estimate',
+    desc: 'Q4 GDP +2.3% annualised, below 2.6% consensus. Consumer spending strong but trade drag weighs.',
+    impact: 'mixed'
+  },
+  {
+    id: 10, date: '2025-03-07', cat: 'jobs',
+    title: 'NFP Feb 2025 — Miss',
+    desc: '151k jobs added vs 160k expected. DOGE layoffs begin to show in data. Unemployment ticks to 4.1%.',
+    impact: 'negative'
+  },
+  {
+    id: 11, date: '2025-02-26', cat: 'gdp',
+    title: 'US GDP Q4 2024 — Second Estimate',
+    desc: 'Revised to +2.3%, unchanged from advance. Business investment revised higher.',
+    impact: 'neutral'
+  },
+  {
+    id: 12, date: '2025-03-04', cat: 'geo',
+    title: 'Tariff Escalation — China Retaliates',
+    desc: 'China imposes counter-tariffs on US agricultural goods. S&P 500 falls ~1.8% on the day.',
+    impact: 'negative'
+  },
+  {
+    id: 13, date: '2025-02-19', cat: 'geo',
+    title: 'Nvidia Earnings Beat',
+    desc: 'Nvidia reports Q4 revenue $39.3B, crushing $38B estimates. AI capex cycle intact. NASDAQ surges +3%.',
+    impact: 'positive'
+  },
+  {
+    id: 14, date: '2025-01-23', cat: 'earn',
+    title: 'Netflix Q4 Earnings Beat',
+    desc: 'Netflix adds 19M subscribers vs 9M expected. EPS $4.27 vs $4.20 est. Stock +14% after-hours.',
+    impact: 'positive'
+  },
+  {
+    id: 15, date: '2025-02-05', cat: 'earn',
+    title: 'Alphabet / Meta Earnings',
+    desc: 'Both beat on EPS. Alphabet announces $75B capex plan; Meta $60–65B. AI spending dominates guidance.',
+    impact: 'positive'
+  },
+  // 2024 ─────────────────────────────────────────────────────────────────
+  {
+    id: 16, date: '2024-09-18', cat: 'fed',
+    title: 'Fed Cuts by 50bps — Pivot Begins',
+    desc: 'Fed surprises with 50bps cut to 4.75–5.00%. First cut since 2020. Equity markets initially rally then give back gains.',
+    impact: 'mixed'
+  },
+  {
+    id: 17, date: '2024-11-07', cat: 'fed',
+    title: 'FOMC — 25bps Cut Post-Election',
+    desc: 'Fed cuts 25bps to 4.50–4.75% as expected. Powell signals data-dependent path. Dollar surges post-Trump win.',
+    impact: 'neutral'
+  },
+  {
+    id: 18, date: '2024-12-18', cat: 'fed',
+    title: 'FOMC — December Cut + Hawkish Pivot',
+    desc: '25bps cut but dot plot signals only 2 cuts in 2025 vs 4 expected. S&P 500 falls 3% in single session.',
+    impact: 'negative'
+  },
+  {
+    id: 19, date: '2024-11-05', cat: 'geo',
+    title: 'US Presidential Election — Trump Wins',
+    desc: 'Trump wins decisively. S&P 500 +2.5% next day. Dollar surges. Bond yields spike. "Trump trade" in full effect.',
+    impact: 'positive'
+  },
+  {
+    id: 20, date: '2024-08-05', cat: 'geo',
+    title: 'Yen Carry Trade Unwind — "Black Monday"',
+    desc: 'BOJ rate hike + US recession fears trigger mass carry trade unwind. Nikkei −12%, VIX spikes to 65. S&P drops 3%.',
+    impact: 'negative'
+  },
+];
+
+// ── SORT by date descending ───────────────────────────────────────────────────
+EVENTS.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+// ── CAT CONFIG ────────────────────────────────────────────────────────────────
+const CAT = {
+  fed:  { label: 'FED',   cls: 'badge-fed'  },
+  cpi:  { label: 'CPI',   cls: 'badge-cpi'  },
+  gdp:  { label: 'GDP',   cls: 'badge-gdp'  },
+  jobs: { label: 'JOBS',  cls: 'badge-jobs' },
+  geo:  { label: 'MACRO', cls: 'badge-geo'  },
+  boe:  { label: 'BOE',   cls: 'badge-boe'  },
+  earn: { label: 'EARN',  cls: 'badge-earn' },
+};
+
+const IMPACT_ICON = { positive: '▲', negative: '▼', mixed: '◆', neutral: '●' };
+const IMPACT_CLR  = { positive: 'text-green-600', negative: 'text-red-500', mixed: 'text-amber-500', neutral: 'text-gray-400' };
+
+// ── TRADINGVIEW DEEP LINK ─────────────────────────────────────────────────────
+function tvLink(symbol, dateStr) {
+  // TradingView chart URL with symbol pre-loaded; date is shown as context label
+  const ts = Math.floor(new Date(dateStr).getTime() / 1000);
+  return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(symbol)}&interval=D`;
+  // Note: TradingView's free embeds don't support ?date= directly in the public URL,
+  // but the link opens the chart so user can navigate. For advanced date navigation,
+  // TradingView Pro accounts have deep-link support.
+}
+
+// ── RENDER CHART ──────────────────────────────────────────────────────────────
+function loadChart(symbol) {
+  const container = document.getElementById('tv-container');
+  container.innerHTML = '';
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.innerHTML = JSON.stringify({
+    autosize: true,
+    symbol: symbol,
+    interval: "D",
+    timezone: "Europe/London",
+    theme: "light",
+    style: "1",
+    locale: "en",
+    gridColor: "rgba(59, 130, 246, 0.06)",
+    hide_top_toolbar: false,
+    hide_legend: false,
+    save_image: true,
+    calendar: false,
+    support_host: "https://www.tradingview.com",
+    allow_symbol_change: true,
+    studies: ["RSI@tv-study", "MASimple@tv-study"],
+  });
+
+  const widgetDiv = document.createElement('div');
+  widgetDiv.className = 'tradingview-widget-container';
+  widgetDiv.style.cssText = 'width:100%;height:100%';
+
+  const inner = document.createElement('div');
+  inner.className = 'tradingview-widget-container__widget';
+  inner.style.cssText = 'height:calc(100% - 32px);width:100%';
+
+  widgetDiv.appendChild(inner);
+  widgetDiv.appendChild(script);
+  container.appendChild(widgetDiv);
+}
+
+// ── SWITCH INDEX ──────────────────────────────────────────────────────────────
+function switchIndex(symbol, label, sym, currency, isFirst) {
+  currentSymbol = symbol;
+  // update active tab
+  document.querySelectorAll('.idx-tab').forEach(t => t.classList.remove('active'));
+  const cfg = INDICES[symbol];
+  if (cfg) document.getElementById(cfg.tab).classList.add('active');
+  document.getElementById('chart-label').textContent = label;
+  document.getElementById('chart-sym').textContent = sym + ' · ' + currency;
+  loadChart(symbol);
+}
+
+// ── RENDER EVENTS ─────────────────────────────────────────────────────────────
+function renderEvents(filter) {
+  const list = document.getElementById('event-list');
+  const items = filter === 'all' ? EVENTS : EVENTS.filter(e => e.cat === filter);
+
+  list.innerHTML = items.map(ev => {
+    const cat = CAT[ev.cat] || CAT.geo;
+    const d = new Date(ev.date + 'T12:00:00');
+    const dateLabel = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const impIcon = IMPACT_ICON[ev.impact] || '●';
+    const impClr  = IMPACT_CLR[ev.impact] || 'text-gray-400';
+    return `
+      <div class="news-item" id="ev-item-${ev.id}" onclick="selectEvent(${ev.id})">
+        <div class="flex items-center justify-between mb-1">
+          <span class="badge ${cat.cls}">${cat.label}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="mono text-xs text-gray-400">${dateLabel}</span>
+            <span class="${impClr} text-xs font-bold">${impIcon}</span>
+          </div>
+        </div>
+        <p class="text-sm font-medium text-gray-700 leading-snug">${ev.title}</p>
+      </div>`;
+  }).join('');
+}
+
+// ── SELECT EVENT ──────────────────────────────────────────────────────────────
+function selectEvent(id) {
+  const ev = EVENTS.find(e => e.id === id);
+  if (!ev) return;
+
+  // highlight item
+  document.querySelectorAll('.news-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('ev-item-' + id);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+
+  // populate event card
+  const cat = CAT[ev.cat] || CAT.geo;
+  const d = new Date(ev.date + 'T12:00:00');
+  const dateLabel = d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  document.getElementById('ev-badge').className = `badge ${cat.cls}`;
+  document.getElementById('ev-badge').textContent = cat.label;
+  document.getElementById('ev-date').textContent = dateLabel;
+  document.getElementById('ev-title').textContent = ev.title;
+  document.getElementById('ev-desc').textContent = ev.desc;
+  document.getElementById('ev-link').href = tvLink(currentSymbol, ev.date);
+
+  const card = document.getElementById('event-card');
+  card.classList.remove('hidden');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = 'slideIn 0.3s ease-out'; });
+
+  // scroll to chart area on mobile
+  if (window.innerWidth < 1024) {
+    document.getElementById('tv-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function filterEvents(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.style.background = 'white';
+    b.style.color = '#64748b';
+    b.style.borderColor = 'rgba(219,234,254,1)';
+  });
+  btn.style.background = '#2563EB';
+  btn.style.color = 'white';
+  btn.style.borderColor = '#2563EB';
+  renderEvents(cat);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadChart('SP1!');
+  renderEvents('all');
+});
+</script>
+</body>
+</html>

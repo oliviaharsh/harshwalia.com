@@ -1,0 +1,13 @@
+# Secrets — never commit
+projects/config.local.php
+.env
+*.pem
+*.key
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Backups — these were being published; they should not be
+*.bak

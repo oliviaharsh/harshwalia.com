@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>easyJet plc | Equity Research | HW</title>
+    <meta name="description" content="Bottom-up valuation of easyJet plc against Apollo's 715p
+cash offer. Base case 752p. Capacity inherited from EUROCONTROL scenarios; beta re-estimated
+by OLS on a pre-offer window.">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<style>
+        * { font-family: 'Inter', sans-serif; }
+        .brand-font { font-family: 'Space Grotesk', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* ── Page chrome ── */
+        .gradient-text {
+            background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(59,130,246,0.15);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.06);
+        }
+
+        /* ── Research report specific ── */
+        .report-header {
+            background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 60%);
+            border-bottom: 1px solid rgba(59,130,246,0.12);
+        }
+        .badge-overvalued { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge-undervalued { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-fairvalue { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+
+        /* ── Section dividers like a research note ── */
+        .section-label {
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        /* ── Metric cards ── */
+        .metric-card {
+            background: #f8faff;
+            border: 1px solid rgba(59,130,246,0.12);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .metric-val { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700; }
+        .metric-lbl { font-size: 11px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+
+        /* ── Scenario bar ── */
+        .scenario-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .scenario-bar.bull { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .scenario-bar.base { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .scenario-bar.bear { background: #fff7ed; border: 1px solid #fed7aa; }
+
+        /* ── Sensitivity table ── */
+        .sens-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        .sens-table th, .sens-table td { padding: 8px 12px; text-align: center; border: 1px solid rgba(59,130,246,0.12); }
+        .sens-table th { background: rgba(37,99,235,0.06); font-weight: 600; color: #1e3a8a; }
+        .sens-table td.highlight { background: rgba(37,99,235,0.08); font-weight: 600; color: #1d4ed8; }
+        .sens-table td.above { background: #dcfce7; color: #166534; }
+        .sens-table td.below { background: #fee2e2; color: #991b1b; }
+
+        /* ── Pull quotes ── */
+        .pull-quote {
+            border-left: 3px solid #2563EB;
+            padding: 12px 20px;
+            background: #f0f6ff;
+            border-radius: 0 10px 10px 0;
+            font-style: italic;
+            color: #1e40af;
+            margin: 24px 0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* ── Comps table ── */
+        .comps-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        .comps-table th { background: rgba(37,99,235,0.05); font-weight: 600; color: #1e3a8a; padding: 10px 14px; text-align: right; border-bottom: 2px solid rgba(59,130,246,0.15); }
+        .comps-table th:first-child { text-align: left; }
+        .comps-table td { padding: 9px 14px; text-align: right; border-bottom: 1px solid rgba(59,130,246,0.08); color: #374151; }
+        .comps-table td:first-child { text-align: left; font-weight: 500; color: #111827; }
+        .comps-table tr.airbnb-row td { background: rgba(37,99,235,0.05); font-weight: 600; color: #1d4ed8; }
+        .comps-table tr:hover td { background: rgba(59,130,246,0.03); }
+
+        /* ── Chart container ── */
+        .chart-box { position: relative; height: 260px; }
+
+        /* ── Disclosure footer ── */
+        .disclosure { font-size: 11px; color: #9ca3af; line-height: 1.7; padding-top: 16px; border-top: 1px solid rgba(59,130,246,0.1); }
+
+        /* ── Print / download feel ── */
+        @media print {
+            nav, .no-print { display: none !important; }
+            body { background: white; }
+        }
+    </style>
+    <style>
+        /* easyJet note: charts are pre-rendered PNGs from the model, not Chart.js */
+        .fig { margin: 28px 0; }
+        .fig img {
+            width: 100%; height: auto; display: block;
+            border: 1px solid rgba(59,130,246,0.14); border-radius: 12px; background: #fff;
+        }
+        .fig figcaption {
+            font-size: 12px; color: #6b7280; margin-top: 10px; line-height: 1.6;
+            font-style: italic;
+        }
+        .thesis-for  { border-left: 3px solid #10b981; background: #f0fdf4; }
+        .thesis-risk { border-left: 3px solid #f97316; background: #fff7ed; }
+        .thesis-item { padding: 12px 18px; border-radius: 0 10px 10px 0; margin-bottom: 10px;
+                       font-size: 14px; line-height: 1.65; color: #374151; }
+        .thesis-item strong { color: #111827; }
+        .src-note { font-size: 12.5px; line-height: 1.75; color: #6b7280; }
+        .src-note strong { color: #374151; }
+        .verify-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+                       padding: 14px 18px; font-size: 12.5px; line-height: 1.75; color: #78350f; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+<nav class="w-full border-b border-blue-100 bg-white sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="../index.html" class="text-2xl font-bold brand-font gradient-text">HW</a>
+        <div class="flex items-center gap-6 text-sm">
+            <a href="../index.html" onclick="sessionStorage.setItem('openSection','research')"
+               class="text-blue-600 hover:text-blue-700 transition flex items-center gap-1.5 font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Research
+            </a>
+        </div>
+    </div>
+</nav>
+
+<header class="report-header">
+    <div class="max-w-5xl mx-auto px-6 py-14">
+        <div class="flex flex-wrap items-center gap-3 mb-6 text-sm">
+            <span class="badge-undervalued px-3 py-1 rounded-full text-xs font-bold">&#9650; Offer looks light</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Airlines &middot; Travel &amp; Leisure</span>
+            <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">Special Situation</span>
+            <span class="text-gray-400">LSE: EZJ</span>
+            <span class="text-gray-300">&middot;</span>
+            <span class="text-gray-400">Initiation &middot; 16 September 2026</span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-3 brand-font">
+            easyJet plc &mdash; Apollo's 715p Offer
+        </h1>
+        <p class="text-xl text-blue-600 font-medium mb-6 serif">
+            &ldquo;Priced for the deal risk, not for the business.&rdquo;
+        </p>
+        <p class="text-gray-600 text-base leading-relaxed max-w-3xl">
+            easyJet has agreed a 715p cash offer from Apollo, valuing the equity at about
+            &pound;5.7bn. We build the airline from the bottom up &mdash; seats flown, load factor,
+            passengers, revenue per seat &mdash; with capacity growth inherited from EUROCONTROL's
+            published traffic scenarios rather than assumed. On that basis our base case is
+            <strong>752p</strong>, roughly 5% above the offer. The offer is light, but not
+            egregiously so. The wider point is that the market at 666p is pricing a real chance
+            this deal does not complete.
+        </p>
+
+        <div class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="metric-card"><div class="metric-val text-blue-600">752p</div>
+                <div class="metric-lbl">Base DCF value</div></div>
+            <div class="metric-card"><div class="metric-val text-gray-700">715p</div>
+                <div class="metric-lbl">Apollo cash offer</div></div>
+            <div class="metric-card"><div class="metric-val text-gray-700">666p</div>
+                <div class="metric-lbl">Market, 15 Sep</div></div>
+            <div class="metric-card"><div class="metric-val text-emerald-600">+5.2%</div>
+                <div class="metric-lbl">DCF vs offer</div></div>
+            <div class="metric-card"><div class="metric-val text-gray-700">12.61%</div>
+                <div class="metric-lbl">Cost of equity</div></div>
+        </div>
+
+        <p class="mt-8 text-sm font-semibold text-gray-900">
+            Recommendation: <span class="text-blue-700">DO NOT ACCEPT AT 715p</span>
+        </p>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-14 space-y-16">
+
+    <section>
+        <span class="section-label">01 &middot; Executive Summary</span>
+        <div class="prose max-w-none text-gray-700 leading-relaxed text-[15px] space-y-4">
+            <p>easyJet is a structurally better business than it was five years ago, and the offer
+            arrives at the point where that improvement was about to show up in cash. FY25 delivered
+            &pound;10.1bn of revenue, &pound;703m of headline EBIT and a &pound;602m net cash
+            position, with a fleet order running to FY34 already financed. Management's stated
+            medium-term ambition is &pound;7&ndash;&pound;10 of group profit before tax per seat;
+            FY25 came in at &pound;6.39. The gap between those two numbers is the prize, and Apollo
+            is buying it.</p>
+
+            <p>Our base case values easyJet at 752p per share against the 715p offer &mdash; light
+            by 5.2%. But we would not lead with that number in isolation, because it is not robust
+            to the operating case. Across three scenarios the range is 249p to 1,407p. That spread
+            is not a modelling failure; it is what six years of operating leverage does to an airline
+            earning about &pound;4 of profit on an &pound;85 seat. A 50 basis point wedge between
+            revenue per seat and cost per seat, compounded, is the whole valuation.</p>
+
+            <p>What disciplines the range is management's own target. In our bear case, profit per
+            seat falls to &pound;1.74 by FY31 &mdash; below anything easyJet has achieved outside
+            the pandemic. In the bull case it reaches &pound;12.77, above the top of management's
+            range. Only the base case finishes inside &pound;7&ndash;&pound;10, and it does so from
+            FY28, having been below the range in FY26 and FY27. That is the case we anchor to, and
+            it is deliberately unheroic.</p>
+        </div>
+        <div class="pull-quote mt-6">
+            715p is inside the range of reasonable value but sits at its lower end, and shareholders
+            are being asked to sell the recovery just before it converts to cash. With only 15.37%
+            irrevocably committed and two separate 75% thresholds to clear, there is room for a bump
+            &mdash; and the scheme timetable has already slipped six weeks.
+        </div>
+    </section>
+
+    <section>
+        <span class="section-label">02 &middot; Business Overview</span>
+        <p class="text-gray-700 text-[15px] leading-relaxed mb-8">easyJet runs a short-haul
+        point-to-point network from primary European airports, with a second, faster-growing business
+        in package holidays. The two are modelled separately because they behave differently.</p>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-panel rounded-xl p-6">
+                <div class="text-sm font-bold text-gray-900 mb-2">The airline</div>
+                <p class="text-[13.5px] text-gray-600 leading-relaxed">&pound;9.1bn of FY25 revenue
+                from 104.0m seats flown at an 89.8% load factor. Revenue per seat of &pound;83.33
+                against a cost per seat of &pound;79.34 &mdash; a &pound;3.99 margin on each seat
+                sold. That thin spread is why this business is a leveraged bet on unit economics.</p>
+            </div>
+            <div class="glass-panel rounded-xl p-6">
+                <div class="text-sm font-bold text-gray-900 mb-2">easyJet holidays</div>
+                <p class="text-[13.5px] text-gray-600 leading-relaxed">The growth engine and the
+                strategic argument for the price. Materially higher margin than flying, asset-light,
+                and it monetises passengers the airline already has. Modelled separately on customers
+                and revenue per customer.</p>
+            </div>
+            <div class="glass-panel rounded-xl p-6">
+                <div class="text-sm font-bold text-gray-900 mb-2">The balance sheet</div>
+                <p class="text-[13.5px] text-gray-600 leading-relaxed">&pound;602m of net cash at
+                FY25, reconciled off the reported balance sheet to the &pound;1m. One of very few
+                European carriers to enter a downturn with no net debt &mdash; precisely what makes
+                it attractive to a leveraged buyer.</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto"><table class="comps-table"><thead><tr><th></th><th>FY22</th><th>FY23</th><th>FY24</th><th>FY25</th></tr></thead><tbody><tr><td>Seats flown (m)</td><td>81.5</td><td>92.6</td><td>100.4</td><td>104.0</td></tr><tr><td>Passengers (m)</td><td>69.7</td><td>82.8</td><td>89.7</td><td>93.4</td></tr><tr><td>Load factor</td><td>85.5%</td><td>89.4%</td><td>89.3%</td><td>89.8%</td></tr><tr><td>Group revenue (&pound;m)</td><td>5,769</td><td>8,171</td><td>9,309</td><td>10,106</td></tr><tr><td>Headline EBIT (&pound;m)</td><td>3</td><td>476</td><td>597</td><td>703</td></tr><tr><td>Headline PBT (&pound;m)</td><td>-178</td><td>455</td><td>610</td><td>665</td></tr><tr><td>Fuel cost (&pound;m)</td><td>1,279</td><td>2,033</td><td>2,223</td><td>2,253</td></tr></tbody></table></div>
+        <p class="text-[11px] text-gray-400 mt-3">Source: easyJet Annual Report and Accounts 2023
+        (p.142, p.34) and 2025 (p.144, p.39). Headline basis, excluding non-headline items per
+        note 5.</p>
+        <figure class="fig"><img src="../assets/easyjet/01-revenue-ebit.png" alt="Figure 1"><figcaption>Figure 1 &mdash; Revenue recovered to &pound;10.1bn by FY25; margin is the unfinished part of the story.</figcaption></figure>
+    </section>
+
+    <section>
+        <span class="section-label">03 &middot; How We Build the Forecast</span>
+        <p class="text-gray-700 text-[15px] leading-relaxed">We do not forecast revenue. We forecast
+        the units that produce it, and let revenue fall out. The chain is: seat capacity growth
+        &rarr; seats flown &rarr; load factor &rarr; passengers &rarr; revenue per seat. The
+        scenarios are not invented; capacity growth is inherited from EUROCONTROL's published
+        European traffic forecast, whose own low, base and high cases become our bear, base and
+        bull.</p>
+        <figure class="fig"><img src="../assets/easyjet/02-driver-chain.png" alt="Figure 2"><figcaption>Figure 2 &mdash; Seats flown, load factor and passengers. Load factor is held at the FY25 actual rather than assumed to improve.</figcaption></figure>
+        <p class="text-gray-700 text-[15px] leading-relaxed mb-4">Two modelling choices are worth
+        flagging because they materially affect the answer, and because both cut against us.</p>
+        <div class="thesis-item thesis-risk"><strong>Load factor is held flat at 89.8%.</strong>
+        It has risen for three consecutive years. Assuming it keeps rising would be the easy way to
+        manufacture value; we do not.</div>
+        <div class="thesis-item thesis-risk"><strong>Revenue per seat, not RASK.</strong> RASK fell
+        in FY25, which looks like weakening pricing. It is not. Average sector length rose about 6%,
+        so the denominator grew. Revenue per seat actually rose 2.4%. Since capacity here is driven
+        by seats rather than kilometres, using RASK would have understated revenue in every forecast
+        year.</div>
+        <figure class="fig"><img src="../assets/easyjet/03-unit-wedge.png" alt="Figure 3"><figcaption>Figure 3 &mdash; The gap between revenue per seat and cost per seat is the entire profit engine.</figcaption></figure>
+    </section>
+
+    <section>
+        <span class="section-label">04 &middot; Investment Thesis</span>
+        <div class="text-xs font-bold tracking-wider text-emerald-700 uppercase mb-3">
+            The case for value above 715p</div>
+        <div class="thesis-item thesis-for">&#9650;&nbsp; <strong>The margin recovery is not finished.</strong> FY25 profit per seat of &pound;6.39 is still below management's own &pound;7&ndash;&pound;10 medium-term target. Our base case only reaches the bottom of that range in FY28. Apollo is acquiring the part of the recovery that has not yet been delivered.</div><div class="thesis-item thesis-for">&#9650;&nbsp; <strong>Net cash of &pound;602m, in a sector that rarely has any.</strong> It funds the fleet order without dilution, and in a buyer's hands it is immediate debt capacity. Roughly 80p per share of the offer is being paid with easyJet's own money.</div><div class="thesis-item thesis-for">&#9650;&nbsp; <strong>Holidays compounds off an existing customer base.</strong> Higher margin, asset-light, and sold to passengers already acquired. It is the clearest route to the top of the per-seat target range.</div><div class="thesis-item thesis-for">&#9650;&nbsp; <strong>Working capital is a structural tailwind.</strong> easyJet is paid before it flies. Unearned revenue rose &pound;209m in FY25. Every year of capacity growth releases cash before the cost is incurred &mdash; the earlier model assumed zero and understated free cash flow throughout.</div>
+        <div class="text-xs font-bold tracking-wider text-orange-700 uppercase mb-3 mt-8">
+            What would make us wrong</div>
+        <div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>The unit wedge is only &pound;3.99 a seat.</strong> Costs growing 50bp a year faster than revenue is enough to take profit per seat from &pound;6.39 to &pound;1.74 by FY31 and free cash flow negative. That is our bear case and it requires nothing dramatic &mdash; no recession, no shock. Just persistent cost inflation and no pricing.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>Fuel is the largest simplification in the model.</strong> We forecast it as a cost per seat growing at a fixed rate, not off the forward curve and the disclosed hedge book. For an airline this is a real weakness and we state it plainly.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>Terminal value is about two thirds of enterprise value.</strong> Standard for a six-year forecast on a growing asset base, but it means the answer depends heavily on a perpetuity assumption.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>No three-statement linkage.</strong> The model forecasts the income statement and free cash flow. It does not roll the balance sheet forward and prove cash ties. That is the next build.</div>
+        <figure class="fig"><img src="../assets/easyjet/04-pbt-per-seat.png" alt="Figure 4"><figcaption>Figure 4 &mdash; The discipline on the scenario range: only the base case finishes inside management's own target.</figcaption></figure>
+    </section>
+
+    <section>
+        <span class="section-label">05 &middot; Valuation</span>
+        <p class="text-gray-700 text-[15px] leading-relaxed mb-6">We discount unlevered free cash
+        flow over six explicit years to FY31 and a terminal value thereafter. Because easyJet holds
+        net cash, there is no debt to weight and the discount rate is simply the cost of equity.</p>
+        <div class="overflow-x-auto"><table class="comps-table"><thead><tr><th>Input</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody><tr><td>Risk-free rate</td><td>5.30%</td><td>UK 10-yr gilt, 16 Sep 2026 &mdash; a 19-year high</td></tr><tr><td>Equity risk premium</td><td>5.01%</td><td>Damodaran, Jan 2026: 4.23% mature + 0.78% UK</td></tr><tr><td>Beta (headline)</td><td>1.46</td><td>OLS, weekly returns to 2 Aug 2026, vs FTSE 100</td></tr><tr><td>Beta (low / high)</td><td>1.31 / 1.59</td><td>Blume-adjusted / vs FTSE All-Share</td></tr><tr><td>Cost of equity</td><td>12.61%</td><td>CAPM</td></tr><tr><td>Debt weighting (D/V)</td><td>0%</td><td>Net cash of &pound;602m &mdash; no net debt to weight</td></tr><tr><td>Terminal growth</td><td>2.0%</td><td>Bank of England inflation target</td></tr><tr><td>Shares outstanding</td><td>758.6m</td><td>Per the Rule 2.7 Announcement</td></tr></tbody></table></div>
+
+        <div class="pull-quote mt-8">The beta deserves a note, because it is where most graduate
+        models are weakest. We did not take it from a data provider. The observed five-year beta on
+        the screen is contaminated: after 6 August the shares trade on deal probability, not on the
+        market.</div>
+
+        <p class="text-gray-700 text-[15px] leading-relaxed">We re-estimated it by OLS on weekly
+        returns from August 2021 to the week ending 2 August 2026 &mdash; the last complete week
+        before the offer &mdash; against both the FTSE 100 and the FTSE All-Share. The FTSE 100
+        estimate is 1.46 (R&sup2; 0.180, standard error 0.194, t 7.54). A peer median of 1.37
+        (Wizz 1.83, IAG 1.60, Ryanair 1.14, Lufthansa 0.99) corroborates it by an independent route.
+        Two-year windows were tested and discarded: R&sup2; of 0.08&ndash;0.10 and a confidence
+        interval spanning 0.30 to 1.45 make them unusable.</p>
+
+        <p class="text-gray-700 text-[15px] leading-relaxed mt-4">For the record, the number this
+        replaces was 1.71 &mdash; taken off a screen over a deal-contaminated window. It was not
+        absurd; it sits inside the 95% confidence interval at the top end. But it was unsourced, and
+        <strong>an unsourced discount rate is where a valuation quietly stops being evidence.</strong></p>
+
+        <figure class="fig"><img src="../assets/easyjet/06-fcf-build.png" alt="Figure 5"><figcaption>Figure 5 &mdash; Free cash flow build. Capex and D&amp;A are forecast per seat because they track the fleet.</figcaption></figure>
+
+        <div class="text-xs font-bold tracking-wider text-blue-700 uppercase mb-3 mt-10">
+            The bridge &mdash; base case</div>
+        <div class="overflow-x-auto"><table class="comps-table"><thead><tr><th>Component</th><th>&pound;m</th></tr></thead><tbody><tr><td>PV of explicit free cash flow, FY26&ndash;FY31</td><td>1,843</td></tr><tr><td>PV of terminal value</td><td>3,261</td></tr><tr><td>Enterprise value</td><td>5,104</td></tr><tr><td>Terminal value as % of EV</td><td>63.9%</td></tr><tr><td>Plus: net cash</td><td>602</td></tr><tr><td>Equity value</td><td>5,706</td></tr><tr><td><strong>Value per share</strong></td><td><strong>752p</strong></td></tr></tbody></table></div>
+
+        <div class="text-xs font-bold tracking-wider text-blue-700 uppercase mb-3 mt-10">
+            The full grid &mdash; nine outcomes</div>
+        
+<div class="overflow-x-auto"><table class="sens-table">
+<thead><tr><th></th><th>Beta 1.31</th><th>Beta 1.46</th><th>Beta 1.59</th>
+<th>vs 715p offer</th></tr></thead>
+<tbody>
+<tr><th>Bear case</th><td class="below">273</td><td class="below">259</td>
+<td class="below">249</td><td class="below">&minus;63.8%</td></tr>
+<tr><th>Base case</th><td class="above">809</td><td class="highlight">752</td>
+<td>709</td><td class="above">+5.2%</td></tr>
+<tr><th>Bull case</th><td class="above">1,407</td><td class="above">1,301</td>
+<td class="above">1,221</td><td class="above">+81.9%</td></tr>
+</tbody></table></div>
+
+        <p class="text-gray-700 text-[15px] leading-relaxed mt-4">Read across, not down. The discount
+        rate moves the answer by about &pound;60 a share; the operating case moves it by more than
+        &pound;1,000. <strong>Anyone arguing about beta in this situation is arguing about the wrong
+        variable.</strong></p>
+        <figure class="fig"><img src="../assets/easyjet/05-valuation-grid.png" alt="Figure 6"><figcaption>Figure 6 &mdash; Three operating scenarios by three beta estimates, against the 715p offer.</figcaption></figure>
+    </section>
+
+    <section>
+        <span class="section-label">06 &middot; The Offer, the Vote, and the Case for a Bump</span>
+        <p class="text-gray-700 text-[15px] leading-relaxed mb-6">This is a scheme of arrangement
+        under Part 26 of the Companies Act 2006, not a contractual offer &mdash; which matters,
+        because the approval mechanics are demanding.</p>
+        <div class="overflow-x-auto"><table class="comps-table"><thead><tr><th>Term</th><th>Detail</th></tr></thead><tbody><tr><td>Offer</td><td>715p in cash per share; equity value c.&pound;5.7bn</td></tr><tr><td>Offeror</td><td>Eagle Bidco Ltd, indirectly owned by the Apollo Funds</td></tr><tr><td>Structure</td><td>Scheme of arrangement, Part 26 Companies Act 2006</td></tr><tr><td>Approvals</td><td>Court Meeting: majority in number, 75%+ in value. General Meeting: 75% of votes cast</td></tr><tr><td>Irrevocables</td><td>c.15.37% &mdash; Haji-Ioannou concert party 116,061,871 shares plus directors 427,767</td></tr><tr><td>Share alternative</td><td>Unlisted Topco rollover shares 1:1, capped at 49.9% of Topco</td></tr><tr><td>Completion</td><td>Targeted by the end of Q1 2027</td></tr></tbody></table></div>
+        <p class="text-[11px] text-gray-400 mt-3 mb-8">Source: Rule 2.7 Announcement,
+        6 August 2026, read at source on easyJet's investor site.</p>
+        <div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>15.37% is a thin lock-up.</strong> Two separate 75% thresholds must be cleared and the overwhelming majority of the register is uncommitted. A determined institutional block does not need to be large to be decisive at a Court Meeting, where a majority in number also counts.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>The timetable has already slipped.</strong> An RNS of 25 August extended the deadline to publish the Scheme Document to on or before 15 October, with Takeover Panel consent, to allow continuing engagement with aviation regulators. That is roughly a six-week slip with no matching change to the completion date.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>The 49.9% cap is a tell.</strong> The rollover alternative is capped to keep the airline inside UK/EU ownership-and-control rules. Structure is being built around a regulatory constraint, which is where scheme timetables most often fail.</div><div class="thesis-item thesis-risk">&#9660;&nbsp; <strong>The market is not convinced.</strong> At 666p the shares sit 6.8% below a recommended, board-endorsed cash offer. For an agreed deal that spread is wide. The market is pricing completion risk, not doubting the price.</div>
+        <p class="text-gray-700 text-[15px] leading-relaxed mt-6">Our reading: the gap between 715p
+        and our 752p base case is not large enough to call the offer opportunistic, but it is large
+        enough that a bidder with 15% locked and a slipping timetable may have to pay for certainty.
+        We would not accept at 715p. We would also not model a bump as the base case &mdash; that is
+        a view on negotiation, not on value.</p>
+    </section>
+
+    <section>
+        <span class="section-label">07 &middot; Conclusion</span>
+        <div class="prose max-w-none text-gray-700 leading-relaxed text-[15px] space-y-4">
+            <p>We value easyJet at 752p against Apollo's 715p. The offer is light by about 5%, and
+            light on every beta estimate except the most conservative, where it is fair. It is not a
+            knock-down bid. It is a competent price for a business whose margin recovery is two years
+            from showing up.</p>
+            <p>The more useful conclusion is about what the number depends on. Change the discount
+            rate across its entire defensible range and the answer moves &pound;60. Change the spread
+            between revenue per seat and cost per seat by 50 basis points a year and the answer moves
+            by more than &pound;1,000. easyJet is not a rates story or a beta story. It is a
+            unit-economics story, and the only external discipline available on that is management's
+            own &pound;7&ndash;&pound;10 per seat target &mdash; which our base case reaches in FY28
+            and neither of the other two scenarios respects.</p>
+            <p><strong>We would hold, vote against at 715p, and watch the 15 October scheme document
+            deadline. If it slips again, the price is not the binding constraint &mdash; the
+            regulator is.</strong></p>
+        </div>
+    </section>
+
+    <section>
+        <span class="section-label">Sources and Verification Status</span>
+        <p class="src-note mb-4"><strong>Primary, read at source:</strong> easyJet Annual Report and
+        Accounts 2025 (pp. 6, 8, 31, 39, 59, 144, 146, 148), ARA 2024 (p.35), ARA 2023 (pp. 34, 142,
+        146); Rule 2.7 Announcement, 6 August 2026; RNS of 25 August 2026.
+        <strong>Derived:</strong> beta, by OLS on weekly adjusted-close returns from Yahoo Finance,
+        Aug 2021 to 2 Aug 2026 (261 observations; underlying data retained).
+        <strong>Third-party:</strong> EUROCONTROL European traffic forecast for capacity scenarios;
+        Damodaran country risk premiums, January 2026 vintage, for the equity risk premium.</p>
+
+        <div class="verify-warn"><strong>Secondary and not yet verified at source.</strong>
+        The UK 10-year gilt yield of 5.30% and the market price of 666p are taken from market data
+        providers rather than from the Bank of England daily government-liability yield curve or an
+        exchange feed. The EUROCONTROL per-year low and high tables were not opened; the band is
+        applied as a uniform spread around the base rate. easyJet's FY26 guidance of c.3% seat growth
+        is taken from a search result rather than the results announcement. FY19&ndash;FY21 are
+        excluded: the driver chain could not be sourced for those years from the reports to hand.</div>
+
+        <p class="disclosure mt-8">This report is produced for educational and portfolio
+        demonstration purposes only. It does not constitute investment advice. The author holds no
+        position in easyJet plc. All figures are computed live from the accompanying valuation model;
+        none are retyped. Valuation date 16 September 2026.</p>
+    </section>
+
+</main>
+
+<footer class="border-t border-blue-100 bg-white py-8 text-center text-sm text-gray-400 mt-8">
+    &copy; 2026 Harsh Walia &middot; Equity Research Portfolio &middot;
+    <a href="../index.html" class="text-blue-500 hover:text-blue-600">harshwalia.com</a>
+</footer>
+
+</body>
+</html>

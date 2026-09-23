@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDM Valuation Tool | HW Finance Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#2563eb;--blue-h:#1d4ed8;--blue-pale:#eff6ff;--blue-mid:#dbeafe;
+  --dark:#0f172a;--mid:#334155;--muted:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--green:#10b981;--green-pale:#d1fae5;
+  --amber:#f59e0b;--amber-pale:#fef3c7;--red:#ef4444;--red-pale:#fee2e2;
+  --purple:#7c3aed;--cyan:#06b6d4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem}
+.logo{font-weight:800;font-size:1.2rem;letter-spacing:-.5px}
+.logo a{text-decoration:none;background:linear-gradient(135deg,#2563eb,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.75rem;align-items:center}
+.nav-links a{text-decoration:none;font-size:.82rem;font-weight:500;color:var(--mid);transition:color .2s}
+.nav-links a:hover{color:var(--blue)}
+.nav-btn{background:var(--blue);color:white;border:none;padding:.45rem 1.1rem;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer}
+
+/* HEADER */
+.page-header{padding:5rem 2.5rem 2rem;max-width:1200px;margin:60px auto 0}
+.tool-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue-pale);color:var(--blue);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .85rem;border-radius:100px;margin-bottom:1.25rem}
+.page-header h1{font-size:clamp(2rem,3.5vw,3rem);font-weight:800;letter-spacing:-2px;line-height:1.05;color:var(--dark);margin-bottom:.75rem}
+.page-header h1 span{background:linear-gradient(135deg,#2563eb,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-header p{font-size:.9rem;color:var(--muted);max-width:580px;line-height:1.7;margin-bottom:1.75rem}
+
+/* MODEL SWITCHER */
+.model-switcher{display:flex;gap:.4rem;background:white;border:1px solid var(--border);border-radius:14px;padding:.3rem;width:fit-content;margin-bottom:2rem;flex-wrap:wrap}
+.mb{padding:.5rem 1rem;border-radius:10px;font-family:inherit;font-size:.78rem;font-weight:600;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:.35rem}
+.mb.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.mb:not(.active):hover{color:var(--blue);background:var(--blue-pale)}
+
+/* LAYOUT */
+.calc-layout{max-width:1200px;margin:0 auto 5rem;padding:0 2.5rem;display:grid;grid-template-columns:400px 1fr;gap:1.5rem;align-items:start}
+
+/* PANEL */
+.panel{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp .3s ease both;position:relative}
+.panel-head{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+.panel-head h3{font-size:.82rem;font-weight:700;color:var(--dark)}
+.ph-icon{width:26px;height:26px;border-radius:7px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.panel-body{padding:1.4rem}
+.py-badge{display:inline-flex;align-items:center;gap:.35rem;background:#fef9c3;color:#854d0e;border:1px solid #fde047;font-size:.62rem;font-weight:700;padding:.2rem .6rem;border-radius:5px;margin-left:auto}
+
+/* INPUT GROUP */
+.ig{margin-bottom:1.1rem}
+.ig-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
+.ig-label{font-size:.75rem;font-weight:600;color:var(--mid)}
+.ig-hint{font-size:.62rem;color:var(--muted);font-family:'Lora',serif;font-style:italic;margin-top:.2rem;line-height:1.4}
+.ig-val{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;color:var(--blue);background:var(--blue-pale);padding:.18rem .55rem;border-radius:5px;min-width:70px;text-align:center}
+input[type="range"]{width:100%;height:4px;-webkit-appearance:none;background:var(--blue-mid);border-radius:4px;outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);border:2.5px solid white;box-shadow:0 0 0 2px var(--blue);transition:transform .15s}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.ig-bounds{display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-top:.25rem;font-family:'DM Mono',monospace}
+
+/* NUMBER INPUT */
+.num-input-wrap{display:flex;align-items:center;gap:.5rem}
+.num-input{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:600;color:var(--dark);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.45rem .75rem;width:120px;outline:none;transition:border-color .2s}
+.num-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.num-unit{font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* DIVIDER */
+.sep{height:1px;background:var(--border);margin:1rem 0}
+
+/* RESULTS */
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.res-card{background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:12px;padding:.9rem 1rem}
+.res-card.hero-card{grid-column:span 2;background:var(--blue);border-color:var(--blue)}
+.rc-label{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+.hero-card .rc-label{color:rgba(255,255,255,.7)}
+.rc-val{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--dark)}
+.rc-val.big{font-size:1.6rem;letter-spacing:-1px}
+.hero-card .rc-val{color:white}
+.rc-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem}
+.hero-card .rc-sub{color:rgba(255,255,255,.65)}
+
+/* STATUS */
+.status-badge{width:100%;padding:.6rem 1rem;border-radius:10px;font-size:.75rem;font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;border:1px solid transparent}
+.status-badge.green{background:var(--green-pale);color:#065f46;border-color:#6ee7b7}
+.status-badge.amber{background:var(--amber-pale);color:#92400e;border-color:#fcd34d}
+.status-badge.red{background:var(--red-pale);color:#991b1b;border-color:#fca5a5}
+
+/* BK ROWS */
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.78rem}
+.bk-row:last-child{border-bottom:none}
+.bk-l{color:var(--mid);display:flex;align-items:center;gap:.45rem}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.bk-v{font-family:'DM Mono',monospace;font-weight:600;color:var(--dark);font-size:.78rem}
+
+/* CHART */
+.chart-wrap{height:240px;position:relative}
+.right-tabs{display:flex;gap:.4rem}
+.rt{padding:.32rem .8rem;border-radius:7px;font-size:.7rem;font-weight:600;border:1px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .15s;font-family:inherit}
+.rt.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* FORMULA BOX */
+.formula-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid var(--blue-mid);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem}
+.formula-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);margin-bottom:.5rem}
+.formula-eq{font-family:'DM Mono',monospace;font-size:.85rem;color:var(--dark);line-height:1.7}
+.formula-eq .var{color:var(--blue);font-weight:600}
+.formula-eq .val{color:var(--green);font-weight:700}
+
+/* SENSITIVITY TABLE */
+.sens-table{width:100%;border-collapse:collapse;font-size:.72rem;font-family:'DM Mono',monospace}
+.sens-table th{padding:.5rem .6rem;background:var(--blue-pale);color:var(--blue);font-weight:700;text-align:center;border:1px solid var(--blue-mid)}
+.sens-table td{padding:.45rem .6rem;text-align:center;border:1px solid var(--border);transition:background .2s}
+.sens-table .row-label{background:var(--blue-pale);color:var(--blue);font-weight:700;text-align:left}
+.sens-cell.green{background:#d1fae5;color:#065f46}
+.sens-cell.amber{background:#fef3c7;color:#92400e}
+.sens-cell.red{background:#fee2e2;color:#991b1b}
+.sens-cell.base{background:var(--blue);color:white;font-weight:700}
+
+/* MODEL PANELS */
+.mode-panel{display:none}
+.mode-panel.active{display:block}
+
+/* AI */
+.ai-trigger-btn{width:100%;padding:.7rem;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;border:none;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:opacity .2s;margin-top:1rem}
+.ai-trigger-btn:hover{opacity:.9}
+.ai-trigger-btn:disabled{opacity:.6;cursor:not-allowed}
+.ai-box{margin-top:.75rem;padding:1rem 1.1rem;background:#fafafa;border:1px solid var(--border);border-radius:10px;font-size:.78rem;line-height:1.75;color:var(--mid);display:none}
+.ai-box.visible{display:block}
+.ai-tag{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+
+/* LOADING */
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;border-radius:16px;z-index:10;flex-direction:column;gap:.6rem}
+.loading-overlay.show{display:flex}
+.loader{width:26px;height:26px;border:3px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+.loader-text{font-size:.72rem;font-weight:600;color:var(--muted)}
+
+/* EDUCATIONAL CARD */
+.edu-card{background:white;border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:.75rem}
+.edu-card-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;cursor:pointer}
+.edu-card-title{font-size:.78rem;font-weight:700;color:var(--dark)}
+.edu-card-body{font-size:.75rem;color:var(--muted);line-height:1.7;font-family:'Lora',serif}
+.edu-chevron{margin-left:auto;transition:transform .2s;color:var(--muted)}
+.edu-card.open .edu-chevron{transform:rotate(180deg)}
+.edu-card-content{display:none;margin-top:.5rem}
+.edu-card.open .edu-card-content{display:block}
+
+/* STAGE INDICATOR */
+.stage-bar{display:flex;gap:.3rem;margin-bottom:1.2rem}
+.stage{flex:1;height:3px;border-radius:3px;background:var(--border);transition:background .3s}
+.stage.done{background:var(--green)}
+.stage.active{background:var(--blue)}
+
+/* UPSIDE/DOWNSIDE PILL */
+.upside-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .75rem;border-radius:100px;font-size:.72rem;font-weight:700;font-family:'DM Mono',monospace}
+.upside-pill.up{background:var(--green-pale);color:#065f46}
+.upside-pill.down{background:var(--red-pale);color:#991b1b}
+.upside-pill.neutral{background:var(--amber-pale);color:#92400e}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:880px){
+  .calc-layout{grid-template-columns:1fr;padding:0 1rem}
+  .page-header{padding:3.5rem 1rem 1.5rem}
+  .model-switcher{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><a href="/">HW</a></div>
+  <div class="nav-links">
+    <a href="/#home">Projects</a>
+    <a href="/#blog">Insights</a>
+    <a href="/#about">About</a>
+    <button class="nav-btn" onclick="window.location.href='/#contact'">Contact</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="tool-badge">📐 Finance Tools · Equity Valuation</div>
+  <h1>Dividend Discount <span>Model</span></h1>
+  <p>Practice DDM valuation across three models — Gordon Growth, Two-Stage, and H-Model. Adjust assumptions, see live intrinsic value, and compare against a market price.</p>
+
+  <div class="model-switcher">
+    <button class="mb active" onclick="switchModel('gordon',this)">📈 Gordon Growth (GGM)</button>
+    <button class="mb" onclick="switchModel('twostage',this)">🔀 Two-Stage DDM</button>
+    <button class="mb" onclick="switchModel('hmodel',this)">〰️ H-Model</button>
+  </div>
+</div>
+
+<div class="calc-layout">
+
+  <!-- LEFT PANEL: INPUTS -->
+  <div>
+
+    <!-- GORDON GROWTH MODEL -->
+    <div id="inputs-gordon" class="mode-panel active">
+      <div class="panel" style="position:relative">
+        <div class="loading-overlay" id="load-gordon"><div class="loader"></div><div class="loader-text">Computing…</div></div>
+        <div class="panel-head"><div class="ph-icon">📈</div><h3>Gordon Growth Model (GGM)</h3></div>
+        <div class="panel-body">
+
+          <div class="formula-box">
+            <div class="formula-title">Formula</div>
+            <div class="formula-eq">
+              P₀ = <span class="var">D₁</span> ÷ (<span class="var">r</span> − <span class="var">g</span>)<br>
+              = <span class="val" id="gg-d1-display">—</span> ÷ (<span class="val" id="gg-rg-display">—</span>)
+            </div>
+          </div>
+
+          <div class="stage-bar"><div class="stage active" id="gg-s1"></div><div class="stage" id="gg-s2"></div><div class="stage" id="gg-s3"></div><div class="stage" id="gg-s4"></div></div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Current Dividend D₀ (£)</span><span class="ig-val" id="gg-v-d0">£0.50</span></div>
+            <input type="range" id="gg-d0" min="0.01" max="5" step="0.01" value="0.50" oninput="updateGGM()">
+            <div class="ig-bounds"><span>£0.01</span><span>£5.00</span></div>
+            <div class="ig-hint">Last paid annual dividend per share (D₀)</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Dividend Growth Rate g (%)</span><span class="ig-val" id="gg-v-g">5%</span></div>
+            <input type="range" id="gg-g" min="0" max="15" step="0.1" value="5" oninput="updateGGM()">
+            <div class="ig-bounds"><span>0%</span><span>15%</span></div>
+            <div class="ig-hint">Sustainable long-run growth rate. Must be &lt; r.</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Required Return r (%)</span><span class="ig-val" id="gg-v-r">9%</span></div>
+            <input type="range" id="gg-r" min="1" max="20" step="0.1" value="9" oninput="updateGGM()">
+            <div class="ig-bounds"><span>1%</span><span>20%</span></div>
+            <div class="ig-hint">Cost of equity (CAPM: r = Rf + β × ERP)</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Market Price (£)</span><span class="ig-val" id="gg-v-mp">£12.50</span></div>
+            <input type="range" id="gg-mp" min="1" max="100" step="0.5" value="12.50" oninput="updateGGM()">
+            <div class="ig-bounds"><span>£1</span><span>£100</span></div>
+            <div class="ig-hint">Current market price to compare vs intrinsic value</div>
+          </div>
+
+          <div id="gg-badge" class="status-badge green">Calculating…</div>
+          <button class="ai-trigger-btn" onclick="getAIInsight('gordon')">✨ Get AI Insight</button>
+          <div class="ai-box" id="gg-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="gg-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TWO-STAGE DDM -->
+    <div id="inputs-twostage" class="mode-panel">
+      <div class="panel" style="position:relative">
+        <div class="loading-overlay" id="load-twostage"><div class="loader"></div><div class="loader-text">Computing…</div></div>
+        <div class="panel-head"><div class="ph-icon">🔀</div><h3>Two-Stage DDM</h3></div>
+        <div class="panel-body">
+
+          <div class="formula-box">
+            <div class="formula-title">Formula</div>
+            <div class="formula-eq">
+              P₀ = Σ [<span class="var">Dₜ</span> ÷ (1+<span class="var">r</span>)ᵗ] + <span class="var">Pₙ</span>÷(1+<span class="var">r</span>)ⁿ<br>
+              PV = <span class="val" id="ts-pv1-display">—</span> + <span class="val" id="ts-pv2-display">—</span>
+            </div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Current Dividend D₀ (£)</span><span class="ig-val" id="ts-v-d0">£0.80</span></div>
+            <input type="range" id="ts-d0" min="0.01" max="5" step="0.01" value="0.80" oninput="updateTS()">
+            <div class="ig-bounds"><span>£0.01</span><span>£5.00</span></div>
+            <div class="ig-hint">Starting dividend before high-growth phase</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">High Growth Rate g₁ (%)</span><span class="ig-val" id="ts-v-g1">12%</span></div>
+            <input type="range" id="ts-g1" min="0" max="30" step="0.5" value="12" oninput="updateTS()">
+            <div class="ig-bounds"><span>0%</span><span>30%</span></div>
+            <div class="ig-hint">Supernormal growth during expansion phase</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">High-Growth Period (years)</span><span class="ig-val" id="ts-v-n">5 yrs</span></div>
+            <input type="range" id="ts-n" min="1" max="15" step="1" value="5" oninput="updateTS()">
+            <div class="ig-bounds"><span>1</span><span>15</span></div>
+            <div class="ig-hint">How long until growth normalises</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Stable Growth Rate g₂ (%)</span><span class="ig-val" id="ts-v-g2">4%</span></div>
+            <input type="range" id="ts-g2" min="0" max="10" step="0.1" value="4" oninput="updateTS()">
+            <div class="ig-bounds"><span>0%</span><span>10%</span></div>
+            <div class="ig-hint">Perpetuity growth (≈ GDP growth, must be &lt; r)</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Required Return r (%)</span><span class="ig-val" id="ts-v-r">10%</span></div>
+            <input type="range" id="ts-r" min="1" max="20" step="0.1" value="10" oninput="updateTS()">
+            <div class="ig-bounds"><span>1%</span><span>20%</span></div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Market Price (£)</span><span class="ig-val" id="ts-v-mp">£18.00</span></div>
+            <input type="range" id="ts-mp" min="1" max="150" step="0.5" value="18" oninput="updateTS()">
+            <div class="ig-bounds"><span>£1</span><span>£150</span></div>
+          </div>
+
+          <div id="ts-badge" class="status-badge green">Calculating…</div>
+          <button class="ai-trigger-btn" onclick="getAIInsight('twostage')">✨ Get AI Insight</button>
+          <div class="ai-box" id="ts-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="ts-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- H-MODEL -->
+    <div id="inputs-hmodel" class="mode-panel">
+      <div class="panel" style="position:relative">
+        <div class="loading-overlay" id="load-hmodel"><div class="loader"></div><div class="loader-text">Computing…</div></div>
+        <div class="panel-head"><div class="ph-icon">〰️</div><h3>H-Model (Linear Decline)</h3></div>
+        <div class="panel-body">
+
+          <div class="formula-box">
+            <div class="formula-title">Formula</div>
+            <div class="formula-eq">
+              P₀ = <span class="var">D₀</span>(1+<span class="var">g₂</span>) ÷ (<span class="var">r</span>−<span class="var">g₂</span>)<br>
+              &nbsp;&nbsp;&nbsp;+ <span class="var">D₀</span>·<span class="var">H</span>·(<span class="var">g₁</span>−<span class="var">g₂</span>) ÷ (<span class="var">r</span>−<span class="var">g₂</span>)<br>
+              = <span class="val" id="hm-p1-display">—</span> + <span class="val" id="hm-p2-display">—</span>
+            </div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Current Dividend D₀ (£)</span><span class="ig-val" id="hm-v-d0">£0.60</span></div>
+            <input type="range" id="hm-d0" min="0.01" max="5" step="0.01" value="0.60" oninput="updateHM()">
+            <div class="ig-bounds"><span>£0.01</span><span>£5.00</span></div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Initial High Growth g₁ (%)</span><span class="ig-val" id="hm-v-g1">15%</span></div>
+            <input type="range" id="hm-g1" min="0" max="30" step="0.5" value="15" oninput="updateHM()">
+            <div class="ig-bounds"><span>0%</span><span>30%</span></div>
+            <div class="ig-hint">Starting growth rate — declines linearly to g₂</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Stable Growth g₂ (%)</span><span class="ig-val" id="hm-v-g2">4%</span></div>
+            <input type="range" id="hm-g2" min="0" max="10" step="0.1" value="4" oninput="updateHM()">
+            <div class="ig-bounds"><span>0%</span><span>10%</span></div>
+            <div class="ig-hint">Long-run perpetuity growth rate</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Half-Life H (years)</span><span class="ig-val" id="hm-v-h">4 yrs</span></div>
+            <input type="range" id="hm-h" min="1" max="20" step="1" value="4" oninput="updateHM()">
+            <div class="ig-bounds"><span>1</span><span>20</span></div>
+            <div class="ig-hint">H = half the transition period. Full transition = 2H years.</div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Required Return r (%)</span><span class="ig-val" id="hm-v-r">10%</span></div>
+            <input type="range" id="hm-r" min="1" max="20" step="0.1" value="10" oninput="updateHM()">
+            <div class="ig-bounds"><span>1%</span><span>20%</span></div>
+          </div>
+
+          <div class="ig">
+            <div class="ig-top"><span class="ig-label">Market Price (£)</span><span class="ig-val" id="hm-v-mp">£20.00</span></div>
+            <input type="range" id="hm-mp" min="1" max="150" step="0.5" value="20" oninput="updateHM()">
+            <div class="ig-bounds"><span>£1</span><span>£150</span></div>
+          </div>
+
+          <div id="hm-badge" class="status-badge green">Calculating…</div>
+          <button class="ai-trigger-btn" onclick="getAIInsight('hmodel')">✨ Get AI Insight</button>
+          <div class="ai-box" id="hm-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="hm-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /LEFT -->
+
+  <!-- RIGHT PANEL: OUTPUTS -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- RESULTS CARD -->
+    <div class="panel">
+      <div class="panel-head"><div class="ph-icon">🎯</div><h3>Intrinsic Value</h3><span id="upside-pill-header" class="upside-pill neutral" style="margin-left:auto">—</span></div>
+      <div class="panel-body">
+        <div class="res-grid" id="res-grid">
+          <div class="res-card hero-card">
+            <div class="rc-label">Intrinsic Value</div>
+            <div class="rc-val big" id="rv-intrinsic">£—</div>
+            <div class="rc-sub" id="rv-sub">Select model and adjust inputs</div>
+          </div>
+        </div>
+        <div id="bk-section"></div>
+      </div>
+    </div>
+
+    <!-- DIVIDEND TIMELINE CHART -->
+    <div class="panel">
+      <div class="panel-head"><div class="ph-icon">📊</div><h3>Dividend Timeline</h3>
+        <div style="margin-left:auto"><div class="right-tabs">
+          <button class="rt active" onclick="setChartView('dividends',this)">Dividends</button>
+          <button class="rt" onclick="setChartView('pv',this)">PV of Dividends</button>
+          <button class="rt" onclick="setChartView('cumulative',this)">Cumulative PV</button>
+        </div></div>
+      </div>
+      <div class="panel-body"><div class="chart-wrap"><canvas id="mainChart"></canvas></div></div>
+    </div>
+
+    <!-- SENSITIVITY TABLE -->
+    <div class="panel">
+      <div class="panel-head"><div class="ph-icon">🔬</div><h3>Sensitivity Analysis — Intrinsic Value (£)</h3></div>
+      <div class="panel-body">
+        <p style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Rows: Required Return (r). Columns: Growth Rate (g or g₂).</p>
+        <div id="sens-container" style="overflow-x:auto"></div>
+      </div>
+    </div>
+
+    <!-- LEARN DDM -->
+    <div class="panel">
+      <div class="panel-head"><div class="ph-icon">📚</div><h3>Learn: DDM Concepts</h3></div>
+      <div class="panel-body">
+
+        <div class="edu-card" onclick="toggleEdu(this)">
+          <div class="edu-card-head">
+            <span style="font-size:.9rem">📌</span>
+            <span class="edu-card-title">When is DDM appropriate?</span>
+            <span class="edu-chevron">▾</span>
+          </div>
+          <div class="edu-card-content">
+            <p class="edu-card-body">DDM works best for <strong>dividend-paying companies</strong> with predictable payouts: utilities, REITs, mature financials. It's less useful for growth stocks that reinvest earnings. The key insight: dividends represent the cash a shareholder <em>actually receives</em>, making them a clean, direct measure of value.</p>
+          </div>
+        </div>
+
+        <div class="edu-card" onclick="toggleEdu(this)">
+          <div class="edu-card-head">
+            <span style="font-size:.9rem">⚠️</span>
+            <span class="edu-card-title">The r > g constraint</span>
+            <span class="edu-chevron">▾</span>
+          </div>
+          <div class="edu-card-content">
+            <p class="edu-card-body">GGM breaks down when g ≥ r — the denominator becomes zero or negative. In practice, g should be ≤ long-run GDP growth (~2–4% for developed markets). If you need to model a higher g, use the Two-Stage DDM instead to model a finite supernormal period first.</p>
+          </div>
+        </div>
+
+        <div class="edu-card" onclick="toggleEdu(this)">
+          <div class="edu-card-head">
+            <span style="font-size:.9rem">🔢</span>
+            <span class="edu-card-title">Implied Return formula</span>
+            <span class="edu-chevron">▾</span>
+          </div>
+          <div class="edu-card-content">
+            <p class="edu-card-body">Re-arranging GGM: <strong>r = D₁/P₀ + g</strong>. The required return = dividend yield + growth. This is the <em>implied return</em> an investor gets if buying at the market price. Useful to back-solve what growth the market is pricing in for a given stock.</p>
+          </div>
+        </div>
+
+        <div class="edu-card" onclick="toggleEdu(this)">
+          <div class="edu-card-head">
+            <span style="font-size:.9rem">〰️</span>
+            <span class="edu-card-title">H-Model vs Two-Stage</span>
+            <span class="edu-chevron">▾</span>
+          </div>
+          <div class="edu-card-content">
+            <p class="edu-card-body">Two-Stage DDM uses a hard cut-off: high growth for N years, then stable. H-Model assumes a <em>smooth linear decline</em> over 2H years. The H-Model is often more realistic for real companies where competitive advantages erode gradually — though it introduces more estimation error in H itself.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /RIGHT -->
+</div>
+
+<footer style="border-top:1px solid var(--border);padding:2rem 2.5rem;text-align:center;font-size:.78rem;color:var(--muted)">
+  © 2026 Harsh Walia · Finance Tools · DDM Practice Calculator
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let activeModel = 'gordon', chartView = 'dividends', mainChart = null;
+let lastState = {};
+
+// ─── FORMAT ───────────────────────────────────────────────────────────────
+const fmtGBP = n => isFinite(n) ? '£' + n.toFixed(2) : '£—';
+const fmtPct = n => isFinite(n) ? (n >= 0 ? '+' : '') + n.toFixed(1) + '%' : '—';
+
+// ─── MODEL SWITCHER ───────────────────────────────────────────────────────
+function switchModel(m, el) {
+  activeModel = m;
+  document.querySelectorAll('.mb').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+  $('inputs-' + m).classList.add('active');
+  runModel();
+}
+
+// ─── EDU TOGGLE ───────────────────────────────────────────────────────────
+function toggleEdu(card) { card.classList.toggle('open'); }
+
+// ─── UPDATE LABELS ────────────────────────────────────────────────────────
+function updateGGM() {
+  $('gg-v-d0').textContent = '£' + parseFloat($('gg-d0').value).toFixed(2);
+  $('gg-v-g').textContent = $('gg-g').value + '%';
+  $('gg-v-r').textContent = $('gg-r').value + '%';
+  $('gg-v-mp').textContent = '£' + parseFloat($('gg-mp').value).toFixed(2);
+  runModel();
+}
+function updateTS() {
+  $('ts-v-d0').textContent = '£' + parseFloat($('ts-d0').value).toFixed(2);
+  $('ts-v-g1').textContent = $('ts-g1').value + '%';
+  $('ts-v-n').textContent = $('ts-n').value + ' yrs';
+  $('ts-v-g2').textContent = $('ts-g2').value + '%';
+  $('ts-v-r').textContent = $('ts-r').value + '%';
+  $('ts-v-mp').textContent = '£' + parseFloat($('ts-mp').value).toFixed(2);
+  runModel();
+}
+function updateHM() {
+  $('hm-v-d0').textContent = '£' + parseFloat($('hm-d0').value).toFixed(2);
+  $('hm-v-g1').textContent = $('hm-g1').value + '%';
+  $('hm-v-g2').textContent = $('hm-g2').value + '%';
+  $('hm-v-h').textContent = $('hm-h').value + ' yrs';
+  $('hm-v-r').textContent = $('hm-r').value + '%';
+  $('hm-v-mp').textContent = '£' + parseFloat($('hm-mp').value).toFixed(2);
+  runModel();
+}
+
+// ─── COMPUTE ──────────────────────────────────────────────────────────────
+function computeGGM(d0, g, r) {
+  const g_d = g / 100, r_d = r / 100;
+  if (r_d <= g_d) return { error: 'r must be greater than g' };
+  const d1 = d0 * (1 + g_d);
+  const intrinsic = d1 / (r_d - g_d);
+  // Build timeline (20 years for chart)
+  const timeline = [];
+  for (let t = 1; t <= 20; t++) {
+    const div = d0 * Math.pow(1 + g_d, t);
+    const pv = div / Math.pow(1 + r_d, t);
+    timeline.push({ t, div, pv });
+  }
+  return { intrinsic, d1, timeline, g_d, r_d };
+}
+
+function computeTS(d0, g1, n, g2, r) {
+  const g1d = g1 / 100, g2d = g2 / 100, rd = r / 100;
+  if (rd <= g2d) return { error: 'r must be greater than g₂' };
+  let pv1 = 0;
+  const timeline = [];
+  let div = d0;
+  for (let t = 1; t <= n; t++) {
+    div = div * (1 + g1d);
+    const pv = div / Math.pow(1 + rd, t);
+    pv1 += pv;
+    timeline.push({ t, div, pv, phase: 'high' });
+  }
+  const dn1 = div * (1 + g2d);
+  const terminalPrice = dn1 / (rd - g2d);
+  const pvTerminal = terminalPrice / Math.pow(1 + rd, n);
+  const intrinsic = pv1 + pvTerminal;
+  // Extend timeline with stable phase
+  for (let t = n + 1; t <= n + 15; t++) {
+    div = div * (1 + g2d);
+    const pv = div / Math.pow(1 + rd, t);
+    timeline.push({ t, div, pv, phase: 'stable' });
+  }
+  return { intrinsic, pv1, pvTerminal, terminalPrice, timeline };
+}
+
+function computeHM(d0, g1, g2, H, r) {
+  const g1d = g1 / 100, g2d = g2 / 100, rd = r / 100;
+  if (rd <= g2d) return { error: 'r must be greater than g₂' };
+  const stableComponent = d0 * (1 + g2d) / (rd - g2d);
+  const extraComponent = d0 * H * (g1d - g2d) / (rd - g2d);
+  const intrinsic = stableComponent + extraComponent;
+  // Build timeline with linear growth decline
+  const totalPeriod = H * 2;
+  const timeline = [];
+  let div = d0;
+  for (let t = 1; t <= totalPeriod + 15; t++) {
+    const gNow = t <= totalPeriod
+      ? g1d - (g1d - g2d) * (t / totalPeriod)
+      : g2d;
+    div = div * (1 + gNow);
+    const pv = div / Math.pow(1 + rd, t);
+    timeline.push({ t, div, pv, phase: t <= totalPeriod ? 'transition' : 'stable' });
+  }
+  return { intrinsic, stableComponent, extraComponent, timeline };
+}
+
+// ─── MAIN RUN ─────────────────────────────────────────────────────────────
+function runModel() {
+  let result, mp, prefix;
+
+  if (activeModel === 'gordon') {
+    const d0 = +$('gg-d0').value, g = +$('gg-g').value;
+    const r = +$('gg-r').value;
+    mp = +$('gg-mp').value;
+    result = computeGGM(d0, g, r);
+    prefix = 'gg';
+    if (!result.error) {
+      const d1 = d0 * (1 + g / 100);
+      $('gg-d1-display').textContent = '£' + d1.toFixed(3);
+      $('gg-rg-display').textContent = (r - g).toFixed(1) + '%';
+      // Stage bar
+      ['gg-s1','gg-s2','gg-s3','gg-s4'].forEach((id, i) => {
+        const el = $(id);
+        el.className = 'stage ' + (i === 0 ? 'done' : i === 1 ? 'active' : '');
+      });
+    }
+  } else if (activeModel === 'twostage') {
+    const d0 = +$('ts-d0').value, g1 = +$('ts-g1').value;
+    const n = +$('ts-n').value, g2 = +$('ts-g2').value, r = +$('ts-r').value;
+    mp = +$('ts-mp').value;
+    result = computeTS(d0, g1, n, g2, r);
+    prefix = 'ts';
+    if (!result.error) {
+      $('ts-pv1-display').textContent = '£' + result.pv1.toFixed(2);
+      $('ts-pv2-display').textContent = '£' + result.pvTerminal.toFixed(2);
+    }
+  } else {
+    const d0 = +$('hm-d0').value, g1 = +$('hm-g1').value;
+    const g2 = +$('hm-g2').value, H = +$('hm-h').value, r = +$('hm-r').value;
+    mp = +$('hm-mp').value;
+    result = computeHM(d0, g1, g2, H, r);
+    prefix = 'hm';
+    if (!result.error) {
+      $('hm-p1-display').textContent = '£' + result.stableComponent.toFixed(2);
+      $('hm-p2-display').textContent = '£' + result.extraComponent.toFixed(2);
+    }
+  }
+
+  if (result.error) {
+    const badge = $(prefix + '-badge');
+    badge.className = 'status-badge red';
+    badge.innerHTML = '❌ ' + result.error;
+    $('rv-intrinsic').textContent = 'Error';
+    $('rv-sub').textContent = result.error;
+    return;
+  }
+
+  lastState = { ...result, mp, activeModel };
+  renderResults(result, mp, prefix);
+  renderChart(result.timeline || []);
+  renderSensitivity(result, prefix);
+}
+
+// ─── RENDER RESULTS ───────────────────────────────────────────────────────
+function renderResults(result, mp, prefix) {
+  const iv = result.intrinsic;
+  const upside = ((iv - mp) / mp) * 100;
+
+  $('rv-intrinsic').textContent = fmtGBP(iv);
+  $('rv-sub').textContent = 'Market: ' + fmtGBP(mp) + '  ·  ' + (upside >= 0 ? 'Undervalued' : 'Overvalued');
+
+  // Upside pill
+  const pill = $('upside-pill-header');
+  pill.textContent = fmtPct(upside);
+  pill.className = 'upside-pill ' + (upside > 5 ? 'up' : upside < -5 ? 'down' : 'neutral');
+
+  // Badge
+  const badge = $(prefix + '-badge');
+  if (upside > 10) {
+    badge.className = 'status-badge green';
+    badge.innerHTML = '✅ Undervalued by ' + fmtPct(upside) + ' — potential BUY signal';
+  } else if (upside > -10) {
+    badge.className = 'status-badge amber';
+    badge.innerHTML = '⚠️ Fairly valued — ' + fmtPct(upside) + ' vs market';
+  } else {
+    badge.className = 'status-badge red';
+    badge.innerHTML = '❌ Overvalued by ' + fmtPct(Math.abs(upside)) + ' — SELL signal';
+  }
+
+  // Result grid
+  let extraCards = '';
+  if (activeModel === 'gordon') {
+    const r = lastState.r_d || 0, g = lastState.g_d || 0;
+    const impliedRet = (result.d1 / mp) + g;
+    extraCards = `
+      <div class="res-card"><div class="rc-label">D₁ (Next Dividend)</div><div class="rc-val">${fmtGBP(result.d1)}</div></div>
+      <div class="res-card"><div class="rc-label">Implied Return</div><div class="rc-val">${(impliedRet * 100).toFixed(2)}%</div><div class="rc-sub">D₁/P₀ + g</div></div>
+    `;
+  } else if (activeModel === 'twostage') {
+    extraCards = `
+      <div class="res-card"><div class="rc-label">PV High-Growth Phase</div><div class="rc-val">${fmtGBP(result.pv1)}</div></div>
+      <div class="res-card"><div class="rc-label">PV Terminal Value</div><div class="rc-val">${fmtGBP(result.pvTerminal)}</div></div>
+    `;
+  } else {
+    extraCards = `
+      <div class="res-card"><div class="rc-label">Stable Component</div><div class="rc-val">${fmtGBP(result.stableComponent)}</div></div>
+      <div class="res-card"><div class="rc-label">Growth Premium (H)</div><div class="rc-val">${fmtGBP(result.extraComponent)}</div></div>
+    `;
+  }
+
+  $('res-grid').innerHTML = `
+    <div class="res-card hero-card">
+      <div class="rc-label">Intrinsic Value</div>
+      <div class="rc-val big" id="rv-intrinsic">${fmtGBP(iv)}</div>
+      <div class="rc-sub" id="rv-sub">Market: ${fmtGBP(mp)} · ${upside >= 0 ? 'Undervalued' : 'Overvalued'} by ${Math.abs(upside).toFixed(1)}%</div>
+    </div>
+    ${extraCards}
+    <div class="res-card"><div class="rc-label">Margin of Safety</div><div class="rc-val" style="color:${upside>=0?'var(--green)':'var(--red)'}">${fmtPct(upside)}</div></div>
+    <div class="res-card"><div class="rc-label">Market Price</div><div class="rc-val">${fmtGBP(mp)}</div></div>
+  `;
+
+  // Breakout
+  $('bk-section').innerHTML = `
+    <div class="sep"></div>
+    <div class="bk-row"><span class="bk-l"><span class="dot" style="background:#2563eb"></span>Intrinsic Value</span><span class="bk-v">${fmtGBP(iv)}</span></div>
+    <div class="bk-row"><span class="bk-l"><span class="dot" style="background:#64748b"></span>Market Price</span><span class="bk-v">${fmtGBP(mp)}</span></div>
+    <div class="bk-row"><span class="bk-l"><span class="dot" style="background:${upside>=0?'#10b981':'#ef4444'}"></span>Upside / Downside</span><span class="bk-v" style="color:${upside>=0?'var(--green)':'var(--red)'}">${fmtPct(upside)}</span></div>
+  `;
+}
+
+// ─── CHART ────────────────────────────────────────────────────────────────
+let currentChartView = 'dividends';
+function setChartView(v, el) {
+  currentChartView = v;
+  document.querySelectorAll('.rt').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (lastState.timeline) renderChart(lastState.timeline);
+}
+
+function renderChart(timeline) {
+  if (!timeline || timeline.length === 0) return;
+  const labels = timeline.map(d => 'Yr ' + d.t);
+  let datasets = [];
+
+  const g1 = ctx => { const g = ctx.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, 'rgba(37,99,235,.18)'); g.addColorStop(1, 'rgba(37,99,235,.01)'); return g; };
+  const g2c = ctx => { const g = ctx.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, 'rgba(6,182,212,.18)'); g.addColorStop(1, 'rgba(6,182,212,.01)'); return g; };
+
+  if (mainChart) { mainChart.destroy(); mainChart = null; }
+  const ctx = $('mainChart').getContext('2d');
+
+  if (currentChartView === 'dividends') {
+    // Color by phase
+    const bgColors = timeline.map(d => d.phase === 'high' ? '#2563eb' : d.phase === 'transition' ? '#7c3aed' : '#06b6d4');
+    datasets = [{
+      label: 'Dividend (£)',
+      data: timeline.map(d => d.div),
+      backgroundColor: bgColors,
+      borderRadius: 4,
+      type: 'bar'
+    }];
+  } else if (currentChartView === 'pv') {
+    datasets = [{
+      label: 'PV of Dividend (£)',
+      data: timeline.map(d => d.pv),
+      borderColor: '#2563eb',
+      backgroundColor: g1(ctx),
+      fill: true, tension: .4, pointRadius: 2, borderWidth: 2.5
+    }];
+  } else {
+    let cum = 0;
+    datasets = [{
+      label: 'Cumulative PV (£)',
+      data: timeline.map(d => { cum += d.pv; return cum; }),
+      borderColor: '#06b6d4',
+      backgroundColor: g2c(ctx),
+      fill: true, tension: .4, pointRadius: 2, borderWidth: 2.5
+    }];
+  }
+
+  mainChart = new Chart(ctx, {
+    type: currentChartView === 'dividends' ? 'bar' : 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 220 },
+      plugins: {
+        legend: { labels: { font: { family: 'Space Grotesk', size: 11 }, color: '#64748b', boxWidth: 12, padding: 14 } },
+        tooltip: {
+          callbacks: { label: c => ' ' + c.dataset.label + ': £' + c.parsed.y.toFixed(3) },
+          bodyFont: { family: 'DM Mono', size: 11 }, titleFont: { family: 'Space Grotesk', size: 11 }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#94a3b8', maxTicksLimit: 10 } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#94a3b8', callback: v => '£' + v.toFixed(2) } }
+      }
+    }
+  });
+}
+
+// ─── SENSITIVITY TABLE ────────────────────────────────────────────────────
+function renderSensitivity(baseResult, prefix) {
+  const baseIV = baseResult.intrinsic;
+  let rBase, gBase;
+
+  if (activeModel === 'gordon') {
+    rBase = +$('gg-r').value;
+    gBase = +$('gg-g').value;
+  } else if (activeModel === 'twostage') {
+    rBase = +$('ts-r').value;
+    gBase = +$('ts-g2').value;
+  } else {
+    rBase = +$('hm-r').value;
+    gBase = +$('hm-g2').value;
+  }
+
+  const rSteps = [-2, -1, 0, 1, 2].map(d => +(rBase + d).toFixed(1));
+  const gSteps = [-2, -1, 0, 1, 2].map(d => +(gBase + d).toFixed(1)).filter(g => g > 0);
+
+  let html = '<table class="sens-table"><thead><tr><th class="row-label">r \\ g</th>';
+  gSteps.forEach(g => { html += `<th>${g}%</th>`; });
+  html += '</tr></thead><tbody>';
+
+  rSteps.forEach(r => {
+    html += `<tr><td class="row-label sens-table">${r}%</td>`;
+    gSteps.forEach(g => {
+      let iv;
+      if (activeModel === 'gordon') {
+        const d0 = +$('gg-d0').value;
+        if (r <= g) { iv = null; }
+        else { const res = computeGGM(d0, g, r); iv = res.intrinsic; }
+      } else if (activeModel === 'twostage') {
+        const d0 = +$('ts-d0').value, g1 = +$('ts-g1').value, n = +$('ts-n').value;
+        if (r <= g) { iv = null; }
+        else { const res = computeTS(d0, g1, n, g, r); iv = res.intrinsic; }
+      } else {
+        const d0 = +$('hm-d0').value, g1 = +$('hm-g1').value, H = +$('hm-h').value;
+        if (r <= g) { iv = null; }
+        else { const res = computeHM(d0, g1, g, H, r); iv = res.intrinsic; }
+      }
+
+      const isBase = Math.abs(r - rBase) < 0.01 && Math.abs(g - gBase) < 0.01;
+      if (isBase) {
+        html += `<td class="sens-cell base">${iv !== null ? '£' + iv.toFixed(2) : 'N/A'}</td>`;
+      } else if (iv === null) {
+        html += `<td class="sens-cell" style="background:#f1f5f9;color:#94a3b8">N/A</td>`;
+      } else {
+        const upside = ((iv - (lastState.mp || baseIV)) / (lastState.mp || baseIV)) * 100;
+        const cls = upside > 10 ? 'green' : upside < -10 ? 'red' : 'amber';
+        html += `<td class="sens-cell ${cls}">£${iv.toFixed(2)}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  $('sens-container').innerHTML = html;
+}
+
+// ─── AI INSIGHT ───────────────────────────────────────────────────────────
+async function getAIInsight(model) {
+  const pfx = model === 'gordon' ? 'gg' : model === 'twostage' ? 'ts' : 'hm';
+  const btn = document.querySelector('#inputs-' + model + ' .ai-trigger-btn');
+  const box = $(pfx + '-ai-box');
+  const txt = $(pfx + '-ai-text');
+  if (!lastState || !lastState.intrinsic) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px"></span>Analysing…';
+
+  const modelNames = { gordon: 'Gordon Growth Model', twostage: 'Two-Stage DDM', hmodel: 'H-Model' };
+  const upside = ((lastState.intrinsic - lastState.mp) / lastState.mp * 100).toFixed(1);
+
+  let details = '';
+  if (model === 'gordon') {
+    details = `D₀=£${$('gg-d0').value}, g=${$('gg-g').value}%, r=${$('gg-r').value}%, D₁=£${lastState.d1?.toFixed(3)}, Market=£${lastState.mp}`;
+  } else if (model === 'twostage') {
+    details = `D₀=£${$('ts-d0').value}, g₁=${$('ts-g1').value}%, n=${$('ts-n').value}yrs, g₂=${$('ts-g2').value}%, r=${$('ts-r').value}%, Market=£${lastState.mp}. PV(high)=£${lastState.pv1?.toFixed(2)}, PV(terminal)=£${lastState.pvTerminal?.toFixed(2)}`;
+  } else {
+    details = `D₀=£${$('hm-d0').value}, g₁=${$('hm-g1').value}%, g₂=${$('hm-g2').value}%, H=${$('hm-h').value}, r=${$('hm-r').value}%, Market=£${lastState.mp}. Stable=£${lastState.stableComponent?.toFixed(2)}, Growth premium=£${lastState.extraComponent?.toFixed(2)}`;
+  }
+
+  const prompt = `You are an equity research analyst teaching a finance student. Analyse this DDM valuation in exactly 4 bullet points. Cover: (1) validity of the model choice and assumptions, (2) biggest sensitivity/risk in the numbers, (3) one concrete tweak to improve accuracy, (4) what the upside/downside implies about market expectations.
+
+Model: ${modelNames[model]}
+${details}
+Intrinsic Value: £${lastState.intrinsic?.toFixed(2)}
+Upside vs Market: ${upside}%
+
+Be specific with numbers. Max 130 words. Use bullet symbol •.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || 'Could not generate analysis.';
+    txt.innerHTML = text.replace(/•\s*/g, '<br><br>• ').replace(/^\s*(<br>)+/, '').replace(/\n/g, '<br>');
+    box.classList.add('visible');
+  } catch (e) {
+    txt.innerHTML = 'To enable AI analysis, this page must be served with a valid Anthropic API key proxy.';
+    box.classList.add('visible');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✨ Refresh Analysis';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+updateGGM();
+updateTS();
+updateHM();
+runModel();
+</script>
+</body>
+</html>

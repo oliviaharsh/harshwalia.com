@@ -1,0 +1,58 @@
+{
+  "model_url": "https://docs.google.com/spreadsheets/d/1tj_jf9VE3qvUcZ_YCqhrIAkNdlaLePna_4RW6Pb45u0/edit?gid=1504959984#gid=1504959984",
+  "Fair Value RIM_GBP": 10.43,
+  "Fair Value DDM_GBP": 5.64,
+  "Market Price_GBP": 35.3,
+  "UpsidePct_RIM": -70.45325779036827,
+  "forecast_rows": [
+    {
+      "Year": "2024.0",
+      "Revenue_m": 2034.1,
+      "EBIT_m": 367.9,
+      "NetIncome_m": 268.8,
+      "EPS_p": 71.8
+    },
+    {
+      "Year": "2025.0",
+      "Revenue_m": 2248.1,
+      "EBIT_m": 411.2,
+      "NetIncome_m": 296.4,
+      "EPS_p": 78.5
+    },
+    {
+      "Year": "2026.0",
+      "Revenue_m": 2517.9,
+      "EBIT_m": 468.7,
+      "NetIncome_m": 343.1,
+      "EPS_p": 90.4
+    },
+    {
+      "Year": "2027.0",
+      "Revenue_m": 2744.5,
+      "EBIT_m": 504.1,
+      "NetIncome_m": 371.3,
+      "EPS_p": 97.8
+    },
+    {
+      "Year": "2028.0",
+      "Revenue_m": 2936.7,
+      "EBIT_m": 527.1,
+      "NetIncome_m": 389.9,
+      "EPS_p": 102.7
+    },
+    {
+      "Year": "2029.0",
+      "Revenue_m": 3112.9,
+      "EBIT_m": 550.5,
+      "NetIncome_m": 408.8,
+      "EPS_p": 107.7
+    },
+    {
+      "Year": "2030.0",
+      "Revenue_m": 3268.6,
+      "EBIT_m": 573.7,
+      "NetIncome_m": 427.6,
+      "EPS_p": 112.7
+    }
+  ]
+}

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retirement Planner | HW Finance Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--blue:#2563eb;--blue-h:#1d4ed8;--blue-pale:#eff6ff;--blue-mid:#dbeafe;--dark:#0f172a;--mid:#334155;--muted:#64748b;--border:#e2e8f0;--bg:#f8fafc;--white:#fff;--green:#10b981;--green-pale:#d1fae5;--amber:#f59e0b;--amber-pale:#fef3c7;--red:#ef4444;--red-pale:#fee2e2;--purple:#8b5cf6}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem}
+.logo{font-weight:800;font-size:1.2rem;color:var(--blue);letter-spacing:-.5px}
+.nav-links{display:flex;gap:1.75rem;align-items:center}
+.nav-links a{text-decoration:none;font-size:.82rem;font-weight:500;color:var(--mid);transition:color .2s}
+.nav-links a:hover{color:var(--blue)}
+.nav-btn{background:var(--blue);color:white;border:none;padding:.45rem 1.1rem;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer}
+.page-header{padding:3.5rem 2.5rem 0;max-width:1200px;margin:60px auto 0}
+.tool-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue-pale);color:var(--blue);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .85rem;border-radius:100px;margin-bottom:1.25rem}
+.page-header h1{font-size:clamp(2rem,3.5vw,3rem);font-weight:800;letter-spacing:-2px;line-height:1.05;color:var(--dark);margin-bottom:.75rem}
+.page-header h1 span{color:var(--blue)}
+.page-header p{font-size:.9rem;color:var(--muted);max-width:540px;line-height:1.7;margin-bottom:1.5rem}
+.currency-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.currency-label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.currency-pills{display:flex;gap:.4rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.cp{padding:.4rem .9rem;border-radius:8px;font-family:inherit;font-size:.78rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;display:flex;align-items:center;gap:.3rem}
+.cp.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.cp:not(.active):hover{background:var(--blue-pale);color:var(--blue)}
+.suggestion-panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.suggestion-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sp-c1,#2563eb),var(--sp-c2,#7c3aed))}
+.sp-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.9rem}
+.sp-flag{font-size:1.2rem}
+.sp-title{font-size:.8rem;font-weight:700;color:var(--dark)}
+.sp-sub{font-size:.68rem;color:var(--muted);margin-top:.05rem}
+.sp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.sp-item{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:.65rem .8rem}
+.sp-item-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+.sp-item-val{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:700;color:var(--dark)}
+.sp-item-range{font-size:.62rem;color:var(--muted);margin-top:.1rem}
+.sp-note{margin-top:.8rem;font-size:.68rem;color:var(--muted);line-height:1.6;padding:.5rem .7rem;background:var(--blue-pale);border-radius:7px;border-left:3px solid var(--blue)}
+.mode-switcher{display:flex;gap:.5rem;background:white;border:1px solid var(--border);border-radius:14px;padding:.3rem;width:fit-content;margin-bottom:2rem}
+.mode-btn{padding:.55rem 1.1rem;border-radius:10px;font-family:inherit;font-size:.78rem;font-weight:600;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:.4rem}
+.mode-btn.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.mode-btn:not(.active):hover{color:var(--blue);background:var(--blue-pale)}
+.calc-layout{max-width:1200px;margin:0 auto 5rem;padding:0 2.5rem;display:grid;grid-template-columns:390px 1fr;gap:1.5rem;align-items:start}
+.panel{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp .3s ease both}
+.panel-head{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+.panel-head h3{font-size:.82rem;font-weight:700;color:var(--dark)}
+.ph-icon{width:26px;height:26px;border-radius:7px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.panel-body{padding:1.4rem}
+.ig{margin-bottom:1.1rem}
+.ig-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
+.ig-label{font-size:.75rem;font-weight:600;color:var(--mid)}
+.ig-val{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;color:var(--blue);background:var(--blue-pale);padding:.18rem .55rem;border-radius:5px;min-width:80px;text-align:center}
+input[type="range"]{width:100%;height:4px;-webkit-appearance:none;background:var(--blue-mid);border-radius:4px;outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);border:2.5px solid white;box-shadow:0 0 0 2px var(--blue);transition:transform .15s}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.ig-bounds{display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-top:.25rem;font-family:'DM Mono',monospace}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.res-card{background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:12px;padding:.9rem 1rem}
+.res-card.hero-card{grid-column:span 2;background:var(--blue);border-color:var(--blue)}
+.rc-label{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+.hero-card .rc-label{color:rgba(255,255,255,.7)}
+.rc-val{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--dark)}
+.rc-val.big{font-size:1.5rem;letter-spacing:-1px}
+.hero-card .rc-val{color:white}
+.rc-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem}
+.hero-card .rc-sub{color:rgba(255,255,255,.65)}
+.status-badge{width:100%;padding:.6rem 1rem;border-radius:10px;font-size:.75rem;font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;border:1px solid transparent}
+.status-badge.green{background:var(--green-pale);color:#065f46;border-color:#6ee7b7}
+.status-badge.amber{background:var(--amber-pale);color:#92400e;border-color:#fcd34d}
+.status-badge.red{background:var(--red-pale);color:#991b1b;border-color:#fca5a5}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.78rem}
+.bk-row:last-child{border-bottom:none}
+.bk-l{color:var(--mid);display:flex;align-items:center;gap:.45rem}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.bk-v{font-family:'DM Mono',monospace;font-weight:600;color:var(--dark);font-size:.78rem}
+.sep{height:1px;background:var(--border);margin:1rem 0}
+.chart-wrap{height:230px;position:relative}
+.right-tabs{display:flex;gap:.4rem}
+.rt{padding:.32rem .8rem;border-radius:7px;font-size:.7rem;font-weight:600;border:1px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .15s;font-family:inherit}
+.rt.active{background:var(--blue);color:white;border-color:var(--blue)}
+.ms-item{display:flex;align-items:center;gap:.9rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.ms-item:last-child{border-bottom:none}
+.ms-age{width:42px;height:42px;border-radius:10px;background:var(--blue-pale);border:1px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:var(--blue);font-family:'DM Mono',monospace;flex-shrink:0}
+.ms-info{flex:1}
+.ms-title{font-size:.78rem;font-weight:600;color:var(--dark)}
+.ms-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.ms-amt{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:700;color:var(--green)}
+.ai-trigger-btn{width:100%;padding:.7rem;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;border:none;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:opacity .2s;margin-top:1rem}
+.ai-trigger-btn:hover{opacity:.9}
+.ai-trigger-btn:disabled{opacity:.6;cursor:not-allowed}
+.ai-box{margin-top:.75rem;padding:1rem 1.1rem;background:#fafafa;border:1px solid var(--border);border-radius:10px;font-size:.78rem;line-height:1.75;color:var(--mid);display:none}
+.ai-box.visible{display:block}
+.ai-tag{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.load-wrap{position:relative}
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;border-radius:16px;z-index:10;flex-direction:column;gap:.6rem}
+.loading-overlay.show{display:flex}
+.loader{width:26px;height:26px;border:3px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+.loader-text{font-size:.72rem;font-weight:600;color:var(--muted)}
+.mode-panel{display:none}
+.mode-panel.active{display:block}
+.py-badge{display:inline-flex;align-items:center;gap:.35rem;background:#fef9c3;color:#854d0e;border:1px solid #fde047;font-size:.62rem;font-weight:700;padding:.2rem .6rem;border-radius:5px;margin-left:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ig-manual-row{display:flex;align-items:center;gap:.5rem;margin-top:.4rem}
+.manual-input{font-family:'DM Mono',monospace;font-size:.78rem;font-weight:600;color:var(--dark);background:white;border:1.5px solid var(--border);border-radius:8px;padding:.3rem .6rem;width:100%;outline:none;transition:border-color .2s}
+.manual-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.manual-input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.manual-toggle{padding:.28rem .6rem;border-radius:6px;font-family:inherit;font-size:.62rem;font-weight:700;border:1.5px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.manual-toggle:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
+.manual-toggle.active{border-color:var(--blue);background:var(--blue);color:white}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:880px){.calc-layout{grid-template-columns:1fr;padding:0 1rem}.page-header{padding:3rem 1rem 0}.sp-grid{grid-template-columns:1fr 1fr}.mode-switcher{overflow-x:auto;width:100%}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo"><a href="/" style="text-decoration:none;color:inherit">HW</a></div>
+  <div class="nav-links">
+    <a href="/#home">Projects</a>
+    <a href="/#blog">Insights</a>
+    <a href="/#about">About</a>
+    <button class="nav-btn" onclick="window.location.href='/#contact'">Contact</button>
+  </div>
+</nav>
+<div class="page-header">
+  <div class="tool-badge">🐍 Python-Powered · Finance Tools</div>
+  <h1>Retirement <span>Planner</span></h1>
+  <p>Three ways to model your financial future. All calculations run via Python on the server. Switch currencies for region-specific benchmarks.</p>
+  <div class="currency-bar">
+    <span class="currency-label">Currency:</span>
+    <div class="currency-pills">
+      <button class="cp active" onclick="setCurrency('INR',this)">🇮🇳 ₹ INR</button>
+      <button class="cp" onclick="setCurrency('USD',this)">🇺🇸 $ USD</button>
+      <button class="cp" onclick="setCurrency('GBP',this)">🇬🇧 £ GBP</button>
+      <button class="cp" onclick="setCurrency('EUR',this)">🇪🇺 € EUR</button>
+      <button class="cp" onclick="setCurrency('AED',this)">🇦🇪 د.إ AED</button>
+    </div>
+  </div>
+  <div class="suggestion-panel" id="suggestion-panel"></div>
+  <div class="mode-switcher">
+    <button class="mode-btn active" onclick="switchMode('free',this)">🎛️ Free Explorer</button>
+    <button class="mode-btn" onclick="switchMode('when',this)">📅 When Can I Retire?</button>
+    <button class="mode-btn" onclick="switchMode('how',this)">💰 How Much to Invest?</button>
+  </div>
+</div>
+<div class="calc-layout">
+  <div>
+    <div id="inputs-free" class="mode-panel active">
+      <div class="panel load-wrap">
+        <div class="loading-overlay" id="load-free"><div class="loader"></div><div class="loader-text">Python calculating…</div></div>
+        <div class="panel-head"><div class="ph-icon">🎛️</div><h3>Free Explorer</h3><span class="py-badge">🐍 Python</span></div>
+        <div class="panel-body">
+          <div class="ig"><div class="ig-top"><span class="ig-label">Current Age</span><span class="ig-val" id="f-v-age">25 yrs</span></div><input type="range" id="f-age" min="18" max="55" value="25" oninput="scheduleUpdate('free')"><div class="ig-bounds"><span>18</span><span>55</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Retirement Age</span><span class="ig-val" id="f-v-retire">60 yrs</span></div><input type="range" id="f-retire" min="35" max="75" value="60" oninput="scheduleUpdate('free')"><div class="ig-bounds"><span>35</span><span>75</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Monthly SIP</span><span class="ig-val" id="f-v-sip">—</span><button class="manual-toggle" id="f-sip-toggle" onclick="toggleManual('f','sip')">✎ Type</button></div><input type="range" id="f-sip" min="500" max="500000" step="500" value="25000" oninput="syncManual('f','sip');scheduleUpdate('free')"><div class="ig-manual-row" id="f-sip-manual" style="display:none"><input class="manual-input" id="f-sip-text" type="number" placeholder="Enter amount" oninput="syncSlider('f','sip','free')"><span style="font-size:.68rem;color:var(--muted);flex-shrink:0" id="f-sip-sym">—</span></div><div class="ig-bounds"><span id="f-sip-lo">—</span><span id="f-sip-hi">—</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual Return</span><span class="ig-val" id="f-v-return">12%</span></div><input type="range" id="f-return" min="4" max="20" step="0.5" value="12" oninput="scheduleUpdate('free')"><div class="ig-bounds"><span>4%</span><span>20%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual SIP Step-Up</span><span class="ig-val" id="f-v-stepup">10%</span></div><input type="range" id="f-stepup" min="0" max="25" value="10" oninput="scheduleUpdate('free')"><div class="ig-bounds"><span>0%</span><span>25%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Inflation Rate</span><span class="ig-val" id="f-v-infl">6%</span></div><input type="range" id="f-infl" min="2" max="12" step="0.5" value="6" oninput="scheduleUpdate('free')"><div class="ig-bounds"><span>2%</span><span>12%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Monthly Expenses Today</span><span class="ig-val" id="f-v-exp">—</span><button class="manual-toggle" id="f-exp-toggle" onclick="toggleManual('f','exp')">✎ Type</button></div><input type="range" id="f-exp" min="5000" max="1000000" step="1000" value="50000" oninput="syncManual('f','exp');scheduleUpdate('free')"><div class="ig-manual-row" id="f-exp-manual" style="display:none"><input class="manual-input" id="f-exp-text" type="number" placeholder="Enter amount" oninput="syncSlider('f','exp','free')"><span style="font-size:.68rem;color:var(--muted);flex-shrink:0" id="f-exp-sym">—</span></div><div class="ig-bounds"><span id="f-exp-lo">—</span><span id="f-exp-hi">—</span></div></div>
+          <div id="f-badge" class="status-badge green">✅ Calculating…</div>
+          <button class="ai-trigger-btn" id="f-ai-btn" onclick="getAIInsight('free')">✨ Get AI Analysis</button>
+          <div class="ai-box" id="f-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="f-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="inputs-when" class="mode-panel">
+      <div class="panel load-wrap">
+        <div class="loading-overlay" id="load-when"><div class="loader"></div><div class="loader-text">Python calculating…</div></div>
+        <div class="panel-head"><div class="ph-icon">📅</div><h3>When Can I Retire?</h3><span class="py-badge">🐍 Python</span></div>
+        <div class="panel-body">
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">Enter your current SIP — Python finds the earliest age your corpus covers 25x annual expenses.</p>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Current Age</span><span class="ig-val" id="w-v-age">25 yrs</span></div><input type="range" id="w-age" min="18" max="55" value="25" oninput="scheduleUpdate('when')"><div class="ig-bounds"><span>18</span><span>55</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Monthly SIP</span><span class="ig-val" id="w-v-sip">—</span><button class="manual-toggle" id="w-sip-toggle" onclick="toggleManual('w','sip')">✎ Type</button></div><input type="range" id="w-sip" min="500" max="500000" step="500" value="25000" oninput="syncManual('w','sip');scheduleUpdate('when')"><div class="ig-manual-row" id="w-sip-manual" style="display:none"><input class="manual-input" id="w-sip-text" type="number" placeholder="Enter amount" oninput="syncSlider('w','sip','when')"><span style="font-size:.68rem;color:var(--muted);flex-shrink:0" id="w-sip-sym">—</span></div><div class="ig-bounds"><span id="w-sip-lo">—</span><span id="w-sip-hi">—</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual SIP Step-Up</span><span class="ig-val" id="w-v-stepup">10%</span></div><input type="range" id="w-stepup" min="0" max="25" value="10" oninput="scheduleUpdate('when')"><div class="ig-bounds"><span>0%</span><span>25%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual Return</span><span class="ig-val" id="w-v-return">12%</span></div><input type="range" id="w-return" min="4" max="20" step="0.5" value="12" oninput="scheduleUpdate('when')"><div class="ig-bounds"><span>4%</span><span>20%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Monthly Expenses Today</span><span class="ig-val" id="w-v-exp">—</span><button class="manual-toggle" id="w-exp-toggle" onclick="toggleManual('w','exp')">✎ Type</button></div><input type="range" id="w-exp" min="5000" max="1000000" step="1000" value="50000" oninput="syncManual('w','exp');scheduleUpdate('when')"><div class="ig-manual-row" id="w-exp-manual" style="display:none"><input class="manual-input" id="w-exp-text" type="number" placeholder="Enter amount" oninput="syncSlider('w','exp','when')"><span style="font-size:.68rem;color:var(--muted);flex-shrink:0" id="w-exp-sym">—</span></div><div class="ig-bounds"><span id="w-exp-lo">—</span><span id="w-exp-hi">—</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Inflation Rate</span><span class="ig-val" id="w-v-infl">6%</span></div><input type="range" id="w-infl" min="2" max="12" step="0.5" value="6" oninput="scheduleUpdate('when')"><div class="ig-bounds"><span>2%</span><span>12%</span></div></div>
+          <div id="w-badge" class="status-badge green">✅ Calculating…</div>
+          <button class="ai-trigger-btn" id="w-ai-btn" onclick="getAIInsight('when')">✨ Get AI Analysis</button>
+          <div class="ai-box" id="w-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="w-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="inputs-how" class="mode-panel">
+      <div class="panel load-wrap">
+        <div class="loading-overlay" id="load-how"><div class="loader"></div><div class="loader-text">Python calculating…</div></div>
+        <div class="panel-head"><div class="ph-icon">💰</div><h3>How Much Must I Invest?</h3><span class="py-badge">🐍 Python</span></div>
+        <div class="panel-body">
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">Set your retirement age — Python uses binary search to back-solve the exact monthly SIP needed.</p>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Current Age</span><span class="ig-val" id="h-v-age">25 yrs</span></div><input type="range" id="h-age" min="18" max="55" value="25" oninput="scheduleUpdate('how')"><div class="ig-bounds"><span>18</span><span>55</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Target Retirement Age</span><span class="ig-val" id="h-v-retire">60 yrs</span></div><input type="range" id="h-retire" min="35" max="75" value="60" oninput="scheduleUpdate('how')"><div class="ig-bounds"><span>35</span><span>75</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Monthly Expenses Today</span><span class="ig-val" id="h-v-exp">—</span><button class="manual-toggle" id="h-exp-toggle" onclick="toggleManual('h','exp')">✎ Type</button></div><input type="range" id="h-exp" min="5000" max="1000000" step="1000" value="50000" oninput="syncManual('h','exp');scheduleUpdate('how')"><div class="ig-manual-row" id="h-exp-manual" style="display:none"><input class="manual-input" id="h-exp-text" type="number" placeholder="Enter amount" oninput="syncSlider('h','exp','how')"><span style="font-size:.68rem;color:var(--muted);flex-shrink:0" id="h-exp-sym">—</span></div><div class="ig-bounds"><span id="h-exp-lo">—</span><span id="h-exp-hi">—</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual Return</span><span class="ig-val" id="h-v-return">12%</span></div><input type="range" id="h-return" min="4" max="20" step="0.5" value="12" oninput="scheduleUpdate('how')"><div class="ig-bounds"><span>4%</span><span>20%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Annual SIP Step-Up</span><span class="ig-val" id="h-v-stepup">10%</span></div><input type="range" id="h-stepup" min="0" max="25" value="10" oninput="scheduleUpdate('how')"><div class="ig-bounds"><span>0%</span><span>25%</span></div></div>
+          <div class="ig"><div class="ig-top"><span class="ig-label">Inflation Rate</span><span class="ig-val" id="h-v-infl">6%</span></div><input type="range" id="h-infl" min="2" max="12" step="0.5" value="6" oninput="scheduleUpdate('how')"><div class="ig-bounds"><span>2%</span><span>12%</span></div></div>
+          <div id="h-badge" class="status-badge green">✅ Calculating…</div>
+          <button class="ai-trigger-btn" id="h-ai-btn" onclick="getAIInsight('how')">✨ Get AI Analysis</button>
+          <div class="ai-box" id="h-ai-box"><div class="ai-tag">🤖 Claude AI Analysis</div><div id="h-ai-text"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="panel"><div class="panel-head"><div class="ph-icon">📊</div><h3>Results</h3></div><div class="panel-body"><div class="res-grid" id="res-grid"><div class="res-card hero-card" style="grid-column:span 2"><div class="rc-label">Status</div><div class="rc-val big">Calculating…</div></div></div><div id="bk-section"></div></div></div>
+    <div class="panel"><div class="panel-head"><div class="ph-icon">📈</div><h3>Corpus Growth</h3><div style="margin-left:auto"><div class="right-tabs"><button class="rt active" onclick="setChartView('growth',this)">Growth</button><button class="rt" onclick="setChartView('split',this)">Invested vs Gains</button><button class="rt" onclick="setChartView('real',this)">Real Value</button></div></div></div><div class="panel-body"><div class="chart-wrap"><canvas id="mainChart"></canvas></div></div></div>
+    <div class="panel"><div class="panel-head"><div class="ph-icon">🏁</div><h3>Wealth Milestones</h3></div><div class="panel-body"><div id="milestones"><p style="font-size:.78rem;color:var(--muted)">Calculating…</p></div></div></div>
+  </div>
+</div>
+<script>
+const PROXY_URL='proxy.php';
+const C={
+  INR:{sym:'₹',flag:'🇮🇳',name:'Indian Rupee',spC1:'#f97316',spC2:'#2563eb',sipMin:500,sipMax:500000,sipStep:500,sipDef:25000,expMin:5000,expMax:1000000,expStep:1000,expDef:50000,bm:{infl:{v:'5–7%',n:'CPI avg 2015–2024'},idx:{v:'11–13%',n:'Nifty 50 historical CAGR'},fd:{v:'6.5–7.5%',n:'SBI/HDFC FD rates 2024'},mf:{v:'12–15%',n:'Diversified equity MF avg'},swr:{v:'4% SWR',n:'Safe withdrawal rate'},rule:{v:'25× rule',n:'Annual expenses × 25'}},note:'💡 India: Nifty 50 index funds average 12–14% CAGR. ELSS gives 80C tax benefit. Use 6% inflation as conservative base. A 10% annual step-up can nearly double your final corpus.'},
+  USD:{sym:'$',flag:'🇺🇸',name:'US Dollar',spC1:'#1d4ed8',spC2:'#dc2626',sipMin:50,sipMax:20000,sipStep:50,sipDef:1000,expMin:500,expMax:50000,expStep:500,expDef:4000,bm:{infl:{v:'2.5–3.5%',n:'Fed target ~2%, recent avg higher'},idx:{v:'10–11%',n:'S&P 500 historical avg'},fd:{v:'4.5–5.3%',n:'US Treasury / HYSA 2024'},mf:{v:'8–12%',n:'Diversified US equity funds'},swr:{v:'4% SWR',n:'Trinity Study benchmark'},rule:{v:'25–33× rule',n:'3–4% withdrawal rate'}},note:'💡 USA: S&P 500 index funds (VOO, SPY) are the standard benchmark. Max 401(k) is $23,000/yr in 2024. Set inflation to 3% for conservative long-term planning.'},
+  GBP:{sym:'£',flag:'🇬🇧',name:'British Pound',spC1:'#1e3a5f',spC2:'#dc2626',sipMin:50,sipMax:15000,sipStep:50,sipDef:800,expMin:500,expMax:40000,expStep:250,expDef:3000,bm:{infl:{v:'2.5–4%',n:'BoE 2% target, recent higher'},idx:{v:'7–9%',n:'FTSE 100 long-run avg'},fd:{v:'4.5–5%',n:'UK savings accounts 2024'},mf:{v:'8–11%',n:'Global equity ISA funds'},swr:{v:'3.5% SWR',n:'UK-adjusted withdrawal'},rule:{v:'25–28× rule',n:'Annual expenses × 25'}},note:'💡 UK: ISA allowance is £20,000/yr tax-free. FTSE All-World outperforms FTSE 100 long-term. Set inflation to 3% — structural UK inflation runs above BoE target.'},
+  EUR:{sym:'€',flag:'🇪🇺',name:'Euro',spC1:'#003399',spC2:'#f59e0b',sipMin:50,sipMax:15000,sipStep:50,sipDef:800,expMin:500,expMax:40000,expStep:250,expDef:2500,bm:{infl:{v:'2–3.5%',n:'ECB target, post-2022 higher'},idx:{v:'7–9%',n:'Euro Stoxx 50 / MSCI Europe'},fd:{v:'3–4%',n:'European savings 2024'},mf:{v:'7–10%',n:'Pan-European equity funds'},swr:{v:'3.5% SWR',n:'Europe-adjusted rate'},rule:{v:'25–28× rule',n:'Annual expenses × 25'}},note:'💡 Eurozone: MSCI World ETFs in EUR are recommended. German Bunds are safe but low yield. 2.5% inflation is reasonable for long-term planning.'},
+  AED:{sym:'د.إ',flag:'🇦🇪',name:'UAE Dirham',spC1:'#009736',spC2:'#1d4ed8',sipMin:200,sipMax:75000,sipStep:200,sipDef:3500,expMin:1000,expMax:150000,expStep:500,expDef:15000,bm:{infl:{v:'2–4%',n:'UAE CPI, pegged to USD'},idx:{v:'8–11%',n:'DFM / MSCI UAE avg'},fd:{v:'4–5%',n:'UAE bank FD 2024'},mf:{v:'9–12%',n:'Global equity funds in AED'},swr:{v:'4% SWR',n:'No capital gains tax'},rule:{v:'25× rule',n:'Tax-free growth advantage'}},note:'💡 UAE: Zero income and capital gains tax — a major advantage. AED pegged to USD so US market returns apply. DIFC-regulated funds and global ETFs are common vehicles.'}
+};
+let activeCurrency='INR',activeMode='free',chartView='growth',mainChart=null,lastData=null,debounceTimers={};
+const $=id=>document.getElementById(id);
+
+function fmt(n){
+  if(!isFinite(n))return'—';
+  const sym=C[activeCurrency].sym;
+  if(activeCurrency==='INR'){if(n>=1e7)return sym+(n/1e7).toFixed(2)+' Cr';if(n>=1e5)return sym+(n/1e5).toFixed(2)+' L';return sym+Math.round(n).toLocaleString('en-IN');}
+  if(n>=1e9)return sym+(n/1e9).toFixed(2)+'B';if(n>=1e6)return sym+(n/1e6).toFixed(2)+'M';if(n>=1e3)return sym+(n/1e3).toFixed(1)+'K';return sym+Math.round(n).toLocaleString();
+}
+function fmtS(n){
+  if(!isFinite(n))return'—';
+  const sym=C[activeCurrency].sym;
+  if(activeCurrency==='INR'){if(n>=1e7)return(n/1e7).toFixed(1)+'Cr';if(n>=1e5)return(n/1e5).toFixed(1)+'L';return Math.round(n).toLocaleString('en-IN');}
+  if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return Math.round(n).toLocaleString();
+}
+
+function renderSuggestion(){
+  const c=C[activeCurrency],b=c.bm,sp=$('suggestion-panel');
+  sp.style.setProperty('--sp-c1',c.spC1);sp.style.setProperty('--sp-c2',c.spC2);
+  sp.innerHTML=`<div class="sp-header"><span class="sp-flag">${c.flag}</span><div><div class="sp-title">${c.name} — Market Benchmarks</div><div class="sp-sub">Use these as reference when setting your sliders</div></div></div><div class="sp-grid"><div class="sp-item"><div class="sp-item-label">📈 Avg Inflation</div><div class="sp-item-val">${b.infl.v}</div><div class="sp-item-range">${b.infl.n}</div></div><div class="sp-item"><div class="sp-item-label">📊 Index Return</div><div class="sp-item-val">${b.idx.v}</div><div class="sp-item-range">${b.idx.n}</div></div><div class="sp-item"><div class="sp-item-label">🏦 Fixed Deposit</div><div class="sp-item-val">${b.fd.v}</div><div class="sp-item-range">${b.fd.n}</div></div><div class="sp-item"><div class="sp-item-label">💼 Mutual Fund</div><div class="sp-item-val">${b.mf.v}</div><div class="sp-item-range">${b.mf.n}</div></div><div class="sp-item"><div class="sp-item-label">🔒 Safe Withdrawal</div><div class="sp-item-val">${b.swr.v}</div><div class="sp-item-range">${b.swr.n}</div></div><div class="sp-item"><div class="sp-item-label">🎯 Corpus Rule</div><div class="sp-item-val">${b.rule.v}</div><div class="sp-item-range">${b.rule.n}</div></div></div><div class="sp-note">${c.note}</div>`;
+}
+
+function updateSliderRanges(){
+  const c=C[activeCurrency];
+  [['f'],['w'],['h']].forEach(([p])=>{
+    const se=$(p+'-sip'),ee=$(p+'-exp');
+    if(se){se.min=c.sipMin;se.max=c.sipMax;se.step=c.sipStep;se.value=Math.min(Math.max(+se.value||c.sipDef,c.sipMin),c.sipMax);if($(p+'-sip-lo'))$(p+'-sip-lo').textContent=fmt(c.sipMin);if($(p+'-sip-hi'))$(p+'-sip-hi').textContent=fmt(c.sipMax);}
+    if(ee){ee.min=c.expMin;ee.max=c.expMax;ee.step=c.expStep;ee.value=Math.min(Math.max(+ee.value||c.expDef,c.expMin),c.expMax);if($(p+'-exp-lo'))$(p+'-exp-lo').textContent=fmt(c.expMin);if($(p+'-exp-hi'))$(p+'-exp-hi').textContent=fmt(c.expMax);}
+  });
+}
+
+function setCurrency(code,el){activeCurrency=code;document.querySelectorAll('.cp').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderSuggestion();updateSliderRanges();updateLabels(activeMode);scheduleUpdate(activeMode);}
+
+function updateLabels(mode){
+  const p=mode==='free'?'f':mode==='when'?'w':'h';
+  if($(p+'-age'))$(p+'-v-age').textContent=$(p+'-age').value+' yrs';
+  if($(p+'-retire'))$(p+'-v-retire').textContent=$(p+'-retire').value+' yrs';
+  if($(p+'-sip'))$(p+'-v-sip').textContent=fmt(+$(p+'-sip').value);
+  if($(p+'-return'))$(p+'-v-return').textContent=$(p+'-return').value+'%';
+  if($(p+'-stepup'))$(p+'-v-stepup').textContent=$(p+'-stepup').value+'%';
+  if($(p+'-infl'))$(p+'-v-infl').textContent=$(p+'-infl').value+'%';
+  if($(p+'-exp'))$(p+'-v-exp').textContent=fmt(+$(p+'-exp').value);
+}
+
+function scheduleUpdate(mode){updateLabels(mode);clearTimeout(debounceTimers[mode]);debounceTimers[mode]=setTimeout(()=>callPython(mode),320);}
+
+async function callPython(mode){
+  const p=mode==='free'?'f':mode==='when'?'w':'h';
+  const mmap={free:'free',when:'when',how:'howmuch'};
+  const payload={mode:mmap[mode]};
+  if($(p+'-age'))payload.age=+$(p+'-age').value;
+  if($(p+'-retire'))payload.retireAge=+$(p+'-retire').value;
+  if($(p+'-sip'))payload.sip=+$(p+'-sip').value;
+  if($(p+'-return'))payload.annualReturn=+$(p+'-return').value;
+  if($(p+'-stepup'))payload.stepup=+$(p+'-stepup').value;
+  if($(p+'-infl'))payload.inflation=+$(p+'-infl').value;
+  if($(p+'-exp'))payload.expenses=+$(p+'-exp').value;
+  const loadId='load-'+mode;
+  $(loadId).classList.add('show');
+  try{
+    const res=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    $(loadId).classList.remove('show');
+    if(data.error){fallbackJS(mode,payload);return;}
+    lastData={...data,mode,age:payload.age,retire:payload.retireAge||data.retireAge,infl:payload.inflation/100,sip:payload.sip||data.sipNeeded,exp:payload.expenses,ret:(payload.annualReturn||12)/100,stepup:(payload.stepup||10)/100};
+    renderAll(mode,data,payload);
+  }catch(e){$(loadId).classList.remove('show');fallbackJS(mode,payload);}
+}
+
+function sipCalc(years,sip,ret,su){const mr=ret/12/100;let c=0,inv=0,s=sip,yd=[];for(let y=1;y<=years;y++){for(let m=0;m<12;m++){c=c*(1+mr)+s;inv+=s;}yd.push({year:y,corpus:c,invested:inv});s*=(1+su/100);}return{corpus:c,invested:inv,yearly:yd,lastSip:s/(1+su/100)};}
+
+function fallbackJS(mode,p){
+  let data={};
+  if(mode==='free'){const yrs=Math.max(1,p.retireAge-p.age);const r=sipCalc(yrs,p.sip,p.annualReturn,p.stepup);const inf=Math.pow(1+p.inflation/100,yrs);const req=p.expenses*inf*12*25;data={corpus:r.corpus,totalInvested:r.invested,gains:r.corpus-r.invested,realCorpus:r.corpus/inf,expAtRetire:p.expenses*inf,requiredCorpus:req,surplus:r.corpus-req,yearlyData:r.yearly,years:yrs,lastSIP:r.lastSip};}
+  else if(mode==='when'){let c=0,inv=0,s=p.sip,yd=[],ra=null,req=0,eat=0;const mr=p.annualReturn/12/100;for(let y=1;y<=60;y++){for(let m=0;m<12;m++){c=c*(1+mr)+s;inv+=s;}yd.push({year:y,corpus:c,invested:inv});s*=(1+p.stepup/100);eat=p.expenses*Math.pow(1+p.inflation/100,y);req=eat*12*25;if(c>=req&&!ra){ra=p.age+y;break;}}if(ra){data={retireAge:ra,corpus:c,totalInvested:inv,gains:c-inv,requiredCorpus:req,expAtRetire:eat,realCorpus:c/Math.pow(1+p.inflation/100,ra-p.age),surplus:c-req,yearlyData:yd,years:ra-p.age};}else{data={error:'Cannot retire within 60 years',yearlyData:yd};}}
+  else{const yrs=Math.max(1,p.retireAge-p.age);const inf=Math.pow(1+p.inflation/100,yrs);const req=p.expenses*inf*12*25;const mr=p.annualReturn/12/100;let lo=1,hi=1e7,sn=hi;for(let i=0;i<60;i++){const mid=(lo+hi)/2;let c=0,s=mid;for(let y=0;y<yrs;y++){for(let m=0;m<12;m++){c=c*(1+mr)+s;}s*=(1+p.stepup/100);}if(c>=req){sn=mid;hi=mid;}else lo=mid;}const r=sipCalc(yrs,sn,p.annualReturn,p.stepup);data={sipNeeded:sn,corpus:r.corpus,totalInvested:r.invested,gains:r.corpus-r.invested,requiredCorpus:req,expAtRetire:p.expenses*inf,realCorpus:r.corpus/inf,surplus:r.corpus-req,yearlyData:r.yearly,years:yrs};}
+  lastData={...data,mode,age:p.age,retire:p.retireAge||data.retireAge,infl:p.inflation/100,sip:p.sip||data.sipNeeded,exp:p.expenses,ret:p.annualReturn/100,stepup:p.stepup/100};
+  renderAll(mode,data,p);
+}
+
+function renderAll(mode,data,p){
+  if(data.error&&mode==='when'){$('w-badge').className='status-badge red';$('w-badge').innerHTML='❌ Cannot retire within 60 years — increase SIP or return rate';$('res-grid').innerHTML=`<div class="res-card hero-card" style="grid-column:span 2"><div class="rc-label">Status</div><div class="rc-val">Shortfall at Age ${p.age+60}</div><div class="rc-sub">Increase SIP, step-up %, or expected returns</div></div>`;$('bk-section').innerHTML='';if(data.yearlyData){renderChart({yearly:data.yearlyData,infl:p.inflation/100,age:p.age});renderMilestones(data.yearlyData,p.age,p.inflation/100);}return;}
+  let heroHTML='';
+  if(mode==='when'){heroHTML=`<div class="res-card hero-card" style="grid-column:span 2"><div class="rc-label">🎯 You Can Retire At</div><div class="rc-val big">${data.retireAge} <span style="font-size:.9rem">yrs old</span></div><div class="rc-sub">${data.years} years of investing · corpus ${fmt(data.corpus)}</div></div>`;$('w-badge').className='status-badge green';$('w-badge').innerHTML=`✅ Earliest retirement at age <strong>${data.retireAge}</strong> — ${data.years} years away`;}
+  else if(mode==='how'){heroHTML=`<div class="res-card hero-card" style="grid-column:span 2"><div class="rc-label">💰 Required Monthly SIP</div><div class="rc-val big">${fmt(data.sipNeeded)}<span style="font-size:.75rem;font-weight:400">/mo</span></div><div class="rc-sub">Starting SIP · increases ${p.stepup}% annually · retire at ${p.retireAge}</div></div>`;$('h-badge').className='status-badge green';$('h-badge').innerHTML=`✅ Invest <strong>${fmt(data.sipNeeded)}/mo</strong> now to retire at ${p.retireAge}`;}
+  else{heroHTML=`<div class="res-card hero-card" style="grid-column:span 2"><div class="rc-label">Retirement Corpus</div><div class="rc-val big">${fmt(data.corpus)}</div><div class="rc-sub">In ${data.years} years · at age ${p.retireAge}</div></div>`;const ratio=(data.corpus||0)/(data.requiredCorpus||1),b=$('f-badge');if(ratio>=1.2){b.className='status-badge green';b.innerHTML='✅ Well on track — surplus of '+fmt(data.surplus);}else if(ratio>=0.85){b.className='status-badge amber';b.innerHTML='⚠️ Close — need '+fmt(-(data.surplus||0))+' more';}else{b.className='status-badge red';b.innerHTML='❌ Shortfall of '+fmt(-(data.surplus||0))+' — increase SIP or step-up';}}
+  $('res-grid').innerHTML=heroHTML+`<div class="res-card"><div class="rc-label">Total Invested</div><div class="rc-val">${fmt(data.totalInvested)}</div></div><div class="res-card"><div class="rc-label">Wealth Gains</div><div class="rc-val">${fmt(data.gains)}</div></div><div class="res-card"><div class="rc-label">Real Value (Today)</div><div class="rc-val">${fmt(data.realCorpus)}</div></div><div class="res-card"><div class="rc-label">Expense at Retire</div><div class="rc-val">${fmt(data.expAtRetire)}<span style="font-size:.62rem;color:var(--muted)">/mo</span></div></div>`;
+  $('bk-section').innerHTML=`<div class="sep"></div><div class="bk-row"><span class="bk-l"><span class="dot" style="background:#2563eb"></span>Nominal Corpus</span><span class="bk-v">${fmt(data.corpus)}</span></div><div class="bk-row"><span class="bk-l"><span class="dot" style="background:#10b981"></span>Real Corpus (Today's ${C[activeCurrency].sym})</span><span class="bk-v">${fmt(data.realCorpus)}</span></div><div class="bk-row"><span class="bk-l"><span class="dot" style="background:#f59e0b"></span>Monthly Expense at Retire</span><span class="bk-v">${fmt(data.expAtRetire)}/mo</span></div><div class="bk-row"><span class="bk-l"><span class="dot" style="background:#8b5cf6"></span>Required Corpus (25x rule)</span><span class="bk-v">${fmt(data.requiredCorpus)}</span></div><div class="bk-row"><span class="bk-l"><span class="dot" style="background:${(data.surplus||0)>=0?'#10b981':'#ef4444'}"></span>Surplus / Shortfall</span><span class="bk-v" style="color:${(data.surplus||0)>=0?'var(--green)':'var(--red)'}">${(data.surplus||0)>=0?'+':''}${fmt(data.surplus||0)}</span></div>`;
+  renderChart({yearly:data.yearlyData||[],infl:p.inflation/100,age:p.age});
+  renderMilestones(data.yearlyData||[],p.age,p.inflation/100);
+}
+
+function setChartView(v,el){chartView=v;document.querySelectorAll('.rt').forEach(t=>t.classList.remove('active'));el.classList.add('active');if(lastData)renderChart({yearly:lastData.yearlyData||[],infl:lastData.infl,age:lastData.age});}
+
+function renderChart(d){
+  const labels=d.yearly.map((_,i)=>"'"+String((d.age||25)+i+1).slice(-2));
+  const cD=d.yearly.map(y=>y.corpus),iD=d.yearly.map(y=>y.invested),gD=d.yearly.map(y=>y.corpus-y.invested),rD=d.yearly.map((y,i)=>y.corpus/Math.pow(1+(d.infl||.06),i+1));
+  if(mainChart){mainChart.destroy();mainChart=null;}
+  const ctx=$('mainChart').getContext('2d');
+  const g1=ctx.createLinearGradient(0,0,0,230);g1.addColorStop(0,'rgba(37,99,235,.2)');g1.addColorStop(1,'rgba(37,99,235,.01)');
+  const g2=ctx.createLinearGradient(0,0,0,230);g2.addColorStop(0,'rgba(16,185,129,.18)');g2.addColorStop(1,'rgba(16,185,129,.01)');
+  const g3=ctx.createLinearGradient(0,0,0,230);g3.addColorStop(0,'rgba(139,92,246,.18)');g3.addColorStop(1,'rgba(139,92,246,.01)');
+  let ds=[];
+  if(chartView==='growth')ds=[{label:'Corpus',data:cD,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:0,borderWidth:2.5},{label:'Invested',data:iD,borderColor:'#10b981',backgroundColor:g2,fill:true,tension:.4,pointRadius:0,borderWidth:2,borderDash:[4,3]}];
+  else if(chartView==='split')ds=[{label:'Wealth Gains',data:gD,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:0,borderWidth:2.5},{label:'Total Invested',data:iD,borderColor:'#10b981',backgroundColor:g2,fill:true,tension:.4,pointRadius:0,borderWidth:2}];
+  else ds=[{label:'Nominal',data:cD,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:0,borderWidth:2.5},{label:"Real (Today's "+C[activeCurrency].sym+')',data:rD,borderColor:'#8b5cf6',backgroundColor:g3,fill:true,tension:.4,pointRadius:0,borderWidth:2,borderDash:[4,3]}];
+  mainChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:{duration:220},plugins:{legend:{labels:{font:{family:'Sora',size:11},color:'#64748b',boxWidth:12,padding:14}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)},bodyFont:{family:'DM Mono',size:11},titleFont:{family:'Sora',size:11}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Mono',size:9},color:'#94a3b8',maxTicksLimit:12}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:9},color:'#94a3b8',callback:v=>fmtS(v)}}}}});
+}
+
+function renderMilestones(yearly,startAge,infl){
+  const sym=C[activeCurrency].sym;
+  const T=activeCurrency==='INR'?[1e6,2.5e6,5e6,1e7,2e7,5e7,1e8]:[1e4,5e4,1e5,5e5,1e6,5e6,1e7];
+  const L=activeCurrency==='INR'?['₹10L','₹25L','₹50L','₹1Cr','₹2Cr','₹5Cr','₹10Cr']:[sym+'10K',sym+'50K',sym+'100K',sym+'500K',sym+'1M',sym+'5M',sym+'10M'];
+  let html='',found=0;
+  for(let i=0;i<T.length;i++){const idx=yearly.findIndex(y=>y.corpus>=T[i]);if(idx!==-1&&found<5){const yr=(startAge||25)+idx+1;const real=yearly[idx].corpus/Math.pow(1+(infl||.06),idx+1);html+=`<div class="ms-item"><div class="ms-age">${yr}</div><div class="ms-info"><div class="ms-title">Corpus crosses ${L[i]}</div><div class="ms-sub">${idx+1} years in · Real value ${fmt(real)}</div></div><div class="ms-amt">${fmt(yearly[idx].corpus)}</div></div>`;found++;}}
+  if(!found)html='<p style="font-size:.78rem;color:var(--muted);padding:.5rem 0">No milestones in this range. Try increasing SIP or returns.</p>';
+  $('milestones').innerHTML=html;
+}
+
+function switchMode(m,el){activeMode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));$('inputs-'+m).classList.add('active');updateLabels(m);scheduleUpdate(m);}
+
+async function getAIInsight(mode){
+  const p0=mode[0];const btn=$(p0+'-ai-btn'),box=$(p0+'-ai-box'),txt=$(p0+'-ai-text');
+  if(!lastData)return;
+  btn.disabled=true;btn.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px"></span>Analyzing…';
+  const d=lastData,cc=C[activeCurrency];
+  const prompt=`You are a financial analyst. Analyze this retirement plan in exactly 4 bullet points using the bullet symbol. Be specific with numbers. Cover: feasibility, biggest risk, one concrete improvement, and a motivating insight.\n\nCurrency: ${cc.name} (${cc.sym})\nMode: ${mode==='free'?'Free Explorer':mode==='when'?'When Can I Retire':'Required SIP'}\nAge: ${d.age} to ${d.retire}\nMonthly SIP: ${fmt(d.sip||0)}, Step-Up: ${Math.round((d.stepup||0)*100)}%/yr\nReturn: ${Math.round((d.ret||0)*100)}%, Inflation: ${Math.round((d.infl||0)*100)}%\nCorpus: ${fmt(d.corpus||0)} | Required (25x): ${fmt(d.requiredCorpus||0)}\nExpenses Today: ${fmt(d.exp||0)}/mo, At Retire: ${fmt(d.expAtRetire||0)}/mo\nSurplus/Shortfall: ${(d.surplus||0)>=0?'+'+fmt(d.surplus||0):fmt(d.surplus||0)}\n\nGive ${cc.name}-specific advice. Max 130 words.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'YOUR_ANTHROPIC_API_KEY_HERE','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'Could not generate analysis.';
+    txt.innerHTML=text.replace(/•\s*/g,'<br><br>• ').replace(/^\s*(<br>)+/,'').replace(/\n/g,'<br>');
+    box.classList.add('visible');
+  }catch(e){txt.innerHTML='AI not available right now';box.classList.add('visible');}
+  btn.disabled=false;btn.innerHTML='✨ Refresh AI Analysis';
+}
+
+// ── Manual input toggle ──────────────────────────────────────────────────
+function toggleManual(prefix, field) {
+  const manualRow = $(prefix+'-'+field+'-manual');
+  const toggle    = $(prefix+'-'+field+'-toggle');
+  const slider    = $(prefix+'-'+field);
+  const textInput = $(prefix+'-'+field+'-text');
+  const symEl     = $(prefix+'-'+field+'-sym');
+  const isOpen    = manualRow.style.display !== 'none';
+  if (isOpen) {
+    manualRow.style.display = 'none';
+    toggle.classList.remove('active');
+    toggle.textContent = '✎ Type';
+  } else {
+    manualRow.style.display = 'flex';
+    toggle.classList.add('active');
+    toggle.textContent = '✕ Close';
+    textInput.value = slider.value;
+    if (symEl) symEl.textContent = C[activeCurrency].sym + '/mo';
+    textInput.focus();
+    textInput.select();
+  }
+}
+
+function syncManual(prefix, field) {
+  const textInput = $(prefix+'-'+field+'-text');
+  const slider    = $(prefix+'-'+field);
+  if (textInput && $(prefix+'-'+field+'-manual').style.display !== 'none') {
+    textInput.value = slider.value;
+    textInput.classList.remove('error');
+  }
+}
+
+function syncSlider(prefix, field, mode) {
+  const textInput = $(prefix+'-'+field+'-text');
+  const slider    = $(prefix+'-'+field);
+  const val = parseFloat(textInput.value);
+  if (!isNaN(val) && val > 0) {
+    textInput.classList.remove('error');
+    const minV = parseFloat(slider.min), maxV = parseFloat(slider.max);
+    slider.value = val > maxV ? maxV : val < minV ? minV : val;
+    scheduleUpdate(mode);
+  } else if (textInput.value !== '' && textInput.value !== '-') {
+    textInput.classList.add('error');
+  }
+}
+
+function getFieldValue(prefix, field) {
+  const manualRow = $(prefix+'-'+field+'-manual');
+  const textInput = $(prefix+'-'+field+'-text');
+  const slider    = $(prefix+'-'+field);
+  if (manualRow && manualRow.style.display !== 'none' && textInput && textInput.value !== '') {
+    const v = parseFloat(textInput.value);
+    if (!isNaN(v) && v > 0) return v;
+  }
+  return slider ? +slider.value : 0;
+}
+
+// Patch callPython to use getFieldValue for sip/exp
+const _origCallPython = callPython;
+callPython = async function(mode) {
+  const p = mode==='free'?'f':mode==='when'?'w':'h';
+  const mmap = {free:'free',when:'when',how:'howmuch'};
+  const payload = {mode:mmap[mode]};
+  if ($(p+'-age'))       payload.age          = +$(p+'-age').value;
+  if ($(p+'-retire'))    payload.retireAge    = +$(p+'-retire').value;
+  if ($(p+'-sip'))       payload.sip          = getFieldValue(p,'sip');
+  if ($(p+'-return'))    payload.annualReturn = +$(p+'-return').value;
+  if ($(p+'-stepup'))    payload.stepup       = +$(p+'-stepup').value;
+  if ($(p+'-infl'))      payload.inflation    = +$(p+'-infl').value;
+  if ($(p+'-exp'))       payload.expenses     = getFieldValue(p,'exp');
+  const loadId = 'load-'+mode;
+  $(loadId).classList.add('show');
+  try {
+    const res  = await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json();
+    $(loadId).classList.remove('show');
+    if (data.error){fallbackJS(mode,payload);return;}
+    lastData = {...data,mode,age:payload.age,retire:payload.retireAge||data.retireAge,infl:payload.inflation/100,sip:payload.sip||data.sipNeeded,exp:payload.expenses,ret:(payload.annualReturn||12)/100,stepup:(payload.stepup||10)/100};
+    renderAll(mode,data,payload);
+  } catch(e) {
+    $(loadId).classList.remove('show');
+    fallbackJS(mode,payload);
+  }
+};
+
+// Patch fallbackJS to use getFieldValue
+const _origFallbackJS = fallbackJS;
+fallbackJS = function(mode, p) {
+  const pf = mode==='free'?'f':mode==='when'?'w':'h';
+  if ($(pf+'-sip'))  p.sip      = getFieldValue(pf,'sip');
+  if ($(pf+'-exp'))  p.expenses = getFieldValue(pf,'exp');
+  _origFallbackJS(mode, p);
+};
+
+// Sync symbol labels on currency switch
+const _origUpdateSliderRanges = updateSliderRanges;
+updateSliderRanges = function() {
+  _origUpdateSliderRanges();
+  ['f','w','h'].forEach(pf => {
+    ['sip','exp'].forEach(f => {
+      const symEl = $(pf+'-'+f+'-sym');
+      if (symEl) symEl.textContent = C[activeCurrency].sym+'/mo';
+      const mr = $(pf+'-'+f+'-manual');
+      const ti = $(pf+'-'+f+'-text');
+      const sl = $(pf+'-'+f);
+      if (mr && mr.style.display!=='none' && ti && sl) ti.value = sl.value;
+    });
+  });
+};
+// ─────────────────────────────────────────────────────────────────────────
+
+renderSuggestion();
+updateSliderRanges();
+['free','when','how'].forEach(m=>updateLabels(m));
+callPython('free');
+</script>
+</body>
+</html>

@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCF Practice Tool | HW Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#2563EB; --blue-d:#1d4ed8; --blue-l:#eff6ff; --blue-m:#dbeafe;
+  --dark:#0f172a; --mid:#334155; --muted:#64748b; --border:#e2e8f0;
+  --bg:#f8fafc; --white:#fff; --green:#10b981; --green-p:#d1fae5;
+  --red:#ef4444; --red-p:#fee2e2; --amber:#f59e0b; --amber-p:#fef3c7;
+  --mono:'IBM Plex Mono',monospace; --head:'Space Grotesk',sans-serif; --body:'Lato',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--bg);color:var(--dark);min-height:100vh}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.logo{font-family:var(--head);font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-back{font-size:.82rem;color:var(--blue);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:.4rem}
+.nav-back:hover{text-decoration:underline}
+/* HERO */
+.hero{margin-top:60px;padding:3rem 2rem 2rem;max-width:1300px;margin-left:auto;margin-right:auto;margin-top:80px}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue-l);color:var(--blue);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;margin-bottom:1rem;border:1px solid var(--blue-m)}
+.hero h1{font-family:var(--head);font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:.95rem;color:var(--muted);max-width:560px;line-height:1.75;margin-bottom:1.75rem}
+/* MODE BAR */
+.mode-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+.mode-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.mp{padding:.45rem 1.1rem;border-radius:8px;font-family:var(--head);font-size:.78rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.mp.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.mp:not(.active):hover{background:var(--blue-l);color:var(--blue)}
+.diff-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.dp{padding:.45rem 1rem;border-radius:8px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.dp.active{color:white;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.dp[data-d="easy"].active{background:#10b981}
+.dp[data-d="medium"].active{background:#f59e0b}
+.dp[data-d="hard"].active{background:#ef4444}
+.dp:not(.active):hover{background:var(--bg)}
+.refresh-btn{margin-left:auto;display:flex;align-items:center;gap:.6rem;padding:.55rem 1.4rem;background:var(--blue);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.refresh-btn:hover{background:var(--blue-d);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.refresh-btn svg{transition:transform .5s}
+.refresh-btn:hover svg{transform:rotate(180deg)}
+/* MAIN GRID */
+.main-grid{max-width:1300px;margin:0 auto;padding:0 2rem 5rem;display:grid;grid-template-columns:1fr 420px;gap:1.5rem;align-items:start}
+/* PANELS */
+.panel{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.panel-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-head h3{font-family:var(--head);font-size:.85rem;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:.5rem}
+.ph-icon{width:26px;height:26px;border-radius:7px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:.82rem}
+.panel-body{padding:1.25rem}
+/* COMPANY HEADER */
+.co-header{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#0891b2 100%);color:white;padding:1.5rem 1.75rem;border-radius:14px;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.co-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%}
+.co-header::after{content:'';position:absolute;bottom:-30px;right:60px;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%}
+.co-name{font-family:var(--head);font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:.2rem}
+.co-sector{font-size:.72rem;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+.co-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.co-kpi{background:rgba(255,255,255,.12);border-radius:8px;padding:.6rem .75rem}
+.co-kpi-label{font-size:.6rem;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.2rem}
+.co-kpi-val{font-family:var(--mono);font-size:.9rem;font-weight:600}
+/* FINANCIALS TABLE */
+.fin-table{width:100%;font-size:.78rem;border-collapse:collapse}
+.fin-table th{font-family:var(--head);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:.6rem .75rem;text-align:right;border-bottom:2px solid var(--border);background:var(--bg)}
+.fin-table th:first-child{text-align:left}
+.fin-table td{padding:.55rem .75rem;text-align:right;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.78rem;color:var(--mid)}
+.fin-table td:first-child{text-align:left;font-family:var(--body);font-weight:600;color:var(--dark);font-size:.78rem}
+.fin-table tr:last-child td{border-bottom:none}
+.fin-table tr.subtotal td{background:var(--blue-l);font-weight:700;color:var(--blue-d)}
+.fin-table tr.total-row td{background:#1e3a8a;color:white;font-weight:700}
+.fin-table tr.total-row td:first-child{color:white;border-radius:6px 0 0 6px}
+.fin-table .neg{color:var(--red)}
+.fin-table .pos{color:var(--green)}
+.fin-table .indent{padding-left:1.5rem;color:var(--muted);font-weight:400}
+.section-label{font-family:var(--head);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);padding:.5rem .75rem;background:var(--blue-l);border-radius:6px;margin:.75rem 0 .4rem}
+/* GIVEN INFO GRID */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.info-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem}
+.info-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.info-val{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--dark)}
+.info-card.highlight{background:var(--blue-l);border-color:var(--blue-m)}
+.info-card.highlight .info-val{color:var(--blue)}
+/* ANSWER SECTION */
+.answer-section{display:flex;flex-direction:column;gap:1rem}
+.ans-group{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem}
+.ans-title{font-family:var(--head);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--mid);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.ans-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.ans-row:last-child{margin-bottom:0}
+.ans-label{font-size:.78rem;color:var(--mid);flex:1;line-height:1.4}
+.ans-input-wrap{display:flex;align-items:center;gap:.4rem}
+.ans-input{width:110px;padding:.45rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--dark);background:white;outline:none;transition:border-color .2s;text-align:right}
+.ans-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.ans-input.correct{border-color:var(--green);background:var(--green-p);color:#065f46}
+.ans-input.wrong{border-color:var(--red);background:var(--red-p);color:#991b1b}
+.ans-unit{font-size:.68rem;color:var(--muted);font-weight:700;font-family:var(--head);white-space:nowrap}
+.check-btn{width:100%;padding:.7rem;background:var(--blue);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.5rem}
+.check-btn:hover{background:var(--blue-d);transform:translateY(-1px)}
+.reveal-btn{width:100%;padding:.55rem;background:white;color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:var(--head);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.4rem}
+.reveal-btn:hover{background:var(--bg);color:var(--dark)}
+.result-banner{padding:.7rem 1rem;border-radius:10px;font-size:.78rem;font-weight:700;display:flex;align-items:flex-start;gap:.5rem;margin-top:.75rem;line-height:1.5;display:none}
+.result-banner.show{display:flex}
+.result-banner.pass{background:var(--green-p);color:#065f46;border:1px solid #6ee7b7}
+.result-banner.fail{background:var(--red-p);color:#991b1b;border:1px solid #fca5a5}
+.result-banner.info{background:var(--blue-l);color:#1e40af;border:1px solid var(--blue-m)}
+/* SCORE TRACKER */
+.score-bar{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.score-item{text-align:center}
+.score-num{font-family:var(--mono);font-size:1.1rem;font-weight:700}
+.score-num.g{color:var(--green)}
+.score-num.r{color:var(--red)}
+.score-num.b{color:var(--blue)}
+.score-label{font-size:.6rem;text-transform:uppercase;font-weight:700;letter-spacing:.07em;color:var(--muted)}
+.score-div{width:1px;height:30px;background:var(--border)}
+/* TABS */
+.tab-bar{display:flex;gap:.35rem;padding:.3rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.tab{padding:.4rem .9rem;border-radius:7px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .15s}
+.tab.active{background:white;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+/* CHARTS */
+.chart-wrap{height:220px;position:relative;margin-bottom:.5rem}
+/* WACC BUILDER (hard mode) */
+.wacc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.wacc-input-card{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:.7rem .85rem}
+.wacc-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.35rem}
+.wacc-input{width:100%;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:.82rem;color:var(--dark);background:white;outline:none;transition:border-color .2s;text-align:right}
+.wacc-input:focus{border-color:var(--blue)}
+/* HINT */
+.hint-box{background:var(--amber-p);border:1px solid #fcd34d;border-radius:9px;padding:.65rem .9rem;font-size:.75rem;color:#92400e;line-height:1.6;margin-top:.5rem;display:none}
+.hint-box.show{display:block}
+.hint-toggle{background:none;border:none;color:var(--amber);font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--head);padding:0;margin-top:.35rem;text-decoration:underline}
+/* FCF TOGGLE */
+.fcf-toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;background:var(--amber-p);border:1px solid #fcd34d;border-radius:8px;margin-bottom:.75rem}
+.fcf-toggle-label{font-size:.72rem;font-weight:700;color:#92400e;font-family:var(--head)}
+.toggle-switch{position:relative;width:38px;height:20px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#d1d5db;border-radius:20px;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked + .toggle-slider{background:var(--amber)}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px)}
+.fcf-hidden-row td{filter:blur(5px);user-select:none;transition:filter .3s}
+.fcf-hidden-row.revealed td{filter:none}
+/* FORMULA SHEET */
+.formula-box{background:#0f172a;border-radius:12px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.75rem;color:#94a3b8;line-height:1.9}
+.formula-box .kw{color:#38bdf8}
+.formula-box .val{color:#a78bfa}
+.formula-box .comment{color:#475569}
+/* STEP BREAKDOWN */
+.steps-list{display:flex;flex-direction:column;gap:.6rem}
+.step{display:flex;gap:.75rem;align-items:flex-start;padding:.65rem .8rem;background:var(--bg);border-radius:9px;border:1px solid var(--border)}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+.step-content{flex:1}
+.step-title{font-family:var(--head);font-size:.75rem;font-weight:700;color:var(--dark);margin-bottom:.15rem}
+.step-val{font-family:var(--mono);font-size:.72rem;color:var(--blue)}
+/* DIFFICULTY TAG */
+.diff-tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.62rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-transform:uppercase;letter-spacing:.07em}
+.diff-tag.easy{background:var(--green-p);color:#065f46}
+.diff-tag.medium{background:var(--amber-p);color:#92400e}
+.diff-tag.hard{background:var(--red-p);color:#991b1b}
+/* PROGRESS */
+.progress-wrap{height:4px;background:var(--blue-m);border-radius:4px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s ease}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr;padding:0 1rem 4rem}
+  .hero{padding:2rem 1rem 1.5rem;margin-top:70px}
+  .info-grid{grid-template-columns:1fr 1fr 1fr}
+  .co-kpis{grid-template-columns:1fr 1fr}
+}
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.fade-in{animation:fadeUp .35s ease both}
+.loading{animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">HW</a>
+  <a href="../index.html#home" class="nav-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+    Back to Projects
+  </a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">📊 Interactive · Unlimited Practice · AI-Powered</div>
+  <h1>DCF <span>Practice</span> Tool</h1>
+  <p>Master discounted cash flow valuation through unlimited randomised exercises. Choose your mode, crunch the numbers, and build real-world intuition — one company at a time.</p>
+
+  <div class="mode-bar">
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Mode</div>
+      <div class="mode-pills">
+        <button class="mp active" onclick="setMode('given',this)">📌 WACC Given</button>
+        <button class="mp" onclick="setMode('build',this)">⚙️ Build WACC</button>
+        <button class="mp" onclick="setMode('full',this)">🧠 Full Model</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Difficulty</div>
+      <div class="diff-pills">
+        <button class="dp active" data-d="easy" onclick="setDifficulty('easy',this)">Easy</button>
+        <button class="dp" data-d="medium" onclick="setDifficulty('medium',this)">Medium</button>
+        <button class="dp" data-d="hard" onclick="setDifficulty('hard',this)">Hard</button>
+      </div>
+    </div>
+    <button class="refresh-btn" onclick="newQuestion()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      New Question
+    </button>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div class="main-grid">
+  <!-- LEFT: Financial Data -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- Company Header -->
+    <div id="coHeader" class="fade-in"></div>
+
+    <!-- Financials Tabs -->
+    <div class="panel fade-in">
+      <div class="panel-head">
+        <h3><span class="ph-icon">📋</span> Financial Statements</h3>
+        <div class="diff-tag easy" id="diffTag">Easy</div>
+      </div>
+      <div class="panel-body">
+        <div class="tab-bar">
+          <button class="tab active" onclick="showTab('is',this)">Income Statement</button>
+          <button class="tab" onclick="showTab('bs',this)">Balance Sheet</button>
+          <button class="tab" onclick="showTab('cf',this)">Cash Flow</button>
+          <button class="tab" onclick="showTab('proj',this)">Projections</button>
+        </div>
+        <div id="tab-is"></div>
+        <div id="tab-bs" style="display:none"></div>
+        <div id="tab-cf" style="display:none"></div>
+        <div id="tab-proj" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="panel fade-in">
+      <div class="panel-head">
+        <h3><span class="ph-icon">📈</span> Visual Analysis</h3>
+        <div class="tab-bar" style="margin:0;background:transparent">
+          <button class="tab active" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('fcf',this)">FCF</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('pv',this)">PV of FCFs</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('bridge',this)">Value Bridge</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('sens',this)">Sensitivity</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+        <div id="chartNote" style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.4rem"></div>
+      </div>
+    </div>
+
+    <!-- Formula Reference -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">📐</span> Formula Reference</h3></div>
+      <div class="panel-body">
+        <div class="formula-box" id="formulaBox"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Given Data + Answers -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- Score -->
+    <div class="panel fade-in">
+      <div class="panel-body" style="padding:.9rem 1.1rem">
+        <div class="score-bar">
+          <div class="score-item"><div class="score-num g" id="sc-correct">0</div><div class="score-label">Correct</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num r" id="sc-wrong">0</div><div class="score-label">Wrong</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num b" id="sc-total">0</div><div class="score-label">Attempted</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num b" id="sc-streak">0🔥</div><div class="score-label">Streak</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Given Information -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">💡</span> Given Information</h3></div>
+      <div class="panel-body">
+        <div class="info-grid" id="givenGrid"></div>
+        <!-- WACC Builder (hard mode) -->
+        <div id="waccBuilder" style="display:none">
+          <div class="section-label">🔧 Build Your WACC</div>
+          <div class="wacc-grid" id="waccGrid"></div>
+          <div style="margin-top:.75rem;padding:.65rem .9rem;background:var(--blue-l);border-radius:9px;border:1px solid var(--blue-m)">
+            <div style="font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">Your Calculated WACC</div>
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <input type="number" class="ans-input" id="waccAnswer" placeholder="0.00" style="width:90px" oninput="calcWACC()">
+              <span class="ans-unit">%</span>
+              <span id="waccCalcResult" style="font-family:var(--mono);font-size:.78rem;color:var(--blue);margin-left:.5rem"></span>
+            </div>
+          </div>
+        </div>
+        <button class="hint-toggle" onclick="toggleHint()">💡 Show hint</button>
+        <div class="hint-box" id="hintBox"></div>
+      </div>
+    </div>
+
+    <!-- Answer Inputs -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">✏️</span> Your Answers</h3></div>
+      <div class="panel-body">
+        <div class="answer-section" id="answerSection"></div>
+        <button class="check-btn" onclick="checkAnswers()">✅ Check Answers</button>
+        <button class="reveal-btn" onclick="revealAnswers()">👁 Reveal Answers</button>
+        <div class="result-banner" id="resultBanner"></div>
+      </div>
+    </div>
+
+    <!-- Step-by-Step (shown after check) -->
+    <div class="panel fade-in" id="stepsPanel" style="display:none">
+      <div class="panel-head"><h3><span class="ph-icon">🧩</span> Step-by-Step Solution</h3></div>
+      <div class="panel-body">
+        <div class="steps-list" id="stepsList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let mode = 'given', difficulty = 'easy', q = null;
+let score = { correct: 0, wrong: 0, total: 0, streak: 0 };
+let mainChart = null, activeChart = 'fcf', activeTab = 'is';
+let answered = false, fcfVisible = true;
+
+// ─── COMPANIES POOL ──────────────────────────────────────────────────────────
+const SECTORS = ['Technology','Healthcare','Consumer Staples','Industrials','Energy','Financials','Utilities','Materials'];
+const CO_NAMES = [
+  ['NovaTech Systems','TechCore Inc','DataStream Ltd','CloudPeak Corp'],
+  ['MedVault PLC','BioNova Group','HealthBridge Inc','CurePoint Ltd'],
+  ['FreshHold Corp','PurePack PLC','DailyBrands Inc','StapleCo Ltd'],
+  ['PrecisionWorks','IndustriFlex','BuildRight Corp','MetroFab Ltd'],
+  ['SolarRidge Energy','CoalDelta Corp','GreenFlux PLC','TerraOil Ltd'],
+  ['FirstCapital PLC','TrustVault Corp','MeridianBank','AlphaFund Ltd'],
+  ['PowerGrid Corp','AquaFlow PLC','EcoGen Ltd','GridTrust Inc'],
+  ['MineCo PLC','AlloyWorks Corp','CarbonCraft Ltd','RockCore Inc']
+];
+
+// ─── RANDOM HELPERS ───────────────────────────────────────────────────────────
+const rnd  = (lo,hi,dec=0) => +( lo + Math.random()*(hi-lo) ).toFixed(dec);
+const rndI = (lo,hi) => Math.floor(lo + Math.random()*(hi-lo+1));
+const fmt  = (n,dec=1) => n.toFixed(dec);
+const fmtM = (n) => `£${fmt(n)}m`;
+const fmtP = (n) => `${fmt(n,1)}%`;
+const pv   = (fcf,r) => fcf / (1+r);
+
+// ─── GENERATE QUESTION ────────────────────────────────────────────────────────
+function generateQuestion() {
+  const secIdx = rndI(0,7);
+  const sector = SECTORS[secIdx];
+  const names  = CO_NAMES[secIdx];
+  const coName = names[rndI(0,names.length-1)];
+
+  // Difficulty params
+  const dMap = {
+    easy:   { projYrs:3, revGrowLo:3,  revGrowHi:8,  marginLo:12, marginHi:22, waccLo:7,  waccHi:10, tgLo:2,  tgHi:3  },
+    medium: { projYrs:5, revGrowLo:5,  revGrowHi:14, marginLo:10, marginHi:25, waccLo:8,  waccHi:13, tgLo:2,  tgHi:3.5},
+    hard:   { projYrs:7, revGrowLo:8,  revGrowHi:20, marginLo:8,  marginHi:30, waccLo:9,  waccHi:16, tgLo:1.5,tgHi:4  }
+  };
+  const d = dMap[difficulty];
+
+  // Base financials (last year actuals)
+  const baseRev    = rnd(300, 2500, 0);
+  const ebitMargin = rnd(d.marginLo, d.marginHi, 1);
+  const ebit       = +(baseRev * ebitMargin / 100).toFixed(1);
+  const taxRate    = rnd(18, 28, 1);
+  const nopat      = +(ebit * (1 - taxRate/100)).toFixed(1);
+  const daPercent  = rnd(3, 8, 1);
+  const da         = +(baseRev * daPercent / 100).toFixed(1);
+  const capexPct   = rnd(4, 10, 1);
+  const capex      = +(baseRev * capexPct / 100).toFixed(1);
+  const wcPct      = rnd(1, 4, 1);
+  const wcChange   = +(baseRev * wcPct / 100).toFixed(1);
+  const baseFCF    = +(nopat + da - capex - wcChange).toFixed(1);
+
+  // Growth rates per year
+  const revGrowths = Array.from({length:d.projYrs}, () => rnd(d.revGrowLo, d.revGrowHi, 1));
+
+  // Project FCFs
+  let projRev = baseRev, projFCFs = [], projRevs = [], pvFCFs = [];
+  const wacc = rnd(d.waccLo, d.waccHi, 1);
+  const tg   = rnd(d.tgLo, d.tgHi, 1);
+
+  for(let i=0; i<d.projYrs; i++) {
+    projRev = +(projRev * (1 + revGrowths[i]/100)).toFixed(1);
+    projRevs.push(projRev);
+    const fcf = +(projRev * (ebitMargin/100) * (1-taxRate/100) + projRev*daPercent/100 - projRev*capexPct/100 - projRev*wcPct/100).toFixed(1);
+    projFCFs.push(fcf);
+    pvFCFs.push(+(fcf / Math.pow(1+wacc/100, i+1)).toFixed(1));
+  }
+
+  const pvSum      = +pvFCFs.reduce((a,b)=>a+b,0).toFixed(1);
+  const lastFCF    = projFCFs[projFCFs.length-1];
+  const termVal    = +(lastFCF * (1+tg/100) / (wacc/100 - tg/100)).toFixed(1);
+  const pvTV       = +(termVal / Math.pow(1+wacc/100, d.projYrs)).toFixed(1);
+  const evEnterprise = +(pvSum + pvTV).toFixed(1);
+  // Split into gross debt and cash (net debt = debt - cash)
+  const grossDebt  = rnd(100, 800, 0);
+  const cash       = rnd(20, Math.min(300, grossDebt*0.6), 0);
+  const netDebt    = +(grossDebt - cash).toFixed(0);
+  const shares     = rnd(50, 800, 0);
+  const equityVal  = +(evEnterprise - grossDebt + cash).toFixed(1); // EV - Debt + Cash
+  const pricePerShare = +(equityVal / shares * 100).toFixed(0); // pence
+
+  // Balance sheet items
+  const ppe     = +(baseRev * rnd(0.3,0.8,2)).toFixed(0);
+  const intang  = +(baseRev * rnd(0.1,0.3,2)).toFixed(0);
+  const currAssets = +(baseRev * rnd(0.4,0.7,2)).toFixed(0);
+  const totalAssets = ppe + intang + currAssets + rndI(50,200);
+  const longDebtVal = +netDebt.toFixed(0);
+  const equity_bs  = +(totalAssets * rnd(0.4,0.7,2)).toFixed(0);
+
+  // WACC components (for build mode)
+  const debtRatio  = rnd(20,45,1);
+  const equityRatio= +(100-debtRatio).toFixed(1);
+  const costDebt   = rnd(3.5,7.5,1);
+  const beta       = rnd(0.6,1.8,2);
+  const riskFree   = rnd(3.5,4.5,1);
+  const mktPremium = rnd(5.0,7.0,1);
+  const costEquity = +(riskFree + beta*mktPremium).toFixed(2);
+  const waccCalc   = +(equityRatio/100*costEquity + debtRatio/100*costDebt*(1-taxRate/100)).toFixed(2);
+
+  // In Full Model / Build WACC mode, the student calculates WACC themselves (waccCalc).
+  // So ALL correct answers (pvFCFs, termVal, pvTV, EV, equity, price) must use waccCalc,
+  // NOT the randomly generated wacc. We recalculate them here.
+  const pvFCFs_calc = projFCFs.map((fcf, i) => +(fcf / Math.pow(1 + waccCalc/100, i+1)).toFixed(1));
+  const pvSum_calc  = +pvFCFs_calc.reduce((a,b)=>a+b,0).toFixed(1);
+  const lastFCF_val = projFCFs[projFCFs.length-1];
+  const termVal_calc   = +(lastFCF_val * (1+tg/100) / (waccCalc/100 - tg/100)).toFixed(1);
+  const pvTV_calc      = +(termVal_calc / Math.pow(1+waccCalc/100, projFCFs.length)).toFixed(1);
+  const ev_calc        = +(pvSum_calc + pvTV_calc).toFixed(1);
+  const equityVal_calc = +(ev_calc - grossDebt + cash).toFixed(1);
+  const price_calc     = +(equityVal_calc / shares * 100).toFixed(0);
+
+  return {
+    coName, sector, secIdx,
+    baseRev, ebitMargin, ebit, taxRate, nopat, da, daPercent, capex, capexPct, wcChange, wcPct, baseFCF,
+    revGrowths, projRev: projRevs, projFCFs,
+    // wacc-based (used for mode=given display and charts when WACC is given)
+    pvFCFs, pvSum, termVal, pvTV,
+    evEnterprise, netDebt, shares, equityVal, pricePerShare,
+    // waccCalc-based (used for mode=build/full correct answers)
+    pvFCFs_calc, pvSum_calc, termVal_calc, pvTV_calc,
+    ev_calc, equityVal_calc, price_calc,
+    wacc, tg, projYrs: d.projYrs,
+    ppe, intang, currAssets, totalAssets, longDebtVal, equity_bs,
+    debtRatio, equityRatio, costDebt, beta, riskFree, mktPremium, costEquity, waccCalc,
+    hint: buildHint(wacc, tg, pvSum, pvTV, d.projYrs),
+    grossDebt, cash, netDebt
+  };
+}
+
+function buildHint(wacc, tg, pvSum, pvTV, yrs) {
+  return `DCF = PV of FCFs + PV of Terminal Value. Discount each FCF by (1+WACC)^t. Terminal Value = FCF_${yrs} × (1+g) ÷ (WACC−g). Then subtract net debt to get equity value, divide by shares for price per share.`;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  answered = false;
+  document.getElementById('stepsPanel').style.display='none';
+  document.getElementById('resultBanner').classList.remove('show');
+
+  renderCompanyHeader();
+  renderTabs();
+  renderGivenInfo();
+  renderAnswerInputs();
+  renderFormulas();
+  updateChart();
+  if(mode==='build' || mode==='full') renderWACCBuilder(); else document.getElementById('waccBuilder').style.display='none';
+}
+
+function renderCompanyHeader() {
+  const sectorColors = ['#2563eb','#059669','#d97706','#7c3aed','#dc2626','#0891b2','#16a34a','#9f1239'];
+  const c = sectorColors[q.secIdx % sectorColors.length];
+  document.getElementById('coHeader').innerHTML = `
+    <div class="co-header">
+      <div class="co-name">${q.coName}</div>
+      <div class="co-sector">${q.sector} · ${difficulty.toUpperCase()} · ${q.projYrs}-Year Projection</div>
+      <div class="co-kpis">
+        <div class="co-kpi"><div class="co-kpi-label">Base Revenue</div><div class="co-kpi-val">${fmtM(q.baseRev)}</div></div>
+        <div class="co-kpi"><div class="co-kpi-label">EBIT Margin</div><div class="co-kpi-val">${fmtP(q.ebitMargin)}</div></div>
+        <div class="co-kpi"><div class="co-kpi-label">Tax Rate</div><div class="co-kpi-val">${fmtP(q.taxRate)}</div></div>
+      </div>
+    </div>`;
+  document.getElementById('diffTag').textContent = difficulty.charAt(0).toUpperCase()+difficulty.slice(1);
+  document.getElementById('diffTag').className = `diff-tag ${difficulty}`;
+}
+
+function renderTabs() {
+  const yrs = Array.from({length:q.projYrs},(_,i)=>`Y${i+1}`);
+  const fcfToggleBar = `
+    <div class="fcf-toggle-bar">
+      <span class="fcf-toggle-label">⚠️ Hide FCF rows — calculate them yourself</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="fcfToggle" ${fcfVisible?'':'checked'} onchange="toggleFCF(this)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`;
+
+  // Income Statement — FCF rows get class fcf-hidden-row
+  document.getElementById('tab-is').innerHTML = fcfToggleBar + `
+    <table class="fin-table">
+      <thead><tr><th>Line Item</th><th>Base Year</th>${yrs.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Revenue</td><td>${fmtM(q.baseRev)}</td>${q.projRev.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td class="indent">Revenue Growth</td><td class="neg">—</td>${q.revGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
+        <tr><td>EBIT (${fmtP(q.ebitMargin)} margin)</td><td>${fmtM(q.ebit)}</td>${q.projRev.map(v=>`<td>${fmtM(+(v*q.ebitMargin/100).toFixed(1))}</td>`).join('')}</tr>
+        <tr><td>Tax (${fmtP(q.taxRate)})</td><td class="neg">(${fmtM(+(q.ebit*q.taxRate/100).toFixed(1))})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.ebitMargin/100*q.taxRate/100).toFixed(1))})</td>`).join('')}</tr>
+        <tr class="subtotal"><td>NOPAT</td><td>${fmtM(q.nopat)}</td>${q.projFCFs.map((v,i)=>`<td>${fmtM(+(q.projRev[i]*q.ebitMargin/100*(1-q.taxRate/100)).toFixed(1))}</td>`).join('')}</tr>
+        <tr><td>+ D&A (${fmtP(q.daPercent)} of Rev)</td><td>${fmtM(q.da)}</td>${q.projRev.map(v=>`<td>${fmtM(+(v*q.daPercent/100).toFixed(1))}</td>`).join('')}</tr>
+        <tr><td>− CapEx (${fmtP(q.capexPct)} of Rev)</td><td class="neg">(${fmtM(q.capex)})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.capexPct/100).toFixed(1))})</td>`).join('')}</tr>
+        <tr><td>− ΔWorking Capital (${fmtP(q.wcPct)} of Rev)</td><td class="neg">(${fmtM(q.wcChange)})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.wcPct/100).toFixed(1))})</td>`).join('')}</tr>
+        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Free Cash Flow</td><td>${fmtM(q.baseFCF)}</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+      </tbody>
+    </table>`;
+
+  // Balance Sheet — separate debt and cash
+  document.getElementById('tab-bs').innerHTML = `
+    <table class="fin-table">
+      <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>
+      <tbody>
+        <tr><td colspan="2" style="padding:.4rem .75rem"><div class="section-label" style="margin:0">Assets</div></td></tr>
+        <tr><td>PP&E (net)</td><td>${fmtM(q.ppe)}</td></tr>
+        <tr><td>Intangibles & Goodwill</td><td>${fmtM(q.intang)}</td></tr>
+        <tr><td>Current Assets (excl. cash)</td><td>${fmtM(+(q.currAssets - q.cash).toFixed(0))}</td></tr>
+        <tr class="subtotal"><td>Cash & Equivalents</td><td>${fmtM(q.cash)}</td></tr>
+        <tr class="total-row"><td>Total Assets</td><td>${fmtM(q.totalAssets)}</td></tr>
+        <tr><td colspan="2" style="padding:.4rem .75rem"><div class="section-label" style="margin:0">Liabilities & Equity</div></td></tr>
+        <tr><td>Gross Debt (bonds + loans)</td><td class="neg">${fmtM(q.grossDebt)}</td></tr>
+        <tr><td>Other Liabilities</td><td>${fmtM(+(q.totalAssets - q.grossDebt - q.equity_bs).toFixed(0))}</td></tr>
+        <tr class="subtotal"><td>Shareholders' Equity</td><td>${fmtM(q.equity_bs)}</td></tr>
+        <tr class="total-row"><td>Total L + E</td><td>${fmtM(q.totalAssets)}</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:.75rem;padding:.65rem .9rem;background:var(--blue-l);border:1px solid var(--blue-m);border-radius:9px;font-size:.75rem;color:#1e40af;line-height:1.7">
+      <strong>Bridge reminder:</strong> Equity Value = EV − Gross Debt + Cash &nbsp;|&nbsp; Net Debt = ${fmtM(q.grossDebt)} − ${fmtM(q.cash)} = ${fmtM(q.netDebt)}
+    </div>`;
+
+  // Cash Flow
+  document.getElementById('tab-cf').innerHTML = `
+    <table class="fin-table">
+      <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>
+      <tbody>
+        <tr><td>Net Operating Profit After Tax (NOPAT)</td><td>${fmtM(q.nopat)}</td></tr>
+        <tr><td>+ Depreciation & Amortisation</td><td>${fmtM(q.da)}</td></tr>
+        <tr><td>− Capital Expenditure</td><td class="neg">(${fmtM(q.capex)})</td></tr>
+        <tr><td>− Change in Working Capital</td><td class="neg">(${fmtM(q.wcChange)})</td></tr>
+        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Free Cash Flow to Firm</td><td>${fmtM(q.baseFCF)}</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:1rem;padding:.65rem .9rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px">
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#15803d;margin-bottom:.4rem">Equity Bridge</div>
+      <div style="font-family:var(--mono);font-size:.78rem;color:#166534;line-height:1.9">
+        Gross Debt: ${fmtM(q.grossDebt)}<br>
+        Cash: ${fmtM(q.cash)}<br>
+        Net Debt = Debt − Cash = ${fmtM(q.netDebt)}<br>
+        Shares Outstanding: ${fmt(q.shares,0)}m
+      </div>
+    </div>`;
+
+  // Projections Summary
+  document.getElementById('tab-proj').innerHTML = `
+    <table class="fin-table">
+      <thead><tr><th>Year</th>${Array.from({length:q.projYrs},(_,i)=>`<th>Y${i+1}</th>`).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Revenue</td>${q.projRev.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td>Growth</td>${q.revGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
+        <tr class="fcf-hidden-row${fcfVisible?' revealed':''}"><td>FCF</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr class="subtotal fcf-hidden-row${fcfVisible?' revealed':''}"><td>PV of FCF</td>${q.pvFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Sum PV(FCFs)</td>${Array.from({length:q.projYrs},(_,i)=>i===q.projYrs-1?`<td>${fmtM(q.pvSum)}</td>`:`<td>—</td>`).join('')}</tr>
+      </tbody>
+    </table>
+    <div style="margin-top:.75rem;font-size:.72rem;color:var(--muted);text-align:center">Toggle FCF visibility using the switch on the Income Statement tab</div>`;
+}
+
+function renderGivenInfo() {
+  const isGiven = mode === 'given' || mode === 'full';
+  const waccRow = mode === 'given'
+    ? `<div class="info-card highlight"><div class="info-label">WACC (given)</div><div class="info-val">${fmtP(q.wacc)}</div></div>`
+    : mode === 'full'
+    ? `<div class="info-card" style="background:#f0fdf4;border-color:#bbf7d0"><div class="info-label">WACC</div><div class="info-val" style="color:#15803d">You calculate (CAPM) →</div></div>`
+    : `<div class="info-card" style="background:#fee2e2;border-color:#fca5a5"><div class="info-label">WACC</div><div class="info-val" style="color:#991b1b">You calculate →</div></div>`;
+
+  document.getElementById('givenGrid').innerHTML = `
+    ${waccRow}
+    <div class="info-card highlight"><div class="info-label">Terminal Growth</div><div class="info-val">${fmtP(q.tg)}</div></div>
+    <div class="info-card"><div class="info-label">Gross Debt</div><div class="info-val">${fmtM(q.grossDebt)}</div></div>
+    <div class="info-card"><div class="info-label">Cash & Equivalents</div><div class="info-val">${fmtM(q.cash)}</div></div>
+    <div class="info-card" style="background:#f0fdf4;border-color:#bbf7d0"><div class="info-label">Net Debt (Debt − Cash)</div><div class="info-val" style="color:#15803d">${fmtM(q.netDebt)}</div></div>
+    <div class="info-card"><div class="info-label">Shares Outstanding</div><div class="info-val">${fmt(q.shares,0)}m</div></div>
+    <div class="info-card"><div class="info-label">Projection Years</div><div class="info-val">${q.projYrs}</div></div>
+    <div class="info-card"><div class="info-label">Last Projected FCF</div><div class="info-val">${fmtM(q.projFCFs[q.projYrs-1])}</div></div>
+  `;
+  document.getElementById('hintBox').textContent = q.hint;
+}
+
+function renderAnswerInputs() {
+  const inputs = [
+    { id:'ans-pvfcf',   label:`Sum of PV(FCFs) over ${q.projYrs} years`,    unit:'£m' },
+    { id:'ans-tv',      label:`Terminal Value (Gordon Growth)`,               unit:'£m' },
+    { id:'ans-pvtv',    label:`PV of Terminal Value`,                         unit:'£m' },
+    { id:'ans-ev',      label:`Enterprise Value`,                             unit:'£m' },
+    { id:'ans-equity',  label:`Equity Value (EV − Debt + Cash)`,              unit:'£m' },
+    { id:'ans-price',   label:`Intrinsic Share Price`,                        unit:'p'  },
+  ];
+  if(!fcfVisible) {
+    inputs.unshift({ id:'ans-basefcf', label:`Base Year FCF`, unit:'£m' });
+  }
+  if(mode==='build' || mode==='full') {
+    inputs.unshift({ id:'ans-wacc', label:`Calculated WACC`, unit:'%' });
+  }
+  document.getElementById('answerSection').innerHTML = inputs.map(inp=>`
+    <div class="ans-row">
+      <span class="ans-label">${inp.label}</span>
+      <div class="ans-input-wrap">
+        <input type="number" class="ans-input" id="${inp.id}" placeholder="0" step="0.1">
+        <span class="ans-unit">${inp.unit}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFormulas() {
+  const w = mode==='given'?`${fmt(q.wacc,1)}%`:'WACC';
+  document.getElementById('formulaBox').innerHTML = `
+<span class="comment">// Discounted Cash Flow Valuation</span>
+
+<span class="kw">FCF</span> = NOPAT + D&A − CapEx − ΔWorkingCapital
+<span class="kw">PV(FCF_t)</span> = FCF_t ÷ (1 + <span class="val">${w}</span>)^t
+<span class="kw">TerminalValue</span> = FCF_n × (1 + g) ÷ (WACC − g)
+<span class="kw">PV(TV)</span> = TV ÷ (1 + <span class="val">${w}</span>)^n
+<span class="kw">EnterpriseValue</span> = Σ PV(FCFs) + PV(TV)
+
+<span class="comment">// Equity Bridge</span>
+<span class="kw">EquityValue</span> = EV − GrossDebt + Cash
+<span class="kw">NetDebt</span>     = GrossDebt − Cash
+<span class="kw">SharePrice</span> = EquityValue ÷ SharesOutstanding${mode!=='given'?`
+
+<span class="comment">// WACC (Capital Asset Pricing Model)</span>
+<span class="kw">Ke</span> = Rf + β × (Rm − Rf)
+<span class="kw">WACC</span> = (E/V)×Ke + (D/V)×Kd×(1−T)`:''}`;
+}
+
+function renderWACCBuilder() {
+  document.getElementById('waccBuilder').style.display='block';
+  document.getElementById('waccGrid').innerHTML = `
+    <div class="wacc-input-card"><div class="wacc-label">Risk-Free Rate (Rf)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.riskFree)}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Beta (β)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${q.beta}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Market Risk Premium</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.mktPremium)}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Cost of Debt (Kd)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.costDebt)}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Debt / Total Capital</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.debtRatio)}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Equity / Total Capital</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.equityRatio)}</div></div>
+    <div class="wacc-input-card"><div class="wacc-label">Tax Rate</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.taxRate)}</div></div>
+    <div class="wacc-input-card" style="background:var(--blue-l);border-color:var(--blue-m)"><div class="wacc-label">Your Ke = Rf + β×(Rm−Rf)</div><div style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = <span style="color:var(--blue);font-weight:700">${fmtP(q.costEquity)}</span></div></div>
+  `;
+}
+
+// ─── CHECK ANSWERS ────────────────────────────────────────────────────────────
+function checkAnswers() {
+  if(answered) return;
+  answered = true;
+  const tol = difficulty==='easy' ? 15 : difficulty==='medium' ? 8 : 4;
+
+  // In build/full mode the student derives WACC themselves (waccCalc),
+  // so correct answers are the _calc versions, not the wacc-based ones.
+  const useCalc = (mode !== 'given');
+  const targets = {
+    'ans-pvfcf':  useCalc ? q.pvSum_calc  : q.pvSum,
+    'ans-tv':     useCalc ? q.termVal_calc : q.termVal,
+    'ans-pvtv':   useCalc ? q.pvTV_calc    : q.pvTV,
+    'ans-ev':     useCalc ? q.ev_calc      : q.evEnterprise,
+    'ans-equity': useCalc ? q.equityVal_calc : q.equityVal,
+    'ans-price':  useCalc ? q.price_calc   : q.pricePerShare,
+  };
+  if(!fcfVisible) targets['ans-basefcf'] = q.baseFCF;
+  if(mode!=='given') targets['ans-wacc'] = q.waccCalc;
+
+  let correct = 0, total = 0;
+  for(const [id, target] of Object.entries(targets)) {
+    const el = document.getElementById(id);
+    if(!el) continue;
+    const val = parseFloat(el.value);
+    if(isNaN(val)) continue;
+    total++;
+    const pct = Math.abs(val - target) / Math.abs(target) * 100;
+    if(pct <= tol) { el.classList.add('correct'); correct++; }
+    else { el.classList.add('wrong'); }
+  }
+
+  if(correct === Object.keys(targets).length) {
+    score.correct++; score.streak++;
+    showBanner('pass', `🎯 All correct! Great work on ${q.coName}.`);
+  } else if(correct > 0) {
+    score.wrong++; score.streak=0;
+    showBanner('fail', `${correct}/${Object.keys(targets).length} correct. Review the steps below.`);
+  } else {
+    score.wrong++; score.streak=0;
+    showBanner('fail', `No correct answers. Check the step-by-step solution below.`);
+  }
+  score.total++;
+  updateScoreUI();
+  showSolution();
+  updateProgress();
+}
+
+function revealAnswers() {
+  const useCalc = (mode !== 'given');
+  if(document.getElementById('ans-basefcf')) document.getElementById('ans-basefcf').value = fmt(q.baseFCF,1);
+  document.getElementById('ans-pvfcf').value  = fmt(useCalc ? q.pvSum_calc  : q.pvSum, 1);
+  document.getElementById('ans-tv').value     = fmt(useCalc ? q.termVal_calc : q.termVal, 1);
+  document.getElementById('ans-pvtv').value   = fmt(useCalc ? q.pvTV_calc    : q.pvTV, 1);
+  document.getElementById('ans-ev').value     = fmt(useCalc ? q.ev_calc      : q.evEnterprise, 1);
+  document.getElementById('ans-equity').value = fmt(useCalc ? q.equityVal_calc : q.equityVal, 1);
+  document.getElementById('ans-price').value  = useCalc ? q.price_calc : q.pricePerShare;
+  if(document.getElementById('ans-wacc')) document.getElementById('ans-wacc').value = fmt(q.waccCalc,2);
+  showBanner('info','Answers revealed. Study the steps below to understand the calculation.');
+  showSolution();
+  answered = true;
+}
+
+function showBanner(type, msg) {
+  const b = document.getElementById('resultBanner');
+  b.className = `result-banner show ${type}`;
+  b.innerHTML = `<span>${type==='pass'?'✅':type==='fail'?'❌':'💡'}</span><span>${msg}</span>`;
+}
+
+function showSolution() {
+  document.getElementById('stepsPanel').style.display='block';
+  const usedWACC = (mode!=='given') ? q.waccCalc : q.wacc;
+  const useCalc  = (mode !== 'given');
+  const _pvFCFs  = useCalc ? q.pvFCFs_calc  : q.pvFCFs;
+  const _pvSum   = useCalc ? q.pvSum_calc   : q.pvSum;
+  const _termVal = useCalc ? q.termVal_calc : q.termVal;
+  const _pvTV    = useCalc ? q.pvTV_calc    : q.pvTV;
+  const _ev      = useCalc ? q.ev_calc      : q.evEnterprise;
+  const _equity  = useCalc ? q.equityVal_calc : q.equityVal;
+  const _price   = useCalc ? q.price_calc   : q.pricePerShare;
+
+  const steps = [];
+  if(!fcfVisible) {
+    steps.push({t:`Calculate Free Cash Flow (base year)`, v:`NOPAT + D&A − CapEx − ΔWC = ${fmtM(q.nopat)} + ${fmtM(q.da)} − ${fmtM(q.capex)} − ${fmtM(q.wcChange)} = ${fmtM(q.baseFCF)}`});
+  }
+  if(mode!=='given') {
+    steps.push({t:`Calculate Cost of Equity (CAPM)`, v:`Ke = ${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = ${fmtP(q.costEquity)}`});
+    steps.push({t:`Calculate WACC`, v:`WACC = ${fmtP(q.equityRatio)}×${fmtP(q.costEquity)} + ${fmtP(q.debtRatio)}×${fmtP(q.costDebt)}×(1−${fmtP(q.taxRate)}) = ${fmtP(q.waccCalc)}`});
+  }
+  steps.push({t:`Discount each FCF to present value`, v:`${q.projFCFs.map((v,i)=>`${fmtM(v)}÷(1+${fmtP(usedWACC)})^${i+1}=${fmtM(_pvFCFs[i])}`).join(' + ')}`});
+  steps.push({t:`Sum of PV(FCFs)`, v:`Σ PV(FCFs) = ${fmtM(_pvSum)}`});
+  steps.push({t:`Terminal Value (Gordon Growth Model)`, v:`TV = ${fmtM(q.projFCFs[q.projYrs-1])} × (1+${fmtP(q.tg)}) ÷ (${fmtP(usedWACC)} − ${fmtP(q.tg)}) = ${fmtM(_termVal)}`});
+  steps.push({t:`PV of Terminal Value`, v:`PV(TV) = ${fmtM(_termVal)} ÷ (1+${fmtP(usedWACC)})^${q.projYrs} = ${fmtM(_pvTV)}`});
+  steps.push({t:`Enterprise Value`, v:`EV = ${fmtM(_pvSum)} + ${fmtM(_pvTV)} = ${fmtM(_ev)}`});
+  steps.push({t:`Equity Value (EV − Debt + Cash)`, v:`${fmtM(_ev)} − ${fmtM(q.grossDebt)} + ${fmtM(q.cash)} = ${fmtM(_equity)}`});
+  steps.push({t:`Intrinsic Share Price`, v:`${fmtM(_equity)} ÷ ${fmt(q.shares,0)}m shares × 100 = ${_price}p`});
+  document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
+    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('');
+  document.getElementById('stepsPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────────
+function updateChart() { showChart(activeChart); }
+
+function showChart(type, el=null) {
+  activeChart = type;
+  if(el) { document.querySelectorAll('.panel .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
+  if(mainChart){ mainChart.destroy(); mainChart=null; }
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const yrs = Array.from({length:q.projYrs},(_,i)=>`Year ${i+1}`);
+  const g1 = ctx.createLinearGradient(0,0,0,220); g1.addColorStop(0,'rgba(37,99,235,.25)'); g1.addColorStop(1,'rgba(37,99,235,.02)');
+  const g2 = ctx.createLinearGradient(0,0,0,220); g2.addColorStop(0,'rgba(16,185,129,.2)');  g2.addColorStop(1,'rgba(16,185,129,.02)');
+
+  const base = {responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{labels:{font:{family:'IBM Plex Mono',size:10},color:'#64748b',boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: £${c.parsed.y?.toFixed(1)||c.parsed.y}m`},bodyFont:{family:'IBM Plex Mono',size:10},titleFont:{family:'Space Grotesk',size:10}}},scales:{x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:v=>`£${v}m`}}}};
+
+  if(type==='fcf') {
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'FCF',data:q.projFCFs,backgroundColor:'rgba(37,99,235,.75)',borderRadius:6,borderSkipped:false},{label:'Revenue',data:q.projRev,type:'line',borderColor:'#06b6d4',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y1'}]},options:{...base,scales:{...base.scales,y:{...base.scales.y,title:{display:true,text:'FCF (£m)',font:{family:'IBM Plex Mono',size:9},color:'#64748b'}},y1:{position:'right',grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:v=>`£${v}m`}}}}});
+    document.getElementById('chartNote').textContent='Free cash flows and revenue trajectory over the projection period';
+  }
+  else if(type==='pv') {
+    const cumPV = q.pvFCFs.map((v,i)=>+(q.pvFCFs.slice(0,i+1).reduce((a,b)=>a+b,0)).toFixed(1));
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'PV of FCF',data:q.pvFCFs,backgroundColor:'rgba(37,99,235,.7)',borderRadius:5,borderSkipped:false},{label:'Cumulative PV',data:cumPV,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,fill:false,yAxisID:'y'}]},options:{...base}});
+    document.getElementById('chartNote').textContent=`PV sum = £${fmt(q.pvSum,1)}m | Terminal Value PV = £${fmt(q.pvTV,1)}m`;
+  }
+  else if(type==='bridge') {
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:['PV of FCFs','PV of Terminal Value','Enterprise Value','(−) Gross Debt','(+) Cash','Equity Value'],datasets:[{label:'Value (£m)',data:[q.pvSum,q.pvTV,q.evEnterprise,-q.grossDebt,q.cash,q.equityVal],backgroundColor:['rgba(37,99,235,.75)','rgba(6,182,212,.75)','rgba(16,185,129,.75)','rgba(239,68,68,.7)','rgba(16,185,129,.6)','rgba(139,92,246,.75)'],borderRadius:6,borderSkipped:false}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` £${c.parsed.y.toFixed(1)}m`}}}}});
+    document.getElementById('chartNote').textContent=`EV (${fmtM(q.evEnterprise)}) − Debt (${fmtM(q.grossDebt)}) + Cash (${fmtM(q.cash)}) = Equity Value (${fmtM(q.equityVal)})`;
+  }
+  else if(type==='sens') {
+    // Sensitivity: wacc ±2%, tg ±1%
+    const waccRange = [-2,-1,0,1,2].map(d=>+(q.wacc+d).toFixed(1));
+    const prices = waccRange.map(w=>{
+      const pvs = q.projFCFs.reduce((sum,v,i)=>sum + v/Math.pow(1+w/100,i+1), 0);
+      const tv  = q.projFCFs[q.projYrs-1]*(1+q.tg/100)/(w/100-q.tg/100);
+      const pvtv= tv/Math.pow(1+w/100,q.projYrs);
+      return +((pvs+pvtv-q.grossDebt+q.cash)/q.shares*100).toFixed(0);
+    });
+    mainChart = new Chart(ctx,{type:'line',data:{labels:waccRange.map(w=>`${fmt(w,1)}%`),datasets:[{label:'Share Price (p)',data:prices,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` ${c.parsed.y}p`}}},scales:{x:{...base.scales.x,title:{display:true,text:'WACC',font:{size:9},color:'#64748b'}},y:{...base.scales.y,ticks:{callback:v=>`${v}p`}}}}});
+    document.getElementById('chartNote').textContent=`Sensitivity: share price vs WACC (terminal growth fixed at ${fmtP(q.tg)})`;
+  }
+}
+
+// ─── MISC ─────────────────────────────────────────────────────────────────────
+function toggleFCF(checkbox) {
+  fcfVisible = !checkbox.checked;
+  // Toggle all fcf-hidden-row elements
+  document.querySelectorAll('.fcf-hidden-row').forEach(row => {
+    if(fcfVisible) row.classList.add('revealed');
+    else row.classList.remove('revealed');
+  });
+  // Re-render answer inputs to add/remove basefcf field
+  renderAnswerInputs();
+}
+
+function showTab(id, el) {
+  ['is','bs','cf','proj'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===id?'block':'none';});
+  document.querySelectorAll('.tab-bar .tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function toggleHint() {
+  const h = document.getElementById('hintBox');
+  h.classList.toggle('show');
+  document.querySelector('.hint-toggle').textContent = h.classList.contains('show') ? '🙈 Hide hint' : '💡 Show hint';
+}
+
+function calcWACC() {
+  const ke = q.costEquity;
+  const kd = q.costDebt;
+  const t  = q.taxRate/100;
+  const wr = +(q.equityRatio/100*ke + q.debtRatio/100*kd*(1-t)).toFixed(2);
+  document.getElementById('waccCalcResult').textContent = `Formula result: ${fmtP(wr)}`;
+}
+
+function updateScoreUI() {
+  document.getElementById('sc-correct').textContent = score.correct;
+  document.getElementById('sc-wrong').textContent   = score.wrong;
+  document.getElementById('sc-total').textContent   = score.total;
+  document.getElementById('sc-streak').textContent  = `${score.streak}🔥`;
+}
+
+function updateProgress() {
+  const pct = Math.min((score.total / 10) * 100, 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function setMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.mp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  newQuestion();
+}
+
+function setDifficulty(d, el) {
+  difficulty = d;
+  document.querySelectorAll('.dp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  newQuestion();
+}
+
+function newQuestion() {
+  q = generateQuestion();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+newQuestion();
+</script>
+
+<footer style="border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:.78rem;color:var(--muted)">
+  © 2026 Harsh Walia · DCF Practice Tool · All calculations are for educational purposes
+</footer>
+</body>
+</html>

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harsh Walia | MSc Investments — Valuation, Financial Modelling &amp; Python</title>
+    <meta name="description" content="Harsh Walia — MSc Investments (University of Birmingham). Equity research, DCF and DDM valuation models, and Python-built financial tools. Portfolio of investment analysis and interactive valuation dashboards.">
+    <meta name="author" content="Harsh Walia">
+    <link rel="canonical" href="https://harshwalia.com/">
+
+    <!-- Open Graph / social sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Harsh Walia | MSc Investments">
+    <meta property="og:description" content="Equity research, DCF &amp; DDM valuation models, and Python-built financial tools.">
+    <meta property="og:url" content="https://harshwalia.com/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Harsh Walia | MSc Investments">
+    <meta name="twitter:description" content="Equity research, DCF &amp; DDM valuation models, and Python-built financial tools.">
+
+    <!-- Favicon (inline SVG monogram — no extra file needed) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563EB'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'%3EHW%3C/text%3E%3C/svg%3E">
+
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-hover { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -15px rgba(37,99,235,0.25); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .modal-enter { animation: modalEnter 0.3s ease-out forwards; }
+        @keyframes modalEnter { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+        .slide-in { animation: slideIn 0.5s ease-out forwards; }
+        @keyframes slideIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .nav-link { position: relative; }
+        .nav-link::after { content:''; position:absolute; width:0; height:2px; bottom:-4px; left:0; background:#2563EB; transition:width 0.3s; }
+        .nav-link:hover::after { width: 100%; }
+        .grid-pattern {
+            background-image: radial-gradient(circle at 1px 1px, rgba(59,130,246,0.1) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .python-output { background:#f8fafc; border-radius:8px; padding:1rem; overflow-x:auto; border:1px solid rgba(59,130,246,0.1); }
+        .python-output img { max-width:100%; height:auto; border-radius:4px; }
+        .python-output table { width:100%; border-collapse:collapse; font-size:0.875rem; }
+        .python-output th, .python-output td { padding:0.75rem; text-align:left; border-bottom:1px solid rgba(59,130,246,0.1); }
+        .python-output th { background:rgba(59,130,246,0.05); font-weight:600; color:#1e40af; }
+        #projectModal .glass-panel { background:#ffffff; border:1px solid rgba(59,130,246,0.2); }
+        #projectModal .python-output { background:#f1f5f9; }
+        .mobile-menu { display:none; }
+        .mobile-menu.active { display:flex; }
+        .article-prose h2 { font-size:1.875rem; font-weight:700; color:#1e3a8a; margin-top:2rem; margin-bottom:1rem; }
+        .article-prose h3 { font-size:1.5rem; font-weight:600; color:#2563eb; margin-top:1.5rem; margin-bottom:0.75rem; }
+        .article-prose p { margin-bottom:1rem; line-height:1.8; color:#374151; }
+        .article-prose ul { list-style-type:disc; padding-left:1.5rem; margin-bottom:1rem; }
+        .article-prose li { margin-bottom:0.5rem; color:#374151; }
+        .article-prose strong { color:#1e40af; font-weight:600; }
+
+        /* ── Research badges ── */
+        .badge-undervalued { background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#065f46; border:1px solid #6ee7b7; }
+        .badge-overvalued  { background:linear-gradient(135deg,#fee2e2,#fecaca); color:#991b1b; border:1px solid #fca5a5; }
+        .badge-fairvalue   { background:linear-gradient(135deg,#fef3c7,#fde68a); color:#92400e; border:1px solid #fcd34d; }
+        .firm-logo { width:48px; height:48px; object-fit:contain; border-radius:10px; background:white; border:1px solid rgba(59,130,246,0.12); padding:4px; flex-shrink:0; }
+        .firm-logo-fallback { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; background:linear-gradient(135deg,#dbeafe,#cffafe); color:#1d4ed8; border:1px solid rgba(59,130,246,0.15); flex-shrink:0; }
+        .research-filter-btn { transition:all 0.2s; }
+        .research-filter-btn.active { border-color:#2563eb !important; background:#2563eb !important; color:white !important; }
+        .line-clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+        #researchModalInner { scrollbar-width:thin; scrollbar-color:#bfdbfe transparent; }
+        #researchModalInner::-webkit-scrollbar { width:4px; }
+        #researchModalInner::-webkit-scrollbar-thumb { background:#bfdbfe; border-radius:4px; }
+
+        /* ── Read Full Report button hover ── */
+        .read-report-btn { transition: all 0.2s; }
+        .read-report-btn:hover { background: #2563eb; color: white; border-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-white text-gray-800 overflow-x-hidden">
+
+    <!-- ═══ NAV ═══ -->
+    <nav class="fixed w-full z-50 glass-panel border-b border-blue-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="javascript:void(0)" onclick="goHome()"
+                   class="brand-font text-2xl font-bold tracking-tight cursor-pointer flex-shrink-0">
+                    <span class="gradient-text hover:opacity-80 transition">Harsh Walia</span>
+                </a>
+                <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                    <button onclick="showSection('home')"     class="nav-link hover:text-blue-600 transition text-gray-600">Projects</button>
+                    <button onclick="showSection('blog')"     class="nav-link hover:text-blue-600 transition text-gray-600">Insights</button>
+                    <button onclick="showSection('research')" class="nav-link hover:text-blue-600 transition text-gray-600">Research</button>
+                    <a href="markets.html" class="nav-link hover:text-blue-600 transition text-gray-600">Markets</a>
+                    <button onclick="showSection('about')"    class="nav-link hover:text-blue-600 transition text-gray-600">About</button>
+                    <button onclick="toggleContact()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-sm font-medium transition-all hover:scale-105 text-white shadow-lg shadow-blue-500/25">Contact</button>
+                </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-600 hover:text-blue-600 transition">
+                    <svg id="menuIcon"  class="w-6 h-6"        fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="mobileMenu" class="mobile-menu flex-col space-y-3 mt-4 pb-4 border-t border-blue-100 pt-4 md:hidden">
+                <button onclick="showSection('home');     toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Projects</button>
+                <button onclick="showSection('blog');     toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Insights</button>
+                <button onclick="showSection('research'); toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Research</button>
+                <a href="markets.html" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Markets</a>
+                <button onclick="showSection('about');    toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">About</button>
+                <button onclick="toggleContact(); toggleMobileMenu();" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-all text-white shadow-lg shadow-blue-500/25 mt-2">Get in Touch</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ HERO ═══ -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-20 grid-pattern">
+        <div class="absolute inset-0 bg-gradient-to-b from-blue-50 via-transparent to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
+            <div class="max-w-3xl slide-in">
+                <p class="text-blue-600 font-medium mb-4 tracking-wider text-sm uppercase">MSc Investments &middot; Equity Research &amp; Valuation</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-3 leading-tight text-gray-900">
+                    Harsh Walia
+                </h1>
+                <h2 class="text-2xl md:text-4xl font-bold mb-6 leading-tight text-gray-700">
+                    I research companies and build the models behind the numbers.
+                </h2>
+                <p class="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
+                    MSc Investments at the University of Birmingham. I cover <strong class="text-gray-800">transport, travel and logistics</strong> — capacity, utilisation, pricing, fuel, labour and operating leverage — and I build the valuation tools I use to produce the research, in Python and Excel.
+                </p>
+                <p class="text-base text-gray-500 mb-8 leading-relaxed max-w-2xl">
+                    Every forecast driver is traced to a published source, and the bear and bull cases are inherited from that source's own scenarios rather than invented. Where a number is not verified at source, the note says so.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="showSection('home')" class="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all hover:scale-105 shadow-lg shadow-blue-500/25">View Projects</button>
+                    <button onclick="showSection('research')" class="px-8 py-4 border border-blue-600 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all text-blue-600 bg-white">Investment Research</button>
+                    <button onclick="showSection('blog')" class="px-8 py-4 border border-blue-200 rounded-lg font-semibold hover:border-blue-500 hover:text-blue-600 transition-all text-gray-700 bg-white">Read Insights</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ PROJECTS ═══ -->
+    <section id="home" class="hidden py-20 px-6 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-4 text-gray-900">Featured Valuations</h2>
+            <p class="text-gray-500">Valuation models and tools I have built</p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="projectsGrid"></div>
+    </section>
+
+    <!-- ═══ BLOG ═══ -->
+    <section id="blog" class="hidden py-20 px-6 max-w-7xl mx-auto">
+        <div class="mb-12 flex justify-between items-end">
+            <div>
+                <h2 class="text-3xl font-bold mb-4 text-gray-900">Market Insights</h2>
+                <p class="text-gray-500">Shorter notes on things I have been reading about</p>
+            </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8" id="blogGrid"></div>
+    </section>
+
+    <!-- ═══ BLOG ARTICLE ═══ -->
+    <section id="blogArticle" class="hidden py-20 px-6 max-w-4xl mx-auto">
+        <button onclick="showSection('blog')" class="mb-8 flex items-center gap-2 text-blue-600 hover:text-blue-700 transition font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Back to Insights
+        </button>
+        <article id="articleContent" class="article-prose"></article>
+    </section>
+
+    <!-- ═══ INVESTMENT RESEARCH ═══ -->
+    <section id="research" class="hidden py-20 px-6 max-w-7xl mx-auto">
+        <div class="mb-10">
+            <h2 class="text-3xl font-bold mb-2 text-gray-900">Investment Research</h2>
+            <p class="text-gray-500 mb-2">Company notes with a stated method, a target and the reasoning behind it</p>
+            <p class="text-gray-400 text-sm mb-8 max-w-3xl">Coverage is deliberately narrow: <strong class="text-gray-600">transport, travel and logistics</strong>, where the same drivers recur — capacity, load, price per unit, fuel and operating leverage — so each note compounds on the last rather than starting from zero.</p>
+            <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                <div class="relative w-full lg:w-80">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input id="researchSearch" type="text" placeholder="Search firm, ticker, sector…" oninput="filterResearch()"
+                        class="w-full pl-10 pr-4 py-2.5 bg-white border border-blue-100 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition shadow-sm">
+                </div>
+                <div class="flex flex-wrap gap-2" id="researchFilters">
+                    <button onclick="setResearchFilter('all')"         data-filter="all"         class="research-filter-btn active px-4 py-2 rounded-xl text-xs font-semibold border border-blue-600 bg-blue-600 text-white">All</button>
+                    <button onclick="setResearchFilter('undervalued')" data-filter="undervalued" class="research-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">▲ Undervalued</button>
+                    <button onclick="setResearchFilter('overvalued')"  data-filter="overvalued"  class="research-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border border-red-200 text-red-600 bg-red-50 hover:bg-red-100">▼ Overvalued</button>
+                    <button onclick="setResearchFilter('fairvalue')"   data-filter="fairvalue"   class="research-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100">◆ Fair Value</button>
+                </div>
+                <select onchange="filterResearch()" id="researchSort"
+                    class="ml-auto px-3 py-2.5 bg-white border border-blue-100 rounded-xl text-xs font-medium text-gray-600 focus:outline-none focus:border-blue-400 transition cursor-pointer shadow-sm">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="alpha">A → Z</option>
+                </select>
+            </div>
+        </div>
+        <p id="researchCount" class="text-xs text-gray-400 mb-6"></p>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="researchGrid"></div>
+        <div id="researchEmpty" class="hidden text-center py-24 text-gray-400">
+            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="font-semibold text-gray-500">No results found</p>
+            <p class="text-sm mt-1">Try a different search or filter</p>
+        </div>
+    </section>
+
+    <!-- Research snapshot modal (summary only — full report is separate page) -->
+    <div id="researchModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeResearchModal()"></div>
+        <div id="researchModalInner" class="relative bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-blue-100 shadow-2xl modal-enter">
+            <button onclick="closeResearchModal()" class="sticky top-4 float-right mr-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div id="researchModalContent" class="p-8 md:p-12"></div>
+        </div>
+    </div>
+
+    <!-- ═══ ABOUT ═══ -->
+    <section id="about" class="hidden py-20 px-6 max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="glass-panel rounded-3xl p-12 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div class="relative z-10">
+                    <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mb-8 flex items-center justify-center text-4xl font-bold brand-font text-white shadow-lg shadow-blue-500/30">HW</div>
+                    <h2 id="about-name"  class="text-3xl font-bold mb-4 text-gray-900"></h2>
+                    <p  id="about-title" class="text-blue-600 font-medium mb-6"></p>
+                    <p  id="about-bio"   class="text-gray-600 leading-relaxed mb-8"></p>
+                    <div class="flex gap-4">
+                        <a href="https://www.linkedin.com/in/harsh-walia-fin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-blue-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                        <a href="mailto:harshwalia8888@gmail.com" aria-label="Email Harsh Walia" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-blue-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold mb-6 text-gray-900">Technical Skills</h3>
+                <div id="skills-container" class="space-y-4 mb-8"></div>
+                <h3 class="text-2xl font-bold mb-4 text-gray-900">Education</h3>
+                <div class="glass-panel rounded-xl p-6 mb-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p id="edu-degree"     class="font-semibold text-gray-900"></p>
+                            <p id="edu-university" class="text-sm text-gray-500"></p>
+                        </div>
+                        <span id="edu-duration" class="text-xs text-blue-500 font-medium"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CONTACT MODAL ═══ -->
+    <div id="contactModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleContact()"></div>
+        <div class="relative bg-white rounded-2xl p-8 max-w-md w-full mx-4 border border-blue-100 modal-enter shadow-2xl">
+            <h3 class="text-2xl font-bold mb-2 text-gray-900">Get in Touch</h3>
+            <p class="text-gray-500 text-sm mb-6">Open to graduate analyst roles and internships in asset management and equity research. Happy to talk through any company I have covered.</p>
+
+            <a href="mailto:harshwalia8888@gmail.com?subject=Opportunity%20%E2%80%94%20via%20harshwalia.com"
+               class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all hover:scale-[1.02] text-white shadow-lg shadow-blue-500/25 mb-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Email Me
+            </a>
+
+            <a href="https://www.linkedin.com/in/harsh-walia-fin/" target="_blank" rel="noopener noreferrer"
+               class="flex items-center justify-center gap-3 w-full py-4 border border-blue-200 hover:border-blue-500 hover:text-blue-700 rounded-lg font-semibold transition-all text-gray-700 mb-5">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                Connect on LinkedIn
+            </a>
+
+            <p class="text-center text-sm text-gray-400">
+                or copy: <span class="text-gray-600 font-medium select-all">harshwalia8888@gmail.com</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="border-t border-blue-100 mt-20 py-10 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>&copy; <span id="footerYear"></span> Harsh Walia · MSc Investments, University of Birmingham</p>
+            <div class="flex items-center gap-5">
+                <a href="mailto:harshwalia8888@gmail.com" class="hover:text-blue-600 transition">Email</a>
+                <a href="https://www.linkedin.com/in/harsh-walia-fin/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition">LinkedIn</a>
+            </div>
+        </div>
+        <p class="max-w-7xl mx-auto text-xs text-gray-400 mt-6 leading-relaxed">
+            All valuations, target prices and analysis on this site are personal academic work produced for educational and portfolio purposes only. Nothing here constitutes investment advice or a recommendation to buy or sell any security.
+        </p>
+    </footer>
+
+    <script>
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+    // ────────────────────────────────────────────────
+    // PROJECTS
+    // ────────────────────────────────────────────────
+    const projects = [
+        {
+            id: 'valuation-workbench',
+            title: 'Valuation Workbench',
+            summary: 'Ingests company financials and outputs a full DCF with sensitivity analysis.',
+            color: 'blue', icon: 'chart'
+        },
+        {
+            id: 'securitization-simulation',
+            title: 'Securitisation Dashboard',
+            summary: 'How a securitisation is structured and priced, with a runnable simulation.',
+            color: 'cyan', icon: 'chart'
+        }
+    ];
+
+    // ────────────────────────────────────────────────
+    // BLOG
+    // ────────────────────────────────────────────────
+    const blogPosts = [
+        {
+            id: 'value-investing',
+            title: 'The Resurgence of Value Investing',
+            category: 'Equity Research',
+            date: 'Jan 15, 2026',
+            excerpt: 'Analysis of value factor performance in the current rate environment...',
+            color: 'blue',
+            content: `## Why Value Is Back\n\nAfter a decade of **growth dominance**, value stocks are outperforming.\n\n### Key Drivers\n- Higher interest rates\n- Mean reversion in multiples\n- Earnings breadth improving`
+        }
+    ];
+
+    // ────────────────────────────────────────────────
+    // RESEARCH DATA
+    // ────────────────────────────────────────────────
+    // reportUrl: path to your research/firm-name.html page.
+    // Leave as '' if you haven't built the detail page yet —
+    // the "Read Full Report" button will simply not appear.
+    // ────────────────────────────────────────────────
+    const researchItems = [
+        {
+            id: 'easyjet-apollo',
+            firm: 'easyJet plc',
+            ticker: 'EZJ',
+            sector: 'Airlines · Travel & Leisure',
+            exchange: 'LSE',
+            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/1b/EasyJet_logo.svg',
+            valuation: 'undervalued',
+            targetPrice: '752p',
+            currentPrice: '666p',
+            upside: '+12.9%',
+            method: 'Bottom-up DCF · EUROCONTROL capacity scenarios',
+            publishDate: '16 Sep 2026',
+            reportUrl: 'research/easyjet.html',
+            summary: 'Special situation. Apollo has agreed a 715p cash offer valuing the equity at c.£5.7bn. Built from the bottom up — seats flown, load factor, passengers, revenue per seat — with capacity growth inherited from EUROCONTROL\'s published traffic scenarios. Base case 752p, so the offer is light by 5.2%. Recommendation: do not accept at 715p.',
+            thesis: [
+                'Margin recovery unfinished: FY25 profit per seat of £6.39 vs management\'s own £7–£10 target, reached only in FY28 on our base case',
+                '£602m net cash in a sector that rarely has any — c.80p per share of the offer is paid with easyJet\'s own money',
+                'easyJet holidays compounds off an existing customer base: higher margin, asset-light, already-acquired passengers',
+                'Working capital is a structural tailwind — unearned revenue rose £209m in FY25; the earlier model assumed zero'
+            ],
+            risks: [
+                'The unit wedge is only £3.99 a seat — 50bp of annual cost drift takes profit per seat to £1.74 by FY31 with no recession required',
+                'Fuel modelled as a cost per seat at a fixed growth rate, not off the forward curve and disclosed hedge book',
+                'Terminal value is 63.9% of enterprise value',
+                'Not yet three-statement: the balance sheet is not rolled forward and cash ties are not proven'
+            ]
+        },
+        {
+            id: 'airbnb-ipo',
+            firm: 'Airbnb, Inc.',
+            ticker: 'ABNB',
+            sector: 'Travel & Leisure',
+            exchange: 'NASDAQ',
+            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg',
+            valuation: 'overvalued',
+            targetPrice: '$40.28',
+            currentPrice: '$68.00',
+            upside: '-40.8%',
+            method: 'DCF + Trading Comps',
+            publishDate: '10 Dec 2020',
+            reportUrl: 'research/airbnb-ipo.html',
+            summary: 'Pre-IPO DCF and comparables analysis of Airbnb\'s NASDAQ listing. Base-case DCF implies fair value of $40/share vs $68 IPO price — market is pricing in a recovery trajectory not supported by conservative fundamental assumptions.',
+            thesis: [
+                'Strong platform economics: ~75% gross margin, take rate rising from 11.4% to 14.1%',
+                'Domestic STR demand outpacing international travel recovery post-COVID',
+                'Brand moat maturing — S&M spend declining from 43% to 22% of revenue',
+                'FCF-generative at scale: $505M FCF in FY2018'
+            ],
+            risks: [
+                'IPO priced at $68 implies ~$100B Day-1 EV — far above any DCF scenario',
+                'Adj. EBITDA negative in FY2019 and FY2020; profitability timeline uncertain',
+                'Revenue fell 32% YoY in 9M 2020 — COVID recovery speed is the key model assumption',
+                'Heavy post-IPO SBC and $2B emergency debt burden'
+            ]
+        }
+    ];
+
+    // ────────────────────────────────────────────────
+    // HELPERS
+    // ────────────────────────────────────────────────
+    let activeResearchFilter = 'all';
+
+    function badgeClass(v)  { return v==='undervalued'?'badge-undervalued':v==='overvalued'?'badge-overvalued':'badge-fairvalue'; }
+    function badgeLabel(v)  { return v==='undervalued'?'▲ Undervalued':v==='overvalued'?'▼ Overvalued':'◆ Fair Value'; }
+    function upsideColor(u) { return !u?'text-gray-500':u.startsWith('+')?'text-emerald-600':'text-red-500'; }
+
+    function logoHTML(item, size='small') {
+        const dim = size==='large'?'64px':'48px';
+        const cls = size==='large'?'w-16 h-16':'w-12 h-12';
+        if (item.logoUrl) {
+            return `<img src="${item.logoUrl}" alt="${item.firm}"
+                class="${cls} object-contain rounded-xl bg-white p-1 border border-blue-100 flex-shrink-0"
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div class="firm-logo-fallback" style="display:none;width:${dim};height:${dim}">${item.ticker.slice(0,2)}</div>`;
+        }
+        return `<div class="firm-logo-fallback" style="width:${dim};height:${dim}">${item.ticker.slice(0,2)}</div>`;
+    }
+
+    // ────────────────────────────────────────────────
+    // RESEARCH RENDER
+    // ────────────────────────────────────────────────
+    function renderResearch() { filterResearch(); }
+
+    function filterResearch() {
+        const q    = (document.getElementById('researchSearch')?.value||'').toLowerCase().trim();
+        const sort = document.getElementById('researchSort')?.value||'newest';
+        const f    = activeResearchFilter;
+
+        let items = researchItems.filter(r => {
+            const mF = f==='all'||r.valuation===f;
+            const mS = !q||[r.firm,r.ticker,r.sector,r.exchange,r.summary||''].some(s=>s.toLowerCase().includes(q));
+            return mF && mS;
+        });
+
+        if (sort==='alpha')  items.sort((a,b)=>a.firm.localeCompare(b.firm));
+        else if (sort==='oldest') items.sort((a,b)=>new Date(a.publishDate)-new Date(b.publishDate));
+        else items.sort((a,b)=>new Date(b.publishDate)-new Date(a.publishDate));
+
+        const grid  = document.getElementById('researchGrid');
+        const empty = document.getElementById('researchEmpty');
+        document.getElementById('researchCount').textContent = `${items.length} report${items.length!==1?'s':''}`;
+
+        if (!items.length) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+
+        grid.innerHTML = items.map(r => `
+            <div class="glass-panel rounded-2xl p-6 card-hover group flex flex-col">
+
+                <!-- Header: logo + badge -->
+                <div class="flex items-start justify-between mb-5">
+                    <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="openResearchModal('${r.id}')">
+                        ${logoHTML(r)}
+                        <div class="min-w-0">
+                            <p class="font-bold text-gray-900 text-base leading-tight group-hover:text-blue-600 transition truncate">${r.firm}</p>
+                            <p class="text-xs text-gray-400 font-medium">${r.ticker} · ${r.exchange}</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass(r.valuation)} whitespace-nowrap ml-2 flex-shrink-0">
+                        ${badgeLabel(r.valuation)}
+                    </span>
+                </div>
+
+                <!-- Summary -->
+                <p class="text-gray-500 text-sm leading-relaxed mb-5 flex-1 line-clamp-3 cursor-pointer" onclick="openResearchModal('${r.id}')">${r.summary}</p>
+
+                <!-- Price metrics -->
+                <div class="grid grid-cols-3 gap-2 mb-5">
+                    <div class="bg-blue-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-gray-400 mb-0.5">Target</p>
+                        <p class="font-bold text-gray-900 text-sm">${r.targetPrice}</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-gray-400 mb-0.5">Current</p>
+                        <p class="font-bold text-gray-900 text-sm">${r.currentPrice}</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-3 text-center">
+                        <p class="text-xs text-gray-400 mb-0.5">Upside</p>
+                        <p class="font-bold text-sm ${upsideColor(r.upside)}">${r.upside}</p>
+                    </div>
+                </div>
+
+                <!-- Footer: sector + date + action buttons -->
+                <div class="pt-4 border-t border-blue-50 space-y-3">
+                    <!-- Sector + date -->
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">${r.sector}</span>
+                        <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            ${r.publishDate}
+                        </div>
+                    </div>
+                    <!-- Action buttons -->
+                    <div class="flex gap-2">
+                        <button onclick="openResearchModal('${r.id}')"
+                            class="flex-1 px-3 py-2 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition text-center">
+                            Quick View
+                        </button>
+                        ${r.reportUrl ? `
+                        <a href="${r.reportUrl}"
+                            class="flex-1 px-3 py-2 text-xs font-semibold text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition text-center flex items-center justify-center gap-1.5">
+                            Read Full Report
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>` : `
+                        <span class="flex-1 px-3 py-2 text-xs font-medium text-gray-300 border border-gray-100 rounded-lg text-center cursor-default">
+                            Report coming soon
+                        </span>`}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function setResearchFilter(filter) {
+        activeResearchFilter = filter;
+        document.querySelectorAll('.research-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter===filter);
+        });
+        filterResearch();
+    }
+
+    // ────────────────────────────────────────────────
+    // RESEARCH MODAL (Quick View snapshot)
+    // ────────────────────────────────────────────────
+    function openResearchModal(id) {
+        const r = researchItems.find(x=>x.id===id);
+        if (!r) return;
+
+        const thesisHTML = (r.thesis||[]).map(t=>`<li class="flex items-start gap-3 text-sm text-gray-600"><span class="text-emerald-500 flex-shrink-0 mt-0.5 font-bold">▲</span>${t}</li>`).join('');
+        const risksHTML  = (r.risks ||[]).map(t=>`<li class="flex items-start gap-3 text-sm text-gray-600"><span class="text-red-400 flex-shrink-0 mt-0.5 font-bold">▼</span>${t}</li>`).join('');
+
+        document.getElementById('researchModalContent').innerHTML = `
+            <div class="flex items-start gap-4 mb-8 pr-10">
+                <div class="flex-shrink-0">${logoHTML(r,'large')}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <h2 class="text-2xl font-bold text-gray-900">${r.firm}</h2>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass(r.valuation)}">${badgeLabel(r.valuation)}</span>
+                    </div>
+                    <p class="text-sm text-gray-400">${r.ticker} · ${r.exchange} · ${r.sector}</p>
+                    <p class="text-xs text-gray-400 mt-1">Published ${r.publishDate} · ${r.method}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="glass-panel rounded-2xl p-5 text-center"><p class="text-2xl font-bold text-blue-600 mb-1">${r.targetPrice}</p><p class="text-xs text-gray-500">Target Price</p></div>
+                <div class="glass-panel rounded-2xl p-5 text-center"><p class="text-2xl font-bold text-gray-700 mb-1">${r.currentPrice}</p><p class="text-xs text-gray-500">Current Price</p></div>
+                <div class="glass-panel rounded-2xl p-5 text-center"><p class="text-2xl font-bold mb-1 ${upsideColor(r.upside)}">${r.upside}</p><p class="text-xs text-gray-500">Upside / Downside</p></div>
+            </div>
+            <div class="mb-8">
+                <h3 class="font-semibold text-gray-800 mb-3 text-lg">Executive Summary</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">${r.summary}</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="glass-panel rounded-2xl p-6">
+                    <h4 class="font-semibold text-emerald-700 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-xs">▲</span>Investment Thesis
+                    </h4>
+                    <ul class="space-y-3">${thesisHTML}</ul>
+                </div>
+                <div class="glass-panel rounded-2xl p-6">
+                    <h4 class="font-semibold text-red-600 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center text-xs">▼</span>Key Risks
+                    </h4>
+                    <ul class="space-y-3">${risksHTML}</ul>
+                </div>
+            </div>
+            ${r.reportUrl ? `
+            <div class="text-center pt-4 border-t border-blue-50">
+                <a href="${r.reportUrl}"
+                   class="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-blue-500/20 text-sm">
+                    Read Full Research Report
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+                <p class="text-xs text-gray-400 mt-2">DCF model · Comparables · Sensitivity analysis · Charts</p>
+            </div>` : `
+            <div class="text-center pt-4 border-t border-blue-50">
+                <p class="text-xs text-gray-400">Full research report coming soon</p>
+            </div>`}
+        `;
+
+        const modal = document.getElementById('researchModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('researchModalInner').scrollTop = 0;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeResearchModal() {
+        document.getElementById('researchModal').classList.add('hidden');
+        document.getElementById('researchModal').classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    // ────────────────────────────────────────────────
+    // NAVIGATION
+    // ────────────────────────────────────────────────
+    const ALL_SECTIONS = ['hero','home','blog','research','about','blogArticle'];
+
+    function hideAll() {
+        ALL_SECTIONS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+
+    function goHome() {
+        hideAll();
+        document.getElementById('hero').style.display = 'flex';
+        window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    function showSection(sectionId) {
+        hideAll();
+        const el = document.getElementById(sectionId);
+        if (!el) return;
+        el.style.display = 'block';
+        el.classList.add('slide-in');
+        if (sectionId==='research') renderResearch();
+        window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    function toggleMobileMenu() {
+        document.getElementById('mobileMenu').classList.toggle('active');
+        document.getElementById('menuIcon').classList.toggle('hidden');
+        document.getElementById('closeIcon').classList.toggle('hidden');
+    }
+
+    function toggleContact() {
+        document.getElementById('contactModal').classList.toggle('hidden');
+    }
+
+    // ────────────────────────────────────────────────
+    // PROJECTS RENDER
+    // ────────────────────────────────────────────────
+    function renderProjects() {
+        document.getElementById('projectsGrid').innerHTML = projects.map(p => `
+            <a href="projects/${p.id}.html" class="glass-panel rounded-2xl p-8 cursor-pointer card-hover group block">
+                <div class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-200 transition">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2 group-hover:text-blue-600 transition text-gray-900">${p.title}</h3>
+                <p class="text-gray-500 text-sm mb-4">${p.summary}</p>
+                <div class="flex items-center text-xs text-blue-600 font-medium">
+                    <span>View Analysis</span>
+                    <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </div>
+            </a>
+        `).join('');
+    }
+
+    // ────────────────────────────────────────────────
+    // BLOG RENDER
+    // ────────────────────────────────────────────────
+    function renderBlog() {
+        document.getElementById('blogGrid').innerHTML = blogPosts.map(post => `
+            <article onclick="openBlog('${post.id}')" class="glass-panel rounded-2xl overflow-hidden hover:border-blue-300 transition-all cursor-pointer group">
+                <div class="h-48 bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center border-b border-blue-100"><svg class="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 15l4-5 3 3 5-7"/></svg></div>
+                <div class="p-8">
+                    <div class="flex items-center gap-4 mb-4 text-xs text-gray-500">
+                        <span class="px-3 py-1 bg-blue-100 rounded-full text-blue-600 font-medium">${post.category}</span>
+                        <span>${post.date}</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-blue-600 transition text-gray-900">${post.title}</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-4">${post.excerpt||''}</p>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    function stripIndent(str='') {
+        str = str.replace(/^\n/,'');
+        const indents = str.match(/^[ \t]*(?=\S)/gm);
+        const min = indents ? Math.min(...indents.map(s=>s.length)) : 0;
+        return str.replace(new RegExp(`^[ \\t]{${min}}`,'gm'),'').trim();
+    }
+
+    function openBlog(id) {
+        const post = blogPosts.find(p=>p.id===id);
+        if (!post) return;
+        hideAll();
+        const art = document.getElementById('blogArticle');
+        art.style.display = 'block';
+        art.classList.add('slide-in');
+        document.getElementById('articleContent').innerHTML = `
+            <div class="mb-8">
+                <span class="px-3 py-1 bg-blue-100 rounded-full text-blue-600 font-medium text-sm">${post.category}</span>
+                <span class="text-gray-400 text-sm ml-4">${post.date}</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-8">${post.title}</h1>
+            ${marked.parse(stripIndent(post.content||''))}
+        `;
+        window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    // ────────────────────────────────────────────────
+    // DATA LOADING + ABOUT
+    // ────────────────────────────────────────────────
+    async function loadSiteData() {
+        try {
+            const aboutRes = await fetch('./assets/about/data.json', { cache:'no-store' });
+            if (aboutRes.ok) {
+                const d = await aboutRes.json();
+                if (d.about) populateAbout(d.about);
+                if (Array.isArray(d.projects)) { projects.length=0; projects.push(...d.projects); }
+            }
+            const blogsRes = await fetch('./assets/blogs/data.json', { cache:'no-store' });
+            if (blogsRes.ok) {
+                const d = await blogsRes.json();
+                if (Array.isArray(d.blogPosts)) { blogPosts.length=0; blogPosts.push(...d.blogPosts); }
+            }
+        } catch(e) { console.error('Site data load failed:', e); }
+        renderProjects();
+        renderBlog();
+
+        // ── Restore research section if returning from a report page ──
+        const goTo = sessionStorage.getItem('openSection');
+        if (goTo) {
+            sessionStorage.removeItem('openSection');
+            showSection(goTo);
+        }
+    }
+
+    function populateAbout(about) {
+        if (!about) return;
+        document.getElementById('about-name').textContent  = about.name  || '';
+        document.getElementById('about-title').textContent = about.title || '';
+        document.getElementById('about-bio').textContent   = about.bio   || '';
+        const sc = document.getElementById('skills-container');
+        sc.innerHTML = '';
+        (about.technicalSkills||[]).forEach(skill=>{
+            if(!skill||!skill.name) return;
+            sc.innerHTML += `<div class="flex items-start gap-2">
+                <span class="text-blue-500 mt-1.5 flex-shrink-0">&bull;</span>
+                <span class="text-gray-600">${skill.name}</span>
+            </div>`;
+        });
+        document.getElementById('edu-degree').textContent     = about.education?.degree     || '';
+        document.getElementById('edu-university').textContent = about.education?.university || '';
+        document.getElementById('edu-duration').textContent   = about.education?.duration   || '';
+    }
+
+    // ────────────────────────────────────────────────
+    // KEYBOARD
+    // ────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key==='Escape') {
+            document.getElementById('contactModal').classList.add('hidden');
+            closeResearchModal();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadSiteData);
+
+    </script>
+</body>
+</html>

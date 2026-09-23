@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDM Practice Tool | HW Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#2563EB; --blue-d:#1d4ed8; --blue-l:#eff6ff; --blue-m:#dbeafe;
+  --dark:#0f172a; --mid:#334155; --muted:#64748b; --border:#e2e8f0;
+  --bg:#f8fafc; --white:#fff; --green:#10b981; --green-p:#d1fae5;
+  --red:#ef4444; --red-p:#fee2e2; --amber:#f59e0b; --amber-p:#fef3c7;
+  --violet:#7c3aed; --violet-l:#f5f3ff; --violet-m:#ede9fe;
+  --mono:'IBM Plex Mono',monospace; --head:'Space Grotesk',sans-serif; --body:'Lato',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--bg);color:var(--dark);min-height:100vh}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.logo{font-family:var(--head);font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-back{font-size:.82rem;color:var(--blue);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:.4rem}
+.nav-back:hover{text-decoration:underline}
+/* HERO */
+.hero{padding:3rem 2rem 2rem;max-width:1300px;margin-left:auto;margin-right:auto;margin-top:80px}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--violet-l);color:var(--violet);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;margin-bottom:1rem;border:1px solid var(--violet-m)}
+.hero h1{font-family:var(--head);font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,#7c3aed,#2563EB);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:.95rem;color:var(--muted);max-width:560px;line-height:1.75;margin-bottom:1.75rem}
+/* MODE BAR */
+.mode-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+.mode-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.mp{padding:.45rem 1.1rem;border-radius:8px;font-family:var(--head);font-size:.78rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.mp.active{background:var(--violet);color:white;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.mp:not(.active):hover{background:var(--violet-l);color:var(--violet)}
+.diff-pills{display:flex;gap:.35rem;background:white;border:1px solid var(--border);border-radius:12px;padding:.3rem}
+.dp{padding:.45rem 1rem;border-radius:8px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s}
+.dp.active{color:white;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.dp[data-d="easy"].active{background:#10b981}
+.dp[data-d="medium"].active{background:#f59e0b}
+.dp[data-d="hard"].active{background:#ef4444}
+.dp:not(.active):hover{background:var(--bg)}
+.refresh-btn{margin-left:auto;display:flex;align-items:center;gap:.6rem;padding:.55rem 1.4rem;background:var(--violet);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.refresh-btn:hover{background:#6d28d9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.refresh-btn svg{transition:transform .5s}
+.refresh-btn:hover svg{transform:rotate(180deg)}
+/* MAIN GRID */
+.main-grid{max-width:1300px;margin:0 auto;padding:0 2rem 5rem;display:grid;grid-template-columns:1fr 420px;gap:1.5rem;align-items:start}
+/* PANELS */
+.panel{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.panel-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-head h3{font-family:var(--head);font-size:.85rem;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:.5rem}
+.ph-icon{width:26px;height:26px;border-radius:7px;background:var(--violet-l);display:flex;align-items:center;justify-content:center;font-size:.82rem}
+.panel-body{padding:1.25rem}
+/* COMPANY HEADER */
+.co-header{background:linear-gradient(135deg,#3b0764 0%,#7c3aed 60%,#2563eb 100%);color:white;padding:1.5rem 1.75rem;border-radius:14px;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.co-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%}
+.co-header::after{content:'';position:absolute;bottom:-30px;right:60px;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%}
+.co-name{font-family:var(--head);font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:.2rem}
+.co-sector{font-size:.72rem;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+.co-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.co-kpi{background:rgba(255,255,255,.12);border-radius:8px;padding:.6rem .75rem}
+.co-kpi-label{font-size:.6rem;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.2rem}
+.co-kpi-val{font-family:var(--mono);font-size:.9rem;font-weight:600}
+/* FINANCIALS TABLE */
+.fin-table{width:100%;font-size:.78rem;border-collapse:collapse}
+.fin-table th{font-family:var(--head);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:.6rem .75rem;text-align:right;border-bottom:2px solid var(--border);background:var(--bg)}
+.fin-table th:first-child{text-align:left}
+.fin-table td{padding:.55rem .75rem;text-align:right;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.78rem;color:var(--mid)}
+.fin-table td:first-child{text-align:left;font-family:var(--body);font-weight:600;color:var(--dark);font-size:.78rem}
+.fin-table tr:last-child td{border-bottom:none}
+.fin-table tr.subtotal td{background:var(--violet-l);font-weight:700;color:#5b21b6}
+.fin-table tr.total-row td{background:#3b0764;color:white;font-weight:700}
+.fin-table tr.total-row td:first-child{color:white;border-radius:6px 0 0 6px}
+.fin-table .neg{color:var(--red)}
+.fin-table .pos{color:var(--green)}
+.fin-table .indent{padding-left:1.5rem;color:var(--muted);font-weight:400}
+.section-label{font-family:var(--head);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--violet);padding:.5rem .75rem;background:var(--violet-l);border-radius:6px;margin:.75rem 0 .4rem}
+/* GIVEN INFO GRID */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.info-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem}
+.info-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.info-val{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--dark)}
+.info-card.highlight{background:var(--violet-l);border-color:var(--violet-m)}
+.info-card.highlight .info-val{color:var(--violet)}
+/* ANSWER SECTION */
+.answer-section{display:flex;flex-direction:column;gap:1rem}
+.ans-group{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem}
+.ans-title{font-family:var(--head);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--mid);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.ans-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.ans-row:last-child{margin-bottom:0}
+.ans-label{font-size:.78rem;color:var(--mid);flex:1;line-height:1.4}
+.ans-input-wrap{display:flex;align-items:center;gap:.4rem}
+.ans-input{width:110px;padding:.45rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--dark);background:white;outline:none;transition:border-color .2s;text-align:right}
+.ans-input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.ans-input.correct{border-color:var(--green);background:var(--green-p);color:#065f46}
+.ans-input.wrong{border-color:var(--red);background:var(--red-p);color:#991b1b}
+.ans-unit{font-size:.68rem;color:var(--muted);font-weight:700;font-family:var(--head);white-space:nowrap}
+.check-btn{width:100%;padding:.7rem;background:var(--violet);color:white;border:none;border-radius:10px;font-family:var(--head);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.5rem}
+.check-btn:hover{background:#6d28d9;transform:translateY(-1px)}
+.reveal-btn{width:100%;padding:.55rem;background:white;color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:var(--head);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.4rem}
+.reveal-btn:hover{background:var(--bg);color:var(--dark)}
+.result-banner{padding:.7rem 1rem;border-radius:10px;font-size:.78rem;font-weight:700;display:flex;align-items:flex-start;gap:.5rem;margin-top:.75rem;line-height:1.5;display:none}
+.result-banner.show{display:flex}
+.result-banner.pass{background:var(--green-p);color:#065f46;border:1px solid #6ee7b7}
+.result-banner.fail{background:var(--red-p);color:#991b1b;border:1px solid #fca5a5}
+.result-banner.info{background:var(--violet-l);color:#5b21b6;border:1px solid var(--violet-m)}
+/* SCORE TRACKER */
+.score-bar{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.score-item{text-align:center}
+.score-num{font-family:var(--mono);font-size:1.1rem;font-weight:700}
+.score-num.g{color:var(--green)}
+.score-num.r{color:var(--red)}
+.score-num.b{color:var(--violet)}
+.score-label{font-size:.6rem;text-transform:uppercase;font-weight:700;letter-spacing:.07em;color:var(--muted)}
+.score-div{width:1px;height:30px;background:var(--border)}
+/* TABS */
+.tab-bar{display:flex;gap:.35rem;padding:.3rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.tab{padding:.4rem .9rem;border-radius:7px;font-family:var(--head);font-size:.72rem;font-weight:700;border:none;cursor:pointer;color:var(--muted);background:transparent;transition:all .15s}
+.tab.active{background:white;color:var(--violet);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+/* CHARTS */
+.chart-wrap{height:220px;position:relative;margin-bottom:.5rem}
+/* FORMULA SHEET */
+.formula-box{background:#0f172a;border-radius:12px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.75rem;color:#94a3b8;line-height:1.9}
+.formula-box .kw{color:#c084fc}
+.formula-box .val{color:#a78bfa}
+.formula-box .comment{color:#475569}
+/* STEP BREAKDOWN */
+.steps-list{display:flex;flex-direction:column;gap:.6rem}
+.step{display:flex;gap:.75rem;align-items:flex-start;padding:.65rem .8rem;background:var(--bg);border-radius:9px;border:1px solid var(--border)}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--violet);color:white;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+.step-content{flex:1}
+.step-title{font-family:var(--head);font-size:.75rem;font-weight:700;color:var(--dark);margin-bottom:.15rem}
+.step-val{font-family:var(--mono);font-size:.72rem;color:var(--violet)}
+/* DIFFICULTY TAG */
+.diff-tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.62rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-transform:uppercase;letter-spacing:.07em}
+.diff-tag.easy{background:var(--green-p);color:#065f46}
+.diff-tag.medium{background:var(--amber-p);color:#92400e}
+.diff-tag.hard{background:var(--red-p);color:#991b1b}
+/* PROGRESS */
+.progress-wrap{height:4px;background:var(--violet-m);border-radius:4px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--violet);border-radius:4px;transition:width .4s ease}
+/* HINT */
+.hint-box{background:var(--amber-p);border:1px solid #fcd34d;border-radius:9px;padding:.65rem .9rem;font-size:.75rem;color:#92400e;line-height:1.6;margin-top:.5rem;display:none}
+.hint-box.show{display:block}
+.hint-toggle{background:none;border:none;color:var(--amber);font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--head);padding:0;margin-top:.35rem;text-decoration:underline}
+/* TWO-STAGE SECTION (medium/hard) */
+.stage-box{background:var(--violet-l);border:1px solid var(--violet-m);border-radius:9px;padding:.75rem .9rem;margin-bottom:.75rem}
+.stage-title{font-family:var(--head);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--violet);margin-bottom:.5rem}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr;padding:0 1rem 4rem}
+  .hero{padding:2rem 1rem 1.5rem;margin-top:70px}
+  .info-grid{grid-template-columns:1fr 1fr}
+  .co-kpis{grid-template-columns:1fr 1fr}
+}
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.fade-in{animation:fadeUp .35s ease both}
+.loading{animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">HW</a>
+  <a href="../index.html#home" class="nav-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+    Back to Projects
+  </a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">💰 Interactive · Unlimited Practice · AI-Powered</div>
+  <h1>DDM <span>Practice</span> Tool</h1>
+  <p>Master the Dividend Discount Model through unlimited randomised exercises. From Gordon Growth to multi-stage valuation — build intuition for dividend-paying equity one company at a time.</p>
+
+  <div class="mode-bar">
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Model</div>
+      <div class="mode-pills">
+        <button class="mp active" onclick="setMode('gordon',this)">📌 Gordon Growth</button>
+        <button class="mp" onclick="setMode('two',this)">📊 Two-Stage</button>
+        <button class="mp" onclick="setMode('h',this)">🧠 H-Model</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Difficulty</div>
+      <div class="diff-pills">
+        <button class="dp active" data-d="easy" onclick="setDifficulty('easy',this)">Easy</button>
+        <button class="dp" data-d="medium" onclick="setDifficulty('medium',this)">Medium</button>
+        <button class="dp" data-d="hard" onclick="setDifficulty('hard',this)">Hard</button>
+      </div>
+    </div>
+    <button class="refresh-btn" onclick="newQuestion()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      New Question
+    </button>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div class="main-grid">
+  <!-- LEFT: Financial Data -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- Company Header -->
+    <div id="coHeader" class="fade-in"></div>
+
+    <!-- Financials Tabs -->
+    <div class="panel fade-in">
+      <div class="panel-head">
+        <h3><span class="ph-icon">📋</span> Financial Data</h3>
+        <div class="diff-tag easy" id="diffTag">Easy</div>
+      </div>
+      <div class="panel-body">
+        <div class="tab-bar">
+          <button class="tab active" onclick="showTab('div',this)">Dividend History</button>
+          <button class="tab" onclick="showTab('is',this)">Income Statement</button>
+          <button class="tab" onclick="showTab('proj',this)">Projections</button>
+        </div>
+        <div id="tab-div"></div>
+        <div id="tab-is" style="display:none"></div>
+        <div id="tab-proj" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="panel fade-in">
+      <div class="panel-head">
+        <h3><span class="ph-icon">📈</span> Visual Analysis</h3>
+        <div class="tab-bar" style="margin:0;background:transparent">
+          <button class="tab active" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('div',this)">Dividends</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('pv',this)">PV of Divs</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('bridge',this)">Value Bridge</button>
+          <button class="tab" style="padding:.3rem .7rem;font-size:.67rem" onclick="showChart('sens',this)">Sensitivity</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+        <div id="chartNote" style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.4rem"></div>
+      </div>
+    </div>
+
+    <!-- Formula Reference -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">📐</span> Formula Reference</h3></div>
+      <div class="panel-body">
+        <div class="formula-box" id="formulaBox"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Given Data + Answers -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- Score -->
+    <div class="panel fade-in">
+      <div class="panel-body" style="padding:.9rem 1.1rem">
+        <div class="score-bar">
+          <div class="score-item"><div class="score-num g" id="sc-correct">0</div><div class="score-label">Correct</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num r" id="sc-wrong">0</div><div class="score-label">Wrong</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num b" id="sc-total">0</div><div class="score-label">Attempted</div></div>
+          <div class="score-div"></div>
+          <div class="score-item"><div class="score-num b" id="sc-streak">0🔥</div><div class="score-label">Streak</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Given Information -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">💡</span> Given Information</h3></div>
+      <div class="panel-body">
+        <div class="info-grid" id="givenGrid"></div>
+        <button class="hint-toggle" onclick="toggleHint()">💡 Show hint</button>
+        <div class="hint-box" id="hintBox"></div>
+      </div>
+    </div>
+
+    <!-- Answer Inputs -->
+    <div class="panel fade-in">
+      <div class="panel-head"><h3><span class="ph-icon">✏️</span> Your Answers</h3></div>
+      <div class="panel-body">
+        <div class="answer-section" id="answerSection"></div>
+        <button class="check-btn" onclick="checkAnswers()">✅ Check Answers</button>
+        <button class="reveal-btn" onclick="revealAnswers()">👁 Reveal Answers</button>
+        <div class="result-banner" id="resultBanner"></div>
+      </div>
+    </div>
+
+    <!-- Step-by-Step (shown after check) -->
+    <div class="panel fade-in" id="stepsPanel" style="display:none">
+      <div class="panel-head"><h3><span class="ph-icon">🧩</span> Step-by-Step Solution</h3></div>
+      <div class="panel-body">
+        <div class="steps-list" id="stepsList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let mode = 'gordon', difficulty = 'easy', q = null;
+let score = { correct: 0, wrong: 0, total: 0, streak: 0 };
+let mainChart = null, activeChart = 'div';
+let answered = false;
+
+// ─── COMPANIES POOL ──────────────────────────────────────────────────────────
+const SECTORS = ['Utilities','Consumer Staples','Financials','Healthcare','Industrials','Real Estate','Energy','Telecoms'];
+const CO_NAMES = [
+  ['NationalGrid PLC','PowerFlow Corp','AquaGen Ltd','GridTrust Inc'],
+  ['FreshHold Corp','PurePack PLC','DailyBrands Inc','StapleCo Ltd'],
+  ['FirstCapital PLC','TrustVault Corp','MeridianBank','AlphaFund Ltd'],
+  ['MedVault PLC','BioNova Group','HealthBridge Inc','CurePoint Ltd'],
+  ['PrecisionWorks','IndustriFlex','BuildRight Corp','MetroFab Ltd'],
+  ['PrimeReit PLC','EstateCore Corp','YieldHaven Ltd','PropTrust Inc'],
+  ['SolarRidge Energy','OilDelta Corp','GreenFlux PLC','TerraOil Ltd'],
+  ['ConnectCo PLC','SignalBridge Corp','NexusTel Ltd','WaveLine Inc']
+];
+
+// ─── RANDOM HELPERS ───────────────────────────────────────────────────────────
+const rnd  = (lo,hi,dec=1) => +( lo + Math.random()*(hi-lo) ).toFixed(dec);
+const rndI = (lo,hi) => Math.floor(lo + Math.random()*(hi-lo+1));
+const fmt  = (n,dec=2) => n.toFixed(dec);
+const fmtP = (n,dec=1) => `${n.toFixed(dec)}%`;
+const fmtPx= (n) => `${n.toFixed(2)}p`;
+
+// ─── GENERATE QUESTION ────────────────────────────────────────────────────────
+function generateQuestion() {
+  const secIdx = rndI(0,7);
+  const sector = SECTORS[secIdx];
+  const names  = CO_NAMES[secIdx];
+  const coName = names[rndI(0,names.length-1)];
+
+  // Difficulty params
+  const dMap = {
+    easy:   { histYrs:3, ke_lo:6,  ke_hi:10, g_lo:2,  g_hi:4,  payout_lo:50, payout_hi:75 },
+    medium: { histYrs:5, ke_lo:7,  ke_hi:12, g_lo:2,  g_hi:5,  payout_lo:45, payout_hi:80 },
+    hard:   { histYrs:7, ke_lo:8,  ke_hi:15, g_lo:1.5,g_hi:6,  payout_lo:40, payout_hi:85 }
+  };
+  const d = dMap[difficulty];
+
+  // Core inputs
+  const ke        = rnd(d.ke_lo, d.ke_hi, 1);   // required return on equity
+  const eps0      = rnd(20, 150, 1);             // current EPS in pence
+  const payoutPct = rnd(d.payout_lo, d.payout_hi, 0); // dividend payout ratio
+  const d0        = +(eps0 * payoutPct / 100).toFixed(1); // current dividend
+  const retainPct = 100 - payoutPct;
+  const roe       = rnd(10, 22, 1);              // return on equity for g calc
+  const gSust     = +(retainPct/100 * roe).toFixed(2); // sustainable growth rate
+
+  // Historical dividends (working backwards from d0)
+  const histGrowths = Array.from({length:d.histYrs}, ()=>rnd(1.5,5,1));
+  let histDivs = [d0];
+  for(let i=1;i<=d.histYrs;i++) {
+    histDivs.unshift(+(histDivs[0] / (1 + histGrowths[d.histYrs-i]/100)).toFixed(1));
+  }
+
+  // Gordon Growth (single-stage)
+  const gGordon = rnd(d.g_lo, d.g_hi, 1);
+  const d1_gordon = +(d0 * (1 + gGordon/100)).toFixed(2);
+  const p_gordon  = +(d1_gordon / (ke/100 - gGordon/100)).toFixed(1);
+
+  // Two-Stage DDM params
+  const gHigh   = rnd(6, 14, 1);     // high growth stage
+  const stageYrs= difficulty==='easy' ? 3 : difficulty==='medium' ? 5 : 7;
+  const gStable = rnd(d.g_lo, d.g_hi, 1); // stable growth after high phase
+
+  // Two-stage dividends and PVs
+  let stageDivs = [], stagePVs = [], dPrev = d0;
+  for(let i=1;i<=stageYrs;i++) {
+    dPrev = +(dPrev * (1 + gHigh/100)).toFixed(2);
+    stageDivs.push(dPrev);
+    stagePVs.push(+(dPrev / Math.pow(1+ke/100,i)).toFixed(2));
+  }
+  const pvStageSum  = +stagePVs.reduce((a,b)=>a+b,0).toFixed(2);
+  const dStable1    = +(stageDivs[stageYrs-1] * (1 + gStable/100)).toFixed(2);
+  const terminalP   = +(dStable1 / (ke/100 - gStable/100)).toFixed(1);
+  const pvTerminal  = +(terminalP / Math.pow(1+ke/100, stageYrs)).toFixed(1);
+  const p_twostage  = +(pvStageSum + pvTerminal).toFixed(1);
+
+  // H-Model: P = D0 * (1+gL) / (ke - gL) + D0 * H * (gS - gL) / (ke - gL)
+  const gL_h = rnd(d.g_lo, d.g_hi, 1);   // long-run growth
+  const gS_h = rnd(8, 18, 1);             // initial short-run growth
+  const H    = rndI(3, 7);                // half-life of high growth period
+  const p_h_stable  = +(d0 * (1 + gL_h/100) / (ke/100 - gL_h/100)).toFixed(1);
+  const p_h_extra   = +(d0 * H * (gS_h/100 - gL_h/100) / (ke/100 - gL_h/100)).toFixed(1);
+  const p_h_model   = +(p_h_stable + p_h_extra).toFixed(1);
+
+  // Earnings data for IS tab
+  const baseRev = rnd(500,3000,0);
+  const netMargin = rnd(8,20,1);
+  const netIncome = +(baseRev * netMargin / 100).toFixed(0);
+  const shares = rnd(80,600,0);
+  const eps_calc = +(netIncome / shares * 100).toFixed(1); // in pence
+  const dps0 = d0; // dividend per share
+  const retainedPct_val = +(100 - payoutPct).toFixed(0);
+
+  return {
+    coName, sector, secIdx,
+    ke, eps0, payoutPct, retainPct, d0, roe, gSust,
+    histDivs, histGrowths, histYrs: d.histYrs,
+    // Gordon
+    gGordon, d1_gordon, p_gordon,
+    // Two-stage
+    gHigh, stageYrs, gStable, stageDivs, stagePVs, pvStageSum,
+    dStable1, terminalP, pvTerminal, p_twostage,
+    // H-Model
+    gL_h, gS_h, H, p_h_stable, p_h_extra, p_h_model,
+    // IS
+    baseRev, netMargin, netIncome, shares, eps_calc,
+    hint: buildHint()
+  };
+}
+
+function buildHint() {
+  if(mode === 'gordon')  return `Gordon Growth: P₀ = D₁ ÷ (Ke − g), where D₁ = D₀ × (1+g). Make sure Ke > g, otherwise the model breaks down. The result is the intrinsic value per share in pence.`;
+  if(mode === 'two')     return `Two-Stage DDM: discount each high-growth dividend to PV, then find the terminal price at year N using Gordon Growth on the first stable-phase dividend, and discount that back too. Sum everything.`;
+  if(mode === 'h')       return `H-Model: P₀ = [D₀(1+gL) + D₀×H×(gS−gL)] ÷ (Ke−gL). The first term values the stable-growth component; the second adds the premium for the temporary high-growth period.`;
+  return '';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  answered = false;
+  document.getElementById('stepsPanel').style.display='none';
+  document.getElementById('resultBanner').classList.remove('show');
+  renderCompanyHeader();
+  renderTabs();
+  renderGivenInfo();
+  renderAnswerInputs();
+  renderFormulas();
+  updateChart();
+}
+
+function renderCompanyHeader() {
+  const sectorColors = ['#4f46e5','#059669','#0891b2','#7c3aed','#d97706','#dc2626','#15803d','#0284c7'];
+  document.getElementById('coHeader').innerHTML = `
+    <div class="co-header">
+      <div class="co-name">${q.coName}</div>
+      <div class="co-sector">${q.sector} · ${difficulty.toUpperCase()} · ${mode==='gordon'?'Gordon Growth':mode==='two'?'Two-Stage DDM':'H-Model'}</div>
+      <div class="co-kpis">
+        <div class="co-kpi"><div class="co-kpi-label">Current DPS</div><div class="co-kpi-val">${fmtPx(q.d0)}</div></div>
+        <div class="co-kpi"><div class="co-kpi-label">Payout Ratio</div><div class="co-kpi-val">${q.payoutPct}%</div></div>
+        <div class="co-kpi"><div class="co-kpi-label">Cost of Equity</div><div class="co-kpi-val">${fmtP(q.ke)}</div></div>
+      </div>
+    </div>`;
+  document.getElementById('diffTag').textContent = difficulty.charAt(0).toUpperCase()+difficulty.slice(1);
+  document.getElementById('diffTag').className = `diff-tag ${difficulty}`;
+}
+
+function renderTabs() {
+  const yrs = Array.from({length:q.histYrs},(_,i)=>`Y-${q.histYrs-i}`);
+  yrs.push('Y0 (Now)');
+
+  // Dividend History Tab
+  document.getElementById('tab-div').innerHTML = `
+    <table class="fin-table">
+      <thead><tr><th>Year</th>${yrs.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Dividend Per Share (p)</td>${q.histDivs.map((v,i)=>`<td${i===q.histDivs.length-1?' style="font-weight:700;color:var(--violet)"':''}>${fmt(v,2)}</td>`).join('')}</tr>
+        <tr><td>YoY Growth</td><td>—</td>${q.histGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
+        <tr class="subtotal"><td>Avg Dividend Growth</td><td colspan="${yrs.length-1}"></td><td>${fmt(q.histGrowths.reduce((a,b)=>a+b,0)/q.histGrowths.length,1)}% p.a.</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:.75rem;padding:.65rem .9rem;background:var(--violet-l);border:1px solid var(--violet-m);border-radius:9px;font-size:.75rem;color:#5b21b6;line-height:1.7">
+      <strong>Note:</strong> Dividend growth here is historical. The model uses the <strong>assumed future growth rate</strong> given in the parameters panel — do not use the average of historical growth directly.
+    </div>`;
+
+  // Income Statement Tab
+  document.getElementById('tab-is').innerHTML = `
+    <table class="fin-table">
+      <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>
+      <tbody>
+        <tr><td>Revenue</td><td>£${fmt(q.baseRev,0)}m</td></tr>
+        <tr><td>Net Margin</td><td>${fmtP(q.netMargin)}</td></tr>
+        <tr class="subtotal"><td>Net Income</td><td>£${fmt(q.netIncome,0)}m</td></tr>
+        <tr><td>Shares Outstanding</td><td>${fmt(q.shares,0)}m</td></tr>
+        <tr><td>Earnings Per Share</td><td>${fmtPx(q.eps0)}</td></tr>
+        <tr><td>Payout Ratio</td><td>${q.payoutPct}%</td></tr>
+        <tr><td>Retention Ratio (b)</td><td>${q.retainPct}%</td></tr>
+        <tr><td>Return on Equity (ROE)</td><td>${fmtP(q.roe)}</td></tr>
+        <tr class="total-row"><td>Dividend Per Share (D₀)</td><td>${fmtPx(q.d0)}</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:.75rem;padding:.65rem .9rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;font-size:.75rem;color:#166534;line-height:1.7">
+      <strong>Sustainable Growth Rate:</strong> g = b × ROE = ${q.retainPct}% × ${fmtP(q.roe)} = <strong>${fmtP(q.gSust,2)}</strong>
+    </div>`;
+
+  // Projections Tab — depends on mode
+  let projHTML = '';
+  if(mode === 'gordon') {
+    projHTML = `
+      <div class="stage-box">
+        <div class="stage-title">Gordon Growth Model — Single Stage</div>
+        <table class="fin-table">
+          <thead><tr><th>Item</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>D₀ (Current Dividend)</td><td>${fmtPx(q.d0)}</td></tr>
+            <tr><td>g (Assumed Growth Rate)</td><td>${fmtP(q.gGordon)}</td></tr>
+            <tr><td>D₁ = D₀ × (1+g)</td><td style="color:var(--violet);font-weight:700">${fmtPx(q.d1_gordon)}</td></tr>
+            <tr><td>Ke (Cost of Equity)</td><td>${fmtP(q.ke)}</td></tr>
+            <tr class="total-row"><td>P₀ = D₁ ÷ (Ke − g)</td><td>${fmtPx(q.p_gordon)}</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+  } else if(mode === 'two') {
+    const yrsLabels = Array.from({length:q.stageYrs},(_,i)=>`Y${i+1}`);
+    projHTML = `
+      <div class="stage-box">
+        <div class="stage-title">Stage 1: High Growth (${fmtP(q.gHigh)} for ${q.stageYrs} years)</div>
+        <table class="fin-table">
+          <thead><tr><th>Year</th>${yrsLabels.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
+          <tbody>
+            <tr><td>Dividend (p)</td>${q.stageDivs.map(v=>`<td>${fmtPx(v)}</td>`).join('')}</tr>
+            <tr class="subtotal"><td>PV of Dividend</td>${q.stagePVs.map(v=>`<td>${fmtPx(v)}</td>`).join('')}</tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="stage-box" style="margin-top:.75rem">
+        <div class="stage-title">Stage 2: Stable Growth (${fmtP(q.gStable)} forever)</div>
+        <table class="fin-table">
+          <thead><tr><th>Item</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>D<sub>N+1</sub> (first stable dividend)</td><td>${fmtPx(q.dStable1)}</td></tr>
+            <tr><td>Terminal Price (Gordon at Year ${q.stageYrs})</td><td>${fmtPx(q.terminalP)}</td></tr>
+            <tr class="total-row"><td>PV of Terminal Price</td><td>${fmtPx(q.pvTerminal)}</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+  } else { // H-Model
+    projHTML = `
+      <div class="stage-box">
+        <div class="stage-title">H-Model Parameters</div>
+        <table class="fin-table">
+          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>D₀ (Current Dividend)</td><td>${fmtPx(q.d0)}</td></tr>
+            <tr><td>gS (Initial High Growth Rate)</td><td>${fmtP(q.gS_h)}</td></tr>
+            <tr><td>gL (Long-Run Stable Growth)</td><td>${fmtP(q.gL_h)}</td></tr>
+            <tr><td>H (Half-life of high growth, years)</td><td>${q.H}</td></tr>
+            <tr><td>Ke (Cost of Equity)</td><td>${fmtP(q.ke)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:.75rem;padding:.65rem .9rem;background:#0f172a;border-radius:9px;font-family:var(--mono);font-size:.75rem;color:#94a3b8;line-height:2">
+        <span style="color:#c084fc">P₀</span> = [D₀(1+gL) ÷ (Ke−gL)] + [D₀ × H × (gS−gL) ÷ (Ke−gL)]<br>
+        <span style="color:#475569">// Stable component + Extra growth premium</span>
+      </div>`;
+  }
+  document.getElementById('tab-proj').innerHTML = projHTML;
+}
+
+function renderGivenInfo() {
+  let cards = `
+    <div class="info-card highlight"><div class="info-label">D₀ (Current DPS)</div><div class="info-val">${fmtPx(q.d0)}</div></div>
+    <div class="info-card highlight"><div class="info-label">Ke (Cost of Equity)</div><div class="info-val">${fmtP(q.ke)}</div></div>
+    <div class="info-card"><div class="info-label">EPS</div><div class="info-val">${fmtPx(q.eps0)}</div></div>
+    <div class="info-card"><div class="info-label">Payout Ratio</div><div class="info-val">${q.payoutPct}%</div></div>`;
+
+  if(mode === 'gordon') {
+    cards += `
+    <div class="info-card highlight"><div class="info-label">Growth Rate (g)</div><div class="info-val">${fmtP(q.gGordon)}</div></div>
+    <div class="info-card"><div class="info-label">Ke − g (spread)</div><div class="info-val">${fmtP(q.ke - q.gGordon)}</div></div>`;
+  } else if(mode === 'two') {
+    cards += `
+    <div class="info-card" style="background:#fee2e2;border-color:#fca5a5"><div class="info-label">Stage 1 Growth (gH)</div><div class="info-val" style="color:#991b1b">${fmtP(q.gHigh)}</div></div>
+    <div class="info-card highlight"><div class="info-label">Stage 2 Growth (gL)</div><div class="info-val">${fmtP(q.gStable)}</div></div>
+    <div class="info-card"><div class="info-label">High-Growth Years</div><div class="info-val">${q.stageYrs}</div></div>`;
+  } else {
+    cards += `
+    <div class="info-card" style="background:#fee2e2;border-color:#fca5a5"><div class="info-label">Initial Growth (gS)</div><div class="info-val" style="color:#991b1b">${fmtP(q.gS_h)}</div></div>
+    <div class="info-card highlight"><div class="info-label">Long-Run Growth (gL)</div><div class="info-val">${fmtP(q.gL_h)}</div></div>
+    <div class="info-card"><div class="info-label">Half-Life (H)</div><div class="info-val">${q.H} yrs</div></div>`;
+  }
+  document.getElementById('givenGrid').innerHTML = cards;
+  document.getElementById('hintBox').textContent = q.hint;
+}
+
+function renderAnswerInputs() {
+  let inputs = [];
+  if(mode === 'gordon') {
+    inputs = [
+      { id:'ans-d1',    label:'Next Year Dividend (D₁ = D₀ × (1+g))',   unit:'p' },
+      { id:'ans-price', label:'Intrinsic Share Price P₀ = D₁ ÷ (Ke−g)', unit:'p' },
+    ];
+  } else if(mode === 'two') {
+    inputs = [
+      { id:'ans-pvdivs',    label:`Sum of PV(Dividends) over ${q.stageYrs} high-growth years`, unit:'p' },
+      { id:'ans-terminal',  label:`Terminal Price at Year ${q.stageYrs} (Gordon Growth)`,       unit:'p' },
+      { id:'ans-pvterm',    label:`PV of Terminal Price`,                                        unit:'p' },
+      { id:'ans-price',     label:`Intrinsic Share Price (PV Divs + PV Term)`,                  unit:'p' },
+    ];
+  } else {
+    inputs = [
+      { id:'ans-stable',  label:'Stable Component: D₀(1+gL) ÷ (Ke−gL)',          unit:'p' },
+      { id:'ans-extra',   label:'Extra Growth Premium: D₀ × H × (gS−gL) ÷ (Ke−gL)', unit:'p' },
+      { id:'ans-price',   label:'Intrinsic Share Price (Stable + Extra)',           unit:'p' },
+    ];
+  }
+  document.getElementById('answerSection').innerHTML = inputs.map(inp=>`
+    <div class="ans-row">
+      <span class="ans-label">${inp.label}</span>
+      <div class="ans-input-wrap">
+        <input type="number" class="ans-input" id="${inp.id}" placeholder="0.00" step="0.01">
+        <span class="ans-unit">${inp.unit}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFormulas() {
+  let box = '';
+  if(mode === 'gordon') {
+    box = `<span class="comment">// Gordon Growth Model (Single-Stage DDM)</span>
+
+<span class="kw">D₁</span>  = D₀ × (1 + g)
+<span class="kw">P₀</span>  = D₁ ÷ (Ke − g)
+
+<span class="comment">// where:</span>
+<span class="comment">//   D₀ = current dividend = ${fmtPx(q.d0)}</span>
+<span class="comment">//   g  = constant growth rate = ${fmtP(q.gGordon)}</span>
+<span class="comment">//   Ke = required return on equity = ${fmtP(q.ke)}</span>
+<span class="comment">// Ke must be > g for the model to work</span>
+
+<span class="kw">Sustainable g</span> = Retention Ratio × ROE
+             = ${q.retainPct}% × ${fmtP(q.roe)} = <span class="val">${fmtP(q.gSust,2)}</span>`;
+  } else if(mode === 'two') {
+    box = `<span class="comment">// Two-Stage DDM</span>
+
+<span class="kw">Stage 1:</span>  Discount each Dₜ at Ke for t = 1…${q.stageYrs}
+  PV(Dₜ) = Dₜ ÷ (1 + Ke)^t   [Ke = ${fmtP(q.ke)}]
+
+<span class="kw">Stage 2:</span>  Apply Gordon Growth from Year ${q.stageYrs}+1
+  P_N = D_{N+1} ÷ (Ke − gL)
+  PV(P_N) = P_N ÷ (1 + Ke)^N
+
+<span class="kw">P₀</span> = Σ PV(Dₜ) + PV(P_N)
+
+<span class="comment">// Stage 1 growth: ${fmtP(q.gHigh)} for ${q.stageYrs} years</span>
+<span class="comment">// Stage 2 growth: ${fmtP(q.gStable)} forever</span>`;
+  } else {
+    box = `<span class="comment">// H-Model (Gradual Decline from gS to gL)</span>
+
+<span class="kw">P₀</span> = [D₀(1+gL) ÷ (Ke−gL)]  ← stable component
+   + [D₀ × H × (gS−gL) ÷ (Ke−gL)]  ← extra premium
+
+<span class="comment">// Assumes growth declines linearly over 2H years</span>
+<span class="comment">// D₀ = ${fmtPx(q.d0)}</span>
+<span class="comment">// gS = ${fmtP(q.gS_h)}  (initial high growth)</span>
+<span class="comment">// gL = ${fmtP(q.gL_h)}  (long-run stable growth)</span>
+<span class="comment">// H  = ${q.H}    (half-life in years)</span>
+<span class="comment">// Ke = ${fmtP(q.ke)}</span>`;
+  }
+  document.getElementById('formulaBox').innerHTML = box;
+}
+
+// ─── CHECK ANSWERS ────────────────────────────────────────────────────────────
+function checkAnswers() {
+  if(answered) return;
+  answered = true;
+  const tol = difficulty==='easy' ? 5 : difficulty==='medium' ? 3 : 2; // % tolerance
+
+  let targets = {};
+  if(mode === 'gordon') {
+    targets = { 'ans-d1': q.d1_gordon, 'ans-price': q.p_gordon };
+  } else if(mode === 'two') {
+    targets = {
+      'ans-pvdivs':   q.pvStageSum,
+      'ans-terminal': q.terminalP,
+      'ans-pvterm':   q.pvTerminal,
+      'ans-price':    q.p_twostage
+    };
+  } else {
+    targets = {
+      'ans-stable': q.p_h_stable,
+      'ans-extra':  q.p_h_extra,
+      'ans-price':  q.p_h_model
+    };
+  }
+
+  let correct = 0, total = Object.keys(targets).length;
+  for(const [id, target] of Object.entries(targets)) {
+    const el = document.getElementById(id);
+    if(!el) continue;
+    const val = parseFloat(el.value);
+    if(isNaN(val)) continue;
+    const pct = Math.abs(val - target) / Math.abs(target) * 100;
+    if(pct <= tol) { el.classList.add('correct'); correct++; }
+    else { el.classList.add('wrong'); }
+  }
+
+  if(correct === total) {
+    score.correct++; score.streak++;
+    showBanner('pass', `🎯 All correct! Great valuation of ${q.coName}.`);
+  } else if(correct > 0) {
+    score.wrong++; score.streak=0;
+    showBanner('fail', `${correct}/${total} correct. Review the steps below.`);
+  } else {
+    score.wrong++; score.streak=0;
+    showBanner('fail', `No correct answers. Check the step-by-step solution below.`);
+  }
+  score.total++;
+  updateScoreUI();
+  showSolution();
+  updateProgress();
+}
+
+function revealAnswers() {
+  if(mode === 'gordon') {
+    document.getElementById('ans-d1').value    = fmt(q.d1_gordon,2);
+    document.getElementById('ans-price').value = fmt(q.p_gordon,1);
+  } else if(mode === 'two') {
+    document.getElementById('ans-pvdivs').value   = fmt(q.pvStageSum,2);
+    document.getElementById('ans-terminal').value = fmt(q.terminalP,1);
+    document.getElementById('ans-pvterm').value   = fmt(q.pvTerminal,1);
+    document.getElementById('ans-price').value    = fmt(q.p_twostage,1);
+  } else {
+    document.getElementById('ans-stable').value  = fmt(q.p_h_stable,1);
+    document.getElementById('ans-extra').value   = fmt(q.p_h_extra,1);
+    document.getElementById('ans-price').value   = fmt(q.p_h_model,1);
+  }
+  showBanner('info','Answers revealed. Study the steps below.');
+  showSolution();
+  answered = true;
+}
+
+function showBanner(type, msg) {
+  const b = document.getElementById('resultBanner');
+  b.className = `result-banner show ${type}`;
+  b.innerHTML = `<span>${type==='pass'?'✅':type==='fail'?'❌':'💡'}</span><span>${msg}</span>`;
+}
+
+function showSolution() {
+  document.getElementById('stepsPanel').style.display = 'block';
+  const steps = [];
+
+  if(mode === 'gordon') {
+    steps.push({t:'Calculate D₁ (next period dividend)', v:`D₁ = D₀ × (1+g) = ${fmtPx(q.d0)} × (1 + ${fmtP(q.gGordon)}) = ${fmtPx(q.d1_gordon)}`});
+    steps.push({t:'Apply Gordon Growth Model', v:`P₀ = D₁ ÷ (Ke − g) = ${fmtPx(q.d1_gordon)} ÷ (${fmtP(q.ke)} − ${fmtP(q.gGordon)}) = ${fmtPx(q.d1_gordon)} ÷ ${fmtP(q.ke - q.gGordon)} = ${fmtPx(q.p_gordon)}`});
+  } else if(mode === 'two') {
+    steps.push({t:`Forecast dividends in high-growth stage (${fmtP(q.gHigh)})`, v:q.stageDivs.map((d,i)=>`Y${i+1}: ${fmtPx(d)}`).join(' | ')});
+    steps.push({t:'Discount each dividend to PV', v:q.stagePVs.map((p,i)=>`PV(D${i+1}) = ${fmtPx(q.stageDivs[i])} ÷ (1+${fmtP(q.ke)})^${i+1} = ${fmtPx(p)}`).join(' | ')});
+    steps.push({t:'Sum of PV(Dividends)', v:`Σ PV(Dₜ) = ${fmtPx(q.pvStageSum)}`});
+    steps.push({t:`Terminal dividend D${q.stageYrs+1} (first stable-phase div)`, v:`D${q.stageYrs+1} = ${fmtPx(q.stageDivs[q.stageYrs-1])} × (1+${fmtP(q.gStable)}) = ${fmtPx(q.dStable1)}`});
+    steps.push({t:`Terminal Price at Year ${q.stageYrs} (Gordon Growth)`, v:`P_N = ${fmtPx(q.dStable1)} ÷ (${fmtP(q.ke)} − ${fmtP(q.gStable)}) = ${fmtPx(q.terminalP)}`});
+    steps.push({t:`PV of Terminal Price`, v:`PV(P_N) = ${fmtPx(q.terminalP)} ÷ (1+${fmtP(q.ke)})^${q.stageYrs} = ${fmtPx(q.pvTerminal)}`});
+    steps.push({t:'Intrinsic Share Price', v:`P₀ = ${fmtPx(q.pvStageSum)} + ${fmtPx(q.pvTerminal)} = ${fmtPx(q.p_twostage)}`});
+  } else {
+    steps.push({t:'Calculate stable-growth component', v:`D₀(1+gL) ÷ (Ke−gL) = ${fmtPx(q.d0)} × ${(1+q.gL_h/100).toFixed(4)} ÷ (${fmtP(q.ke)}−${fmtP(q.gL_h)}) = ${fmtPx(q.p_h_stable)}`});
+    steps.push({t:'Calculate extra growth premium', v:`D₀ × H × (gS−gL) ÷ (Ke−gL) = ${fmtPx(q.d0)} × ${q.H} × (${fmtP(q.gS_h)}−${fmtP(q.gL_h)}) ÷ (${fmtP(q.ke)}−${fmtP(q.gL_h)}) = ${fmtPx(q.p_h_extra)}`});
+    steps.push({t:'Intrinsic Share Price (H-Model)', v:`P₀ = ${fmtPx(q.p_h_stable)} + ${fmtPx(q.p_h_extra)} = ${fmtPx(q.p_h_model)}`});
+  }
+
+  document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
+    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('');
+  document.getElementById('stepsPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────────
+function updateChart() { showChart(activeChart); }
+
+function showChart(type, el=null) {
+  activeChart = type;
+  if(el) { document.querySelectorAll('.panel .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
+  if(mainChart){ mainChart.destroy(); mainChart=null; }
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const g1 = ctx.createLinearGradient(0,0,0,220); g1.addColorStop(0,'rgba(124,58,237,.25)'); g1.addColorStop(1,'rgba(124,58,237,.02)');
+  const base = {
+    responsive:true,maintainAspectRatio:false,animation:{duration:300},
+    plugins:{
+      legend:{labels:{font:{family:'IBM Plex Mono',size:10},color:'#64748b',boxWidth:10,padding:12}},
+      tooltip:{bodyFont:{family:'IBM Plex Mono',size:10},titleFont:{family:'Space Grotesk',size:10}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8'}},
+      y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:v=>`${v}p`}}
+    }
+  };
+
+  const histLabels = Array.from({length:q.histYrs},(_,i)=>`Y-${q.histYrs-i}`);
+  histLabels.push('Y0');
+
+  if(type === 'div') {
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:histLabels,datasets:[{label:'Dividend Per Share (p)',data:q.histDivs,backgroundColor:q.histDivs.map((_,i)=>i===q.histDivs.length-1?'rgba(124,58,237,.85)':'rgba(124,58,237,.45)'),borderRadius:5,borderSkipped:false}]},options:{...base}});
+    document.getElementById('chartNote').textContent = `Historical dividend trend for ${q.coName} — current DPS: ${fmtPx(q.d0)}`;
+  }
+  else if(type === 'pv') {
+    if(mode === 'gordon') {
+      // Show implied perpetuity: PV at each year if you sold then
+      const horizons = [1,2,3,4,5];
+      const prices = horizons.map(h=>{
+        const pvDivs = Array.from({length:h},(_,i)=>q.d1_gordon*Math.pow(1+q.gGordon/100,i)/Math.pow(1+q.ke/100,i+1)).reduce((a,b)=>a+b,0);
+        const pTerm = q.d1_gordon*Math.pow(1+q.gGordon/100,h)/(q.ke/100-q.gGordon/100)/Math.pow(1+q.ke/100,h);
+        return +(pvDivs+pTerm).toFixed(1);
+      });
+      mainChart = new Chart(ctx,{type:'line',data:{labels:horizons.map(h=>`Horizon Y${h}`),datasets:[{label:'P₀ (any horizon)',data:prices,borderColor:'#7c3aed',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base}});
+      document.getElementById('chartNote').textContent='DDM price is horizon-invariant — value converges to the same P₀';
+    } else if(mode === 'two') {
+      const cumPV = q.stagePVs.map((v,i)=>+q.stagePVs.slice(0,i+1).reduce((a,b)=>a+b,0).toFixed(2));
+      mainChart = new Chart(ctx,{type:'bar',data:{labels:Array.from({length:q.stageYrs},(_,i)=>`Y${i+1}`),datasets:[{label:'PV of Dividend',data:q.stagePVs,backgroundColor:'rgba(124,58,237,.7)',borderRadius:5},{label:'Cumulative PV',data:cumPV,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,fill:false}]},options:{...base}});
+      document.getElementById('chartNote').textContent=`Σ PV(Divs) = ${fmtPx(q.pvStageSum)} | PV Terminal = ${fmtPx(q.pvTerminal)}`;
+    } else {
+      mainChart = new Chart(ctx,{type:'bar',data:{labels:['Stable Component','Extra Growth Premium','Total P₀'],datasets:[{label:'Value (p)',data:[q.p_h_stable,q.p_h_extra,q.p_h_model],backgroundColor:['rgba(37,99,235,.75)','rgba(124,58,237,.75)','rgba(16,185,129,.75)'],borderRadius:6,borderSkipped:false}]},options:{...base}});
+      document.getElementById('chartNote').textContent=`H-Model decomposition: Stable ${fmtPx(q.p_h_stable)} + Extra ${fmtPx(q.p_h_extra)} = ${fmtPx(q.p_h_model)}`;
+    }
+  }
+  else if(type === 'bridge') {
+    const finalPrice = mode==='gordon'?q.p_gordon:mode==='two'?q.p_twostage:q.p_h_model;
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:['Current D₀','×(1+g)','D₁ Contribution','Discount Factor','Intrinsic Price'],datasets:[{label:'(p)',data:[q.d0,null,mode==='gordon'?q.d1_gordon:q.d0,null,finalPrice],backgroundColor:['rgba(124,58,237,.7)','transparent','rgba(37,99,235,.7)','transparent','rgba(16,185,129,.75)'],borderRadius:6,borderSkipped:false}]},options:{...base}});
+    document.getElementById('chartNote').textContent=`Intrinsic price = ${fmtPx(finalPrice)} | Current D₀ = ${fmtPx(q.d0)}`;
+  }
+  else if(type === 'sens') {
+    const keRange = [-2,-1,0,1,2].map(d=>+(q.ke+d).toFixed(1));
+    const getPrice = (keVal) => {
+      if(mode==='gordon') return +(q.d1_gordon / (keVal/100 - q.gGordon/100)).toFixed(1);
+      if(mode==='two') {
+        let pvs = 0; let dPrev = q.d0;
+        for(let i=1;i<=q.stageYrs;i++){dPrev=+(dPrev*(1+q.gHigh/100)).toFixed(2);pvs+=dPrev/Math.pow(1+keVal/100,i);}
+        const tv = dPrev*(1+q.gStable/100)/(keVal/100-q.gStable/100)/Math.pow(1+keVal/100,q.stageYrs);
+        return +(pvs+tv).toFixed(1);
+      }
+      return +(q.d0*(1+q.gL_h/100)/(keVal/100-q.gL_h/100) + q.d0*q.H*(q.gS_h/100-q.gL_h/100)/(keVal/100-q.gL_h/100)).toFixed(1);
+    };
+    const prices = keRange.map(getPrice);
+    mainChart = new Chart(ctx,{type:'line',data:{labels:keRange.map(k=>`${fmt(k,1)}%`),datasets:[{label:'Share Price (p)',data:prices,borderColor:'#7c3aed',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base,scales:{x:{...base.scales.x,title:{display:true,text:'Cost of Equity (Ke)',font:{size:9},color:'#64748b'}},y:{...base.scales.y}}}});
+    document.getElementById('chartNote').textContent=`Sensitivity to Ke — price rises sharply as Ke approaches g`;
+  }
+}
+
+// ─── MISC ─────────────────────────────────────────────────────────────────────
+function showTab(id, el) {
+  ['div','is','proj'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===id?'block':'none';});
+  document.querySelectorAll('.tab-bar .tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function toggleHint() {
+  const h = document.getElementById('hintBox');
+  h.classList.toggle('show');
+  document.querySelector('.hint-toggle').textContent = h.classList.contains('show') ? '🙈 Hide hint' : '💡 Show hint';
+}
+
+function updateScoreUI() {
+  document.getElementById('sc-correct').textContent = score.correct;
+  document.getElementById('sc-wrong').textContent   = score.wrong;
+  document.getElementById('sc-total').textContent   = score.total;
+  document.getElementById('sc-streak').textContent  = `${score.streak}🔥`;
+}
+
+function updateProgress() {
+  const pct = Math.min((score.total / 10) * 100, 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function setMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.mp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  newQuestion();
+}
+
+function setDifficulty(d, el) {
+  difficulty = d;
+  document.querySelectorAll('.dp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  newQuestion();
+}
+
+function newQuestion() {
+  q = generateQuestion();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+newQuestion();
+</script>
+
+<footer style="border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:.78rem;color:var(--muted)">
+  © 2026 Harsh Walia · DDM Practice Tool · All calculations are for educational purposes
+</footer>
+</body>
+</html>
