@@ -306,13 +306,13 @@
         <!-- Panel header + filter -->
         <div class="p-4 border-b border-blue-50">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="brand-font font-semibold text-gray-800">Event Archive</h2>
+            <h2 class="brand-font font-semibold text-gray-800">Policy Calendar</h2>
             <span class="text-xs text-gray-400 mono">Click → chart date</span>
           </div>
-          <!-- Honest labelling: this list is a fixed historical set, not a live feed.
-               Presenting Feb-Mar 2025 events under a "Live" badge was the problem. -->
-          <p class="text-xs text-gray-400 mb-2">Curated set, <span class="mono">Feb–Mar 2025</span>
-            &middot; historical reference, not a live feed</p>
+          <!-- Scheduled dates lead, outcomes follow. Scheduled entries are published a year
+               ahead so they do not rot; outcomes carry the issuing institution as the source. -->
+          <p class="text-xs text-gray-400 mb-2">Fed &middot; BoE &middot; BLS &mdash; scheduled dates
+            and verified outcomes. Updated <span class="mono">23 Sep 2026</span>. Not a live feed.</p>
           <!-- Category filters -->
           <div class="flex flex-wrap gap-1.5" id="filter-bar">
             <button class="filter-btn active text-xs px-2.5 py-1 rounded-full font-medium transition-all border"
@@ -353,127 +353,76 @@ let activeFilter  = 'all';
 // ── EVENTS DATA ───────────────────────────────────────────────────────────────
 // date format: YYYY-MM-DD  (used to build TradingView deep-link)
 const EVENTS = [
-  // 2025 ─────────────────────────────────────────────────────────────────
+  // ── Verified at source 23 Sep 2026. Past entries carry the issuing institution's own
+  //    figure; scheduled entries are published calendar dates.
+  //    Fed:  federalreserve.gov/monetarypolicy/openmarket.htm + fomccalendars.htm
+  //    BoE:  bankofengland.co.uk/monetary-policy/the-interest-rate-bank-rate
+  //          bankofengland.co.uk/monetary-policy/upcoming-mpc-dates
+  //    CPI:  bls.gov/news.release/cpi.nr0.htm + bls.gov/schedule/news_release/cpi.htm
+  //    When a scheduled date passes, replace it with the outcome AND its source.
+
+  // ── Scheduled ───────────────────────────────────────────────────────────
   {
-    id: 1, date: '2025-01-29', cat: 'fed',
-    title: 'FOMC Meeting — Rate Hold',
-    desc: 'Fed holds rates at 4.25–4.50%. Powell signals patience; no cuts imminent. Markets rally briefly then fade.',
+    id: 1, date: '2026-12-17', cat: 'boe',
+    title: 'BoE MPC — December decision',
+    desc: 'Final Monetary Policy Committee announcement of 2026. Scheduled date per the Bank of England.',
     impact: 'neutral'
   },
   {
-    id: 2, date: '2025-02-12', cat: 'cpi',
-    title: 'US CPI Jan 2025 — Hotter Than Expected',
-    desc: 'CPI prints +3.0% YoY vs 2.9% expected. Core CPI +3.3%. Risk-off selloff; 10Y yields spike to 4.65%.',
-    impact: 'negative'
-  },
-  {
-    id: 3, date: '2025-02-07', cat: 'jobs',
-    title: 'NFP Jan 2025 — Solid Beat',
-    desc: '256k jobs added vs 170k forecast. Unemployment steady at 4.1%. Pushes back rate-cut timeline.',
-    impact: 'mixed'
-  },
-  {
-    id: 4, date: '2025-03-19', cat: 'fed',
-    title: 'FOMC Meeting — Dot Plot Revised',
-    desc: 'Fed revises dot plot to signal 2 cuts in 2025, down from 3. Growth forecasts lowered; stagflation fears rise.',
-    impact: 'negative'
-  },
-  {
-    id: 5, date: '2025-02-02', cat: 'geo',
-    title: 'Trump Tariffs — Canada, Mexico, China',
-    desc: '25% tariffs on Canada & Mexico; 10% on China announced. Markets drop sharply; DXY surges. Partial pause later announced.',
-    impact: 'negative'
-  },
-  {
-    id: 6, date: '2025-01-20', cat: 'geo',
-    title: 'Trump Inauguration',
-    desc: 'Trump sworn in as 47th president. Markets initially rally on deregulation hopes. Executive orders begin immediately.',
-    impact: 'positive'
-  },
-  {
-    id: 7, date: '2025-03-12', cat: 'cpi',
-    title: 'US CPI Feb 2025 — Softer Print',
-    desc: 'CPI +2.8% YoY vs 2.9% expected. Core CPI +3.1%. Modest relief rally in equities; bonds rally.',
-    impact: 'positive'
-  },
-  {
-    id: 8, date: '2025-02-06', cat: 'boe',
-    title: 'Bank of England — Rate Cut to 4.50%',
-    desc: 'BoE cuts by 25bps to 4.50% as expected. 2 of 9 MPC members voted for 50bps cut. GBP weakens vs USD.',
-    impact: 'mixed'
-  },
-  {
-    id: 9, date: '2025-01-30', cat: 'gdp',
-    title: 'US GDP Q4 2024 — Advance Estimate',
-    desc: 'Q4 GDP +2.3% annualised, below 2.6% consensus. Consumer spending strong but trade drag weighs.',
-    impact: 'mixed'
-  },
-  {
-    id: 10, date: '2025-03-07', cat: 'jobs',
-    title: 'NFP Feb 2025 — Miss',
-    desc: '151k jobs added vs 160k expected. DOGE layoffs begin to show in data. Unemployment ticks to 4.1%.',
-    impact: 'negative'
-  },
-  {
-    id: 11, date: '2025-02-26', cat: 'gdp',
-    title: 'US GDP Q4 2024 — Second Estimate',
-    desc: 'Revised to +2.3%, unchanged from advance. Business investment revised higher.',
+    id: 2, date: '2026-12-10', cat: 'cpi',
+    title: 'US CPI — November data',
+    desc: 'BLS release, 08:30 ET. Covers the November 2026 reference month.',
     impact: 'neutral'
   },
   {
-    id: 12, date: '2025-03-04', cat: 'geo',
-    title: 'Tariff Escalation — China Retaliates',
-    desc: 'China imposes counter-tariffs on US agricultural goods. S&P 500 falls ~1.8% on the day.',
-    impact: 'negative'
-  },
-  {
-    id: 13, date: '2025-02-19', cat: 'geo',
-    title: 'Nvidia Earnings Beat',
-    desc: 'Nvidia reports Q4 revenue $39.3B, crushing $38B estimates. AI capex cycle intact. NASDAQ surges +3%.',
-    impact: 'positive'
-  },
-  {
-    id: 14, date: '2025-01-23', cat: 'earn',
-    title: 'Netflix Q4 Earnings Beat',
-    desc: 'Netflix adds 19M subscribers vs 9M expected. EPS $4.27 vs $4.20 est. Stock +14% after-hours.',
-    impact: 'positive'
-  },
-  {
-    id: 15, date: '2025-02-05', cat: 'earn',
-    title: 'Alphabet / Meta Earnings',
-    desc: 'Both beat on EPS. Alphabet announces $75B capex plan; Meta $60–65B. AI spending dominates guidance.',
-    impact: 'positive'
-  },
-  // 2024 ─────────────────────────────────────────────────────────────────
-  {
-    id: 16, date: '2024-09-18', cat: 'fed',
-    title: 'Fed Cuts by 50bps — Pivot Begins',
-    desc: 'Fed surprises with 50bps cut to 4.75–5.00%. First cut since 2020. Equity markets initially rally then give back gains.',
-    impact: 'mixed'
-  },
-  {
-    id: 17, date: '2024-11-07', cat: 'fed',
-    title: 'FOMC — 25bps Cut Post-Election',
-    desc: 'Fed cuts 25bps to 4.50–4.75% as expected. Powell signals data-dependent path. Dollar surges post-Trump win.',
+    id: 3, date: '2026-12-09', cat: 'fed',
+    title: 'FOMC — December meeting (with projections)',
+    desc: 'Two-day meeting, 8–9 December. Accompanied by a Summary of Economic Projections, so the dot plot moves with it.',
     impact: 'neutral'
   },
   {
-    id: 18, date: '2024-12-18', cat: 'fed',
-    title: 'FOMC — December Cut + Hawkish Pivot',
-    desc: '25bps cut but dot plot signals only 2 cuts in 2025 vs 4 expected. S&P 500 falls 3% in single session.',
-    impact: 'negative'
+    id: 4, date: '2026-11-10', cat: 'cpi',
+    title: 'US CPI — October data',
+    desc: 'BLS release, 08:30 ET. Covers the October 2026 reference month.',
+    impact: 'neutral'
   },
   {
-    id: 19, date: '2024-11-05', cat: 'geo',
-    title: 'US Presidential Election — Trump Wins',
-    desc: 'Trump wins decisively. S&P 500 +2.5% next day. Dollar surges. Bond yields spike. "Trump trade" in full effect.',
-    impact: 'positive'
+    id: 5, date: '2026-11-05', cat: 'boe',
+    title: 'BoE MPC — November decision',
+    desc: 'Monetary Policy Committee announcement. Bank Rate currently 3.75%.',
+    impact: 'neutral'
   },
   {
-    id: 20, date: '2024-08-05', cat: 'geo',
-    title: 'Yen Carry Trade Unwind — "Black Monday"',
-    desc: 'BOJ rate hike + US recession fears trigger mass carry trade unwind. Nikkei −12%, VIX spikes to 65. S&P drops 3%.',
-    impact: 'negative'
+    id: 6, date: '2026-10-28', cat: 'fed',
+    title: 'FOMC — October meeting',
+    desc: 'Two-day meeting, 27–28 October. No Summary of Economic Projections at this one.',
+    impact: 'neutral'
+  },
+  {
+    id: 7, date: '2026-10-14', cat: 'cpi',
+    title: 'US CPI — September data',
+    desc: 'BLS release, 08:30 ET. Covers the September 2026 reference month. Next read on the 3.4% headline.',
+    impact: 'neutral'
+  },
+
+  // ── Occurred ────────────────────────────────────────────────────────────
+  {
+    id: 8, date: '2026-09-17', cat: 'fed',
+    title: 'FOMC — target range 3.75–4.00%',
+    desc: 'Federal funds target range set at 3.75–4.00%, effective 17 September 2026, following the 15–16 September meeting. Source: Federal Reserve open market operations page.',
+    impact: 'neutral'
+  },
+  {
+    id: 9, date: '2026-09-17', cat: 'boe',
+    title: 'BoE — Bank Rate held at 3.75%',
+    desc: 'MPC maintained Bank Rate at 3.75%, the third consecutive hold after June and July. Source: Bank of England.',
+    impact: 'neutral'
+  },
+  {
+    id: 10, date: '2026-09-11', cat: 'cpi',
+    title: 'US CPI August 2026 — 3.4% YoY',
+    desc: 'All-items CPI-U rose 3.4% over the 12 months to August. Core, excluding food and energy, rose 2.4%. Source: BLS news release.',
+    impact: 'neutral'
   },
 ];
 

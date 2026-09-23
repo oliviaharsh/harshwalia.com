@@ -24,13 +24,38 @@ if (!$ticker || !preg_match('/^[A-Z0-9.\-\^]{1,15}$/', $ticker)) {
    See config.example.php.
    ========================= */
 $FMP_API_KEY = getenv('FMP_API_KEY') ?: '';
-if ($FMP_API_KEY === '' && is_readable(__DIR__ . '/config.local.php')) {
-    $FMP_API_KEY = (string) require __DIR__ . '/config.local.php';
+
+if ($FMP_API_KEY === '') {
+    // Hostinger only exposes an Environment Variables UI for Node.js deployments, so on a
+    // static/PHP deploy getenv() will be empty. Read a file instead.
+    //
+    // Preferred location is ONE LEVEL ABOVE the web root: git deploys replace the contents
+    // of public_html, so anything inside it can be wiped on the next push, and anything
+    // committed to the repo is public. A file above the web root is neither.
+    $docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+    $candidates = [];
+    if ($docRoot !== '') {
+        $candidates[] = dirname($docRoot) . '/fmp-config.php';   // ../fmp-config.php  ← preferred
+    }
+    $candidates[] = __DIR__ . '/config.local.php';               // in-repo fallback, git-ignored
+
+    foreach ($candidates as $path) {
+        if (is_readable($path)) {
+            $FMP_API_KEY = trim((string) require $path);
+            if ($FMP_API_KEY !== '') {
+                break;
+            }
+        }
+    }
 }
+
 if ($FMP_API_KEY === '') {
     // Fail loudly. A silent empty key returns confusing upstream errors.
     http_response_code(500);
-    echo json_encode(['error' => 'FMP_API_KEY is not configured on this server']);
+    echo json_encode([
+        'error' => 'FMP_API_KEY is not configured on this server',
+        'hint'  => 'Create fmp-config.php one level above public_html, returning the key as a string.',
+    ]);
     exit;
 }
 
