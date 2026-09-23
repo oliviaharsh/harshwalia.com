@@ -134,7 +134,24 @@ by OLS on a pre-offer window.">
         .src-note strong { color: #374151; }
         .verify-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
                        padding: 14px 18px; font-size: 12.5px; line-height: 1.75; color: #78350f; }
-    </style>
+            /* ── Scroll affordance for wide tables on narrow screens ──
+           The comps tables are wider than a phone. They already scroll, but a column cut
+           mid-header reads as broken rather than swipeable. Classic scroll-shadow trick:
+           the white covers scroll WITH the content (background-attachment: local) while the
+           shadows stay pinned (scroll), so a shadow appears only on the side that still has
+           content off-screen and disappears at each end. No JS, no markup change. */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+            background:
+                linear-gradient(to right, #fff 30%, rgba(255,255,255,0)) left center,
+                linear-gradient(to left,  #fff 30%, rgba(255,255,255,0)) right center,
+                radial-gradient(farthest-side at 0 50%, rgba(37,99,235,0.18), transparent) left center,
+                radial-gradient(farthest-side at 100% 50%, rgba(37,99,235,0.18), transparent) right center;
+            background-repeat: no-repeat;
+            background-size: 36px 100%, 36px 100%, 12px 100%, 12px 100%;
+            background-attachment: local, local, scroll, scroll;
+        }
+</style>
 </head>
 
 <body class="bg-gray-50 text-gray-800">
