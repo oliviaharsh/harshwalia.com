@@ -428,7 +428,22 @@ const EVENTS = [
 ];
 
 // ── SORT by date descending ───────────────────────────────────────────────────
-EVENTS.sort((a,b) => new Date(b.date) - new Date(a.date));
+// Order the calendar the way an analyst reads it: the most recent results first, because
+// those are the current state of the world, then the schedule ahead in date order.
+// A plain descending sort put the December meeting above the September result.
+// Self-maintaining: as each scheduled date passes it moves into the results block on its own.
+(function sortCalendar() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const at = e => new Date(e.date + 'T00:00:00');
+  const isPast = e => at(e) <= today;
+  EVENTS.sort((a, b) => {
+    const pa = isPast(a), pb = isPast(b);
+    if (pa !== pb) return pa ? -1 : 1;    // results above schedule
+    return pa ? at(b) - at(a)             // results: newest first
+              : at(a) - at(b);            // schedule: soonest first
+  });
+})();
 
 // ── CAT CONFIG ────────────────────────────────────────────────────────────────
 const CAT = {
