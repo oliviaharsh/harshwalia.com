@@ -210,9 +210,9 @@
 
   <!-- Index selector + active info -->
   <div class="flex flex-wrap items-center gap-3 mb-5">
-    <button class="idx-tab active" onclick="switchIndex('SP1!','S&P 500','SPX','USD',true)" id="tab-sp">S&amp;P 500</button>
+    <button class="idx-tab active" onclick="switchIndex('CME_MINI:ES1!','S&P 500','ES1! &middot; CME','USD',true)" id="tab-sp">S&amp;P 500</button>
     <button class="idx-tab" onclick="switchIndex('NASDAQ:NDX','NASDAQ 100','NDX','USD',false)" id="tab-ndx">NASDAQ 100</button>
-    <button class="idx-tab" onclick="switchIndex('SPREADEX:FTSE','FTSE 100','UKX','GBP',false)" id="tab-ftse">FTSE 100</button>
+    <button class="idx-tab" onclick="switchIndex('TVC:UKX','FTSE 100','UKX &middot; FTSE','GBP',false)" id="tab-ftse">FTSE 100</button>
 
     <div class="ml-auto hidden sm:flex items-center gap-2 text-xs text-gray-400 mono">
       <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -231,7 +231,7 @@
         <div class="flex items-center justify-between mb-3">
           <div>
             <span class="brand-font font-bold text-lg text-gray-800" id="chart-label">S&amp;P 500</span>
-            <span class="ml-2 text-xs text-gray-400 mono" id="chart-sym">SP1! · CME</span>
+            <span class="ml-2 text-xs text-gray-400 mono" id="chart-sym">ES1! · CME</span>
           </div>
           <div class="flex items-center gap-1.5 text-xs text-green-600 font-medium bg-green-50 px-2.5 py-1 rounded-full">
             <span class="live-dot" style="background:#10b981"></span> Live
@@ -342,12 +342,12 @@
 <script>
 // ── INDEX CONFIG ──────────────────────────────────────────────────────────────
 const INDICES = {
-  'SP1!':          { label: 'S&P 500',     sym: 'SP1! · CME',          tv: 'SP1!',              tab: 'tab-sp'   },
+  'CME_MINI:ES1!': { label: 'S&P 500',     sym: 'ES1! · CME',          tv: 'CME_MINI:ES1!',     tab: 'tab-sp'   },
   'NASDAQ:NDX':    { label: 'NASDAQ 100',  sym: 'NASDAQ:NDX',          tv: 'NASDAQ:NDX',         tab: 'tab-ndx'  },
-  'SPREADEX:FTSE': { label: 'FTSE 100',    sym: 'SPREADEX:FTSE',       tv: 'SPREADEX:FTSE',      tab: 'tab-ftse' },
+  'TVC:UKX':       { label: 'FTSE 100',    sym: 'UKX · FTSE',          tv: 'TVC:UKX',           tab: 'tab-ftse' },
 };
 
-let currentSymbol = 'SP1!';
+let currentSymbol = 'CME_MINI:ES1!';
 let activeFilter  = 'all';
 
 // ── EVENTS DATA ───────────────────────────────────────────────────────────────
@@ -593,7 +593,7 @@ function filterEvents(cat, btn) {
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  loadChart('SP1!');
+  loadChart('CME_MINI:ES1!');
   renderEvents('all');
 });
 </script>
