@@ -33,11 +33,22 @@ if ($FMP_API_KEY === '') {
     // of public_html, so anything inside it can be wiped on the next push, and anything
     // committed to the repo is public. A file above the web root is neither.
     $docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+    $home    = rtrim((string) (getenv('HOME') ?: ($_SERVER['HOME'] ?? '')), '/');
+
+    // Layouts differ between Hostinger plans: public_html sometimes sits directly in the
+    // account root, sometimes under domains/<site>/. Check the plausible parents rather
+    // than assuming one.
     $candidates = [];
     if ($docRoot !== '') {
-        $candidates[] = dirname($docRoot) . '/fmp-config.php';   // ../fmp-config.php  ← preferred
+        $candidates[] = dirname($docRoot) . '/fmp-config.php';           // ← preferred
+        $candidates[] = dirname(dirname($docRoot)) . '/fmp-config.php';
     }
-    $candidates[] = __DIR__ . '/config.local.php';               // in-repo fallback, git-ignored
+    if ($home !== '') {
+        $candidates[] = $home . '/fmp-config.php';
+    }
+    $candidates[] = __DIR__ . '/config.local.php';   // in-repo fallback, git-ignored
+
+    $candidates = array_values(array_unique($candidates));
 
     foreach ($candidates as $path) {
         if (is_readable($path)) {
@@ -50,12 +61,15 @@ if ($FMP_API_KEY === '') {
 }
 
 if ($FMP_API_KEY === '') {
-    // Fail loudly. A silent empty key returns confusing upstream errors.
+    // Fail loudly, and say where the file is expected. Paths only — never the key itself.
+    // Once the key is in place this branch is unreachable; trim the detail then if you like.
     http_response_code(500);
     echo json_encode([
-        'error' => 'FMP_API_KEY is not configured on this server',
-        'hint'  => 'Create fmp-config.php one level above public_html, returning the key as a string.',
-    ]);
+        'error'    => 'FMP_API_KEY is not configured on this server',
+        'hint'     => 'Create fmp-config.php at the first path below. It must return the key as a string.',
+        'expected' => $candidates[0] ?? 'unknown',
+        'searched' => $candidates,
+    ], JSON_UNESCAPED_SLASHES);
     exit;
 }
 
