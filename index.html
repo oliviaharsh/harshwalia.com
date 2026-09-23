@@ -22,7 +22,6 @@
 
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -61,12 +60,6 @@
         #projectModal .python-output { background:#f1f5f9; }
         .mobile-menu { display:none; }
         .mobile-menu.active { display:flex; }
-        .article-prose h2 { font-size:1.875rem; font-weight:700; color:#1e3a8a; margin-top:2rem; margin-bottom:1rem; }
-        .article-prose h3 { font-size:1.5rem; font-weight:600; color:#2563eb; margin-top:1.5rem; margin-bottom:0.75rem; }
-        .article-prose p { margin-bottom:1rem; line-height:1.8; color:#374151; }
-        .article-prose ul { list-style-type:disc; padding-left:1.5rem; margin-bottom:1rem; }
-        .article-prose li { margin-bottom:0.5rem; color:#374151; }
-        .article-prose strong { color:#1e40af; font-weight:600; }
 
         /* ── Research badges ── */
         .badge-undervalued { background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#065f46; border:1px solid #6ee7b7; }
@@ -98,7 +91,6 @@
                 </a>
                 <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
                     <button onclick="showSection('home')"     class="nav-link hover:text-blue-600 transition text-gray-600">Projects</button>
-                    <button onclick="showSection('blog')"     class="nav-link hover:text-blue-600 transition text-gray-600">Insights</button>
                     <button onclick="showSection('research')" class="nav-link hover:text-blue-600 transition text-gray-600">Research</button>
                     <a href="markets.html" class="nav-link hover:text-blue-600 transition text-gray-600">Markets</a>
                     <button onclick="showSection('about')"    class="nav-link hover:text-blue-600 transition text-gray-600">About</button>
@@ -111,7 +103,6 @@
             </div>
             <div id="mobileMenu" class="mobile-menu flex-col space-y-3 mt-4 pb-4 border-t border-blue-100 pt-4 md:hidden">
                 <button onclick="showSection('home');     toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Projects</button>
-                <button onclick="showSection('blog');     toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Insights</button>
                 <button onclick="showSection('research'); toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Research</button>
                 <a href="markets.html" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">Markets</a>
                 <button onclick="showSection('about');    toggleMobileMenu();" class="nav-link hover:text-blue-600 transition text-gray-600 text-left py-2">About</button>
@@ -141,7 +132,6 @@
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button onclick="showSection('home')" class="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all hover:scale-105 shadow-lg shadow-blue-500/25">View Projects</button>
                     <button onclick="showSection('research')" class="px-8 py-4 border border-blue-600 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all text-blue-600 bg-white">Investment Research</button>
-                    <button onclick="showSection('blog')" class="px-8 py-4 border border-blue-200 rounded-lg font-semibold hover:border-blue-500 hover:text-blue-600 transition-all text-gray-700 bg-white">Read Insights</button>
                 </div>
             </div>
         </div>
@@ -154,26 +144,6 @@
             <p class="text-gray-500">Valuation models and tools I have built</p>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="projectsGrid"></div>
-    </section>
-
-    <!-- ═══ BLOG ═══ -->
-    <section id="blog" class="hidden py-20 px-6 max-w-7xl mx-auto">
-        <div class="mb-12 flex justify-between items-end">
-            <div>
-                <h2 class="text-3xl font-bold mb-4 text-gray-900">Market Insights</h2>
-                <p class="text-gray-500">Shorter notes on things I have been reading about</p>
-            </div>
-        </div>
-        <div class="grid md:grid-cols-2 gap-8" id="blogGrid"></div>
-    </section>
-
-    <!-- ═══ BLOG ARTICLE ═══ -->
-    <section id="blogArticle" class="hidden py-20 px-6 max-w-4xl mx-auto">
-        <button onclick="showSection('blog')" class="mb-8 flex items-center gap-2 text-blue-600 hover:text-blue-700 transition font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Back to Insights
-        </button>
-        <article id="articleContent" class="article-prose"></article>
     </section>
 
     <!-- ═══ INVESTMENT RESEARCH ═══ -->
@@ -235,7 +205,7 @@
                     <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mb-8 flex items-center justify-center text-4xl font-bold brand-font text-white shadow-lg shadow-blue-500/30">HW</div>
                     <h2 id="about-name"  class="text-3xl font-bold mb-4 text-gray-900"></h2>
                     <p  id="about-title" class="text-blue-600 font-medium mb-6"></p>
-                    <p  id="about-bio"   class="text-gray-600 leading-relaxed mb-8"></p>
+                    <div id="about-bio" class="text-gray-600 leading-relaxed mb-8 space-y-4"></div>
                     <div class="flex gap-4">
                         <a href="https://www.linkedin.com/in/harsh-walia-fin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-blue-600">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
@@ -320,21 +290,6 @@
             title: 'Securitisation Dashboard',
             summary: 'How a securitisation is structured and priced, with a runnable simulation.',
             color: 'cyan', icon: 'chart'
-        }
-    ];
-
-    // ────────────────────────────────────────────────
-    // BLOG
-    // ────────────────────────────────────────────────
-    const blogPosts = [
-        {
-            id: 'value-investing',
-            title: 'The Resurgence of Value Investing',
-            category: 'Equity Research',
-            date: 'Jan 15, 2026',
-            excerpt: 'Analysis of value factor performance in the current rate environment...',
-            color: 'blue',
-            content: `## Why Value Is Back\n\nAfter a decade of **growth dominance**, value stocks are outperforming.\n\n### Key Drivers\n- Higher interest rates\n- Mean reversion in multiples\n- Earnings breadth improving`
         }
     ];
 
@@ -604,7 +559,7 @@
     // ────────────────────────────────────────────────
     // NAVIGATION
     // ────────────────────────────────────────────────
-    const ALL_SECTIONS = ['hero','home','blog','research','about','blogArticle'];
+    const ALL_SECTIONS = ['hero','home','research','about'];
 
     function hideAll() {
         ALL_SECTIONS.forEach(id => {
@@ -663,50 +618,6 @@
     }
 
     // ────────────────────────────────────────────────
-    // BLOG RENDER
-    // ────────────────────────────────────────────────
-    function renderBlog() {
-        document.getElementById('blogGrid').innerHTML = blogPosts.map(post => `
-            <article onclick="openBlog('${post.id}')" class="glass-panel rounded-2xl overflow-hidden hover:border-blue-300 transition-all cursor-pointer group">
-                <div class="h-48 bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center border-b border-blue-100"><svg class="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 15l4-5 3 3 5-7"/></svg></div>
-                <div class="p-8">
-                    <div class="flex items-center gap-4 mb-4 text-xs text-gray-500">
-                        <span class="px-3 py-1 bg-blue-100 rounded-full text-blue-600 font-medium">${post.category}</span>
-                        <span>${post.date}</span>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 group-hover:text-blue-600 transition text-gray-900">${post.title}</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed mb-4">${post.excerpt||''}</p>
-                </div>
-            </article>
-        `).join('');
-    }
-
-    function stripIndent(str='') {
-        str = str.replace(/^\n/,'');
-        const indents = str.match(/^[ \t]*(?=\S)/gm);
-        const min = indents ? Math.min(...indents.map(s=>s.length)) : 0;
-        return str.replace(new RegExp(`^[ \\t]{${min}}`,'gm'),'').trim();
-    }
-
-    function openBlog(id) {
-        const post = blogPosts.find(p=>p.id===id);
-        if (!post) return;
-        hideAll();
-        const art = document.getElementById('blogArticle');
-        art.style.display = 'block';
-        art.classList.add('slide-in');
-        document.getElementById('articleContent').innerHTML = `
-            <div class="mb-8">
-                <span class="px-3 py-1 bg-blue-100 rounded-full text-blue-600 font-medium text-sm">${post.category}</span>
-                <span class="text-gray-400 text-sm ml-4">${post.date}</span>
-            </div>
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-8">${post.title}</h1>
-            ${marked.parse(stripIndent(post.content||''))}
-        `;
-        window.scrollTo({ top:0, behavior:'smooth' });
-    }
-
-    // ────────────────────────────────────────────────
     // DATA LOADING + ABOUT
     // ────────────────────────────────────────────────
     async function loadSiteData() {
@@ -717,14 +628,8 @@
                 if (d.about) populateAbout(d.about);
                 if (Array.isArray(d.projects)) { projects.length=0; projects.push(...d.projects); }
             }
-            const blogsRes = await fetch('./assets/blogs/data.json', { cache:'no-store' });
-            if (blogsRes.ok) {
-                const d = await blogsRes.json();
-                if (Array.isArray(d.blogPosts)) { blogPosts.length=0; blogPosts.push(...d.blogPosts); }
-            }
         } catch(e) { console.error('Site data load failed:', e); }
         renderProjects();
-        renderBlog();
 
         // ── Restore research section if returning from a report page ──
         const goTo = sessionStorage.getItem('openSection');
@@ -738,7 +643,17 @@
         if (!about) return;
         document.getElementById('about-name').textContent  = about.name  || '';
         document.getElementById('about-title').textContent = about.title || '';
-        document.getElementById('about-bio').textContent   = about.bio   || '';
+        // The bio is a list of paragraphs. Each is written with textContent, not innerHTML,
+        // so the copy stays plain data and cannot inject markup. A plain string still works.
+        const bioEl = document.getElementById('about-bio');
+        bioEl.innerHTML = '';
+        (Array.isArray(about.bio) ? about.bio : [about.bio || ''])
+            .filter(Boolean)
+            .forEach(text => {
+                const para = document.createElement('p');
+                para.textContent = text;
+                bioEl.appendChild(para);
+            });
         const sc = document.getElementById('skills-container');
         sc.innerHTML = '';
         (about.technicalSkills||[]).forEach(skill=>{

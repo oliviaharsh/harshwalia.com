@@ -167,7 +167,6 @@
       </a>
       <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
         <a href="index.html" class="nav-link hover:text-blue-600 transition text-gray-600">Projects</a>
-        <a href="index.html#blog" class="nav-link hover:text-blue-600 transition text-gray-600">Insights</a>
         <a href="index.html#about" class="nav-link hover:text-blue-600 transition text-gray-600">About</a>
         <span class="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-700 flex items-center gap-1.5">
           <span class="live-dot"></span> Live chart
@@ -313,20 +312,24 @@
                ahead so they do not rot; outcomes carry the issuing institution as the source. -->
           <p class="text-xs text-gray-400 mb-2">Fed, BoE and BLS. Scheduled dates and verified
             outcomes. Updated <span class="mono">23 Sep 2026</span>. Not a live feed.</p>
-          <!-- Category filters -->
-          <div class="flex flex-wrap gap-1.5" id="filter-bar">
+          <!-- Filters. Two groups: when an event falls (Upcoming / Past) and who issues it.
+               Jobs, GDP and Macro buttons were removed because no event carries those
+               categories, so they rendered an empty list; BoE was added because four
+               events use it and there was no way to reach them. -->
+          <div class="flex flex-wrap items-center gap-1.5" id="filter-bar">
             <button class="filter-btn active text-xs px-2.5 py-1 rounded-full font-medium transition-all border"
               style="background:#2563EB;color:white;border-color:#2563EB" onclick="filterEvents('all',this)">All</button>
             <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('upcoming',this)">Upcoming</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('past',this)">Past</button>
+            <span class="self-stretch w-px bg-blue-100 mx-1" aria-hidden="true"></span>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
               onclick="filterEvents('fed',this)">Fed</button>
             <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
+              onclick="filterEvents('boe',this)">BoE</button>
+            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
               onclick="filterEvents('cpi',this)">CPI</button>
-            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
-              onclick="filterEvents('jobs',this)">Jobs</button>
-            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
-              onclick="filterEvents('gdp',this)">GDP</button>
-            <button class="filter-btn text-xs px-2.5 py-1 rounded-full font-medium transition-all border border-blue-100 text-gray-500 bg-white hover:border-blue-300"
-              onclick="filterEvents('geo',this)">Macro</button>
           </div>
         </div>
 
@@ -432,16 +435,22 @@ const EVENTS = [
 // those are the current state of the world, then the schedule ahead in date order.
 // A plain descending sort put the December meeting above the September result.
 // Self-maintaining: as each scheduled date passes it moves into the results block on its own.
-(function sortCalendar() {
+// The helpers are module scope, not local to the sort, because the Upcoming and Past
+// filters have to split the list on exactly the same boundary the sort used. Two separate
+// definitions of "past" would drift apart the first time either one is edited.
+const eventDate = e => new Date(e.date + 'T00:00:00');
+function isPastEvent(e) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const at = e => new Date(e.date + 'T00:00:00');
-  const isPast = e => at(e) <= today;
+  return eventDate(e) <= today;
+}
+
+(function sortCalendar() {
   EVENTS.sort((a, b) => {
-    const pa = isPast(a), pb = isPast(b);
-    if (pa !== pb) return pa ? -1 : 1;    // results above schedule
-    return pa ? at(b) - at(a)             // results: newest first
-              : at(a) - at(b);            // schedule: soonest first
+    const pa = isPastEvent(a), pb = isPastEvent(b);
+    if (pa !== pb) return pa ? -1 : 1;              // results above schedule
+    return pa ? eventDate(b) - eventDate(a)         // results: newest first
+              : eventDate(a) - eventDate(b);        // schedule: soonest first
   });
 })();
 
@@ -522,7 +531,20 @@ function switchIndex(symbol, label, sym, currency, isFirst) {
 // ── RENDER EVENTS ─────────────────────────────────────────────────────────────
 function renderEvents(filter) {
   const list = document.getElementById('event-list');
-  const items = filter === 'all' ? EVENTS : EVENTS.filter(e => e.cat === filter);
+
+  // EVENTS is already sorted results-first-newest then schedule-soonest, so slicing it by
+  // time needs no second sort: Upcoming comes out ascending, Past descending, which is the
+  // order each one should read in.
+  let items;
+  if (filter === 'upcoming')    items = EVENTS.filter(e => !isPastEvent(e));
+  else if (filter === 'past')   items = EVENTS.filter(e =>  isPastEvent(e));
+  else if (filter === 'all')    items = EVENTS;
+  else                          items = EVENTS.filter(e => e.cat === filter);
+
+  if (!items.length) {
+    list.innerHTML = '<p class="text-xs text-gray-400 px-2 py-6 text-center">Nothing in this filter yet.</p>';
+    return;
+  }
 
   list.innerHTML = items.map(ev => {
     const cat = CAT[ev.cat] || CAT.geo;
