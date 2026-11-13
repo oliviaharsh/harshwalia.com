@@ -174,6 +174,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 .fade-in{animation:fadeUp .35s ease both}
 .loading{animation:pulse 1s infinite}
 </style>
+<style>
+/* Valuation Practice switcher, shared by the DCF, DDM and residual income pages */
+.vp-switch{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem;width:fit-content;max-width:100%;padding:.25rem;margin-bottom:1rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px}
+.vp-switch .vp-tab{padding:.45rem .9rem;border-radius:9px;font-size:.8rem;font-weight:600;color:#475569;text-decoration:none;white-space:nowrap;transition:background .15s,color .15s}
+.vp-switch .vp-tab:hover{color:#2563eb;background:#fff}
+.vp-switch .vp-tab.active{background:#2563eb;color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.3)}
+/* Phone fix: let grid columns shrink below their content, and scroll wide tables inside their panel */
+.main-grid>*{min-width:0}
+@media(max-width:700px){.fin-table{display:block;overflow-x:auto;white-space:nowrap}.panel-head{flex-wrap:wrap;gap:.5rem}.tab-bar{flex-wrap:wrap}}
+</style>
 </head>
 <body>
 
@@ -186,7 +196,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 </nav>
 
 <div class="hero">
-  <div class="hero-badge">📊 Interactive · Unlimited Practice · AI-Powered</div>
+  <div class="vp-switch" role="navigation" aria-label="Valuation practice">
+    <a href="dcf-practice.html" class="vp-tab active" aria-current="page">DCF</a>
+    <a href="ddm-practice.html" class="vp-tab">Dividend discount</a>
+    <a href="residual-practice.html" class="vp-tab">Residual income</a>
+  </div>
+  <div class="hero-badge">📊 Valuation Practice · DCF</div>
   <h1>DCF <span>Practice</span> Tool</h1>
   <p>Master discounted cash flow valuation through unlimited randomised exercises. Choose your mode, crunch the numbers, and build real-world intuition, one company at a time.</p>
 
@@ -341,134 +356,180 @@ let mainChart = null, activeChart = 'fcf', activeTab = 'is';
 let answered = false, fcfVisible = true;
 
 // ─── COMPANIES POOL ──────────────────────────────────────────────────────────
-const SECTORS = ['Technology','Healthcare','Consumer Staples','Industrials','Energy','Financials','Utilities','Materials'];
+// Banks are not valued on free cash flow to the firm, so there is no Financials sector here.
+const SECTORS = ['Technology','Healthcare','Consumer Staples','Industrials','Energy','Telecoms','Utilities','Travel & Leisure'];
 const CO_NAMES = [
   ['NovaTech Systems','TechCore Inc','DataStream Ltd','CloudPeak Corp'],
   ['MedVault PLC','BioNova Group','HealthBridge Inc','CurePoint Ltd'],
   ['FreshHold Corp','PurePack PLC','DailyBrands Inc','StapleCo Ltd'],
   ['PrecisionWorks','IndustriFlex','BuildRight Corp','MetroFab Ltd'],
   ['SolarRidge Energy','CoalDelta Corp','GreenFlux PLC','TerraOil Ltd'],
-  ['FirstCapital PLC','TrustVault Corp','MeridianBank','AlphaFund Ltd'],
+  ['SignalWave PLC','FibreLink Group','OrbitConnect Ltd','ClearLine Telecom'],
   ['PowerGrid Corp','AquaFlow PLC','EcoGen Ltd','GridTrust Inc'],
-  ['MineCo PLC','AlloyWorks Corp','CarbonCraft Ltd','RockCore Inc']
+  ['SkyHarbour Airways','Wayfarer Travel PLC','BlueRoute Air','StayNest Group']
+];
+// Sector operating profiles, all as % of revenue.
+// nwc: net working capital balance. Travel is negative because customers pay before they fly or stay.
+// da: depreciation & amortisation. capexAdd: capex above D&A at the starting growth rate.
+// life: average asset life in years (PP&E is roughly D&A x life).
+const PROFILES = [
+  {nwc:[5,15],   da:[3,6],   capexAdd:[1,3],   margin:[15,30], life:[5,8]},
+  {nwc:[10,20],  da:[3,6],   capexAdd:[1,3],   margin:[12,25], life:[8,12]},
+  {nwc:[3,10],   da:[2,4],   capexAdd:[0.5,2], margin:[10,18], life:[10,15]},
+  {nwc:[12,22],  da:[3,5],   capexAdd:[1,2.5], margin:[8,16],  life:[10,15]},
+  {nwc:[5,12],   da:[6,10],  capexAdd:[1,4],   margin:[10,22], life:[12,18]},
+  {nwc:[-5,5],   da:[12,18], capexAdd:[1,4],   margin:[12,22], life:[8,12]},
+  {nwc:[0,8],    da:[6,10],  capexAdd:[2,5],   margin:[15,25], life:[20,30]},
+  {nwc:[-15,-5], da:[6,9],   capexAdd:[1,3],   margin:[6,14],  life:[10,15]}
 ];
 
 // ─── RANDOM HELPERS ───────────────────────────────────────────────────────────
 const rnd  = (lo,hi,dec=0) => +( lo + Math.random()*(hi-lo) ).toFixed(dec);
 const rndI = (lo,hi) => Math.floor(lo + Math.random()*(hi-lo+1));
+const r1   = (n) => +n.toFixed(1);
 const fmt  = (n,dec=1) => n.toFixed(dec);
-const fmtM = (n) => `£${fmt(n)}m`;
+const fmtM = (n) => n < 0 ? `−£${fmt(-n)}m` : `£${fmt(n)}m`;
 const fmtP = (n) => `${fmt(n,1)}%`;
-const pv   = (fcf,r) => fcf / (1+r);
+
+// ─── VALUATION ────────────────────────────────────────────────────────────────
+// Values the projected FCFs at a given WACC (in %). Each step is rounded to 0.1,
+// the same way the step-by-step solution shows it.
+function valueAt(qq, w) {
+  const pvFCFs = qq.projFCFs.map((f,i) => r1(f / Math.pow(1+w/100, i+1)));
+  const pvSum  = r1(pvFCFs.reduce((a,b)=>a+b,0));
+  const lastFCF = qq.projFCFs[qq.projYrs-1];
+  const termVal = r1(lastFCF * (1+qq.tg/100) / (w/100 - qq.tg/100));
+  const pvTV   = r1(termVal / Math.pow(1+w/100, qq.projYrs));
+  const ev     = r1(pvSum + pvTV);
+  const equity = r1(ev - qq.grossDebt + qq.cash);
+  const price  = qq.shares ? Math.round(equity / qq.shares * 100) : 0;
+  return { pvFCFs, pvSum, termVal, pvTV, ev, equity, price };
+}
 
 // ─── GENERATE QUESTION ────────────────────────────────────────────────────────
 function generateQuestion() {
+  for (let k = 0; k < 300; k++) { const qq = tryQuestion(); if (qq) return qq; }
+  return tryQuestion(true);
+}
+
+function tryQuestion(force=false) {
   const secIdx = rndI(0,7);
   const sector = SECTORS[secIdx];
-  const names  = CO_NAMES[secIdx];
-  const coName = names[rndI(0,names.length-1)];
+  const prof   = PROFILES[secIdx];
+  const coName = CO_NAMES[secIdx][rndI(0,3)];
 
-  // Difficulty params
   const dMap = {
-    easy:   { projYrs:3, revGrowLo:3,  revGrowHi:8,  marginLo:12, marginHi:22, waccLo:7,  waccHi:10, tgLo:2,  tgHi:3  },
-    medium: { projYrs:5, revGrowLo:5,  revGrowHi:14, marginLo:10, marginHi:25, waccLo:8,  waccHi:13, tgLo:2,  tgHi:3.5},
-    hard:   { projYrs:7, revGrowLo:8,  revGrowHi:20, marginLo:8,  marginHi:30, waccLo:9,  waccHi:16, tgLo:1.5,tgHi:4  }
+    easy:   { projYrs:3, g1:[4,8],   shift:0, wacc:[7,10],  tg:[2,3]   },
+    medium: { projYrs:5, g1:[6,14],  shift:3, wacc:[8,12],  tg:[2,3]   },
+    hard:   { projYrs:7, g1:[10,20], shift:5, wacc:[9,14],  tg:[1.5,3.5] }
   };
-  const d = dMap[difficulty];
+  const d = dMap[difficulty], n = d.projYrs;
 
-  // Base financials (last year actuals)
+  // Operating assumptions
+  const taxRate  = rnd(19, 28, 1);
+  const daPct    = rnd(prof.da[0], prof.da[1], 1);
+  const capexAdd = rnd(prof.capexAdd[0], prof.capexAdd[1], 1);
+  const nwcPct   = rnd(prof.nwc[0], prof.nwc[1], 1);
+  const tg       = rnd(d.tg[0], d.tg[1], 1);
+
+  // Growth fades in a straight line from year 1 towards the terminal rate,
+  // instead of falling off a cliff after the last forecast year.
+  const g1 = rnd(d.g1[0], d.g1[1], 1);
+  const gN = Math.min(g1, r1(tg + rnd(0.5, 2, 1)));
+  const revGrowths = Array.from({length:n}, (_,i) => n===1 ? g1 : r1(g1 + (gN-g1) * i/(n-1)));
+
+  // EBIT margin moves in a straight line from the base year to a target (flat on easy).
+  const baseMargin = rnd(prof.margin[0], prof.margin[1], 1);
+  const targetMargin = d.shift ? Math.min(prof.margin[1]+2, Math.max(prof.margin[0]-2, r1(baseMargin + rnd(-d.shift, d.shift, 1)))) : baseMargin;
+  const margins = Array.from({length:n}, (_,i) => r1(baseMargin + (targetMargin-baseMargin) * (i+1)/n));
+
+  // Base year (actuals)
   const baseRev    = rnd(300, 2500, 0);
-  const ebitMargin = rnd(d.marginLo, d.marginHi, 1);
-  const ebit       = +(baseRev * ebitMargin / 100).toFixed(1);
-  const taxRate    = rnd(18, 28, 1);
-  const nopat      = +(ebit * (1 - taxRate/100)).toFixed(1);
-  const daPercent  = rnd(3, 8, 1);
-  const da         = +(baseRev * daPercent / 100).toFixed(1);
-  const capexPct   = rnd(4, 10, 1);
-  const capex      = +(baseRev * capexPct / 100).toFixed(1);
-  const wcPct      = rnd(1, 4, 1);
-  const wcChange   = +(baseRev * wcPct / 100).toFixed(1);
-  const baseFCF    = +(nopat + da - capex - wcChange).toFixed(1);
+  const baseGrowth = Math.max(1, r1(g1 + rnd(-1, 1, 1)));
+  const prevRev    = r1(baseRev / (1 + baseGrowth/100));
+  const baseEbit   = r1(baseRev * baseMargin/100);
+  const baseTax    = r1(baseEbit * taxRate/100);
+  const baseNopat  = r1(baseEbit - baseTax);
+  const baseDA     = r1(baseRev * daPct/100);
+  const baseCapex  = r1(baseRev * (daPct + capexAdd * baseGrowth/g1)/100);
+  const baseDNWC   = r1(nwcPct/100 * (baseRev - prevRev));
+  const baseFCF    = r1(baseNopat + baseDA - baseCapex - baseDNWC);
 
-  // Growth rates per year
-  const revGrowths = Array.from({length:d.projYrs}, () => rnd(d.revGrowLo, d.revGrowHi, 1));
-
-  // Project FCFs
-  let projRev = baseRev, projFCFs = [], projRevs = [], pvFCFs = [];
-  const wacc = rnd(d.waccLo, d.waccHi, 1);
-  const tg   = rnd(d.tgLo, d.tgHi, 1);
-
-  for(let i=0; i<d.projYrs; i++) {
-    projRev = +(projRev * (1 + revGrowths[i]/100)).toFixed(1);
-    projRevs.push(projRev);
-    const fcf = +(projRev * (ebitMargin/100) * (1-taxRate/100) + projRev*daPercent/100 - projRev*capexPct/100 - projRev*wcPct/100).toFixed(1);
-    projFCFs.push(fcf);
-    pvFCFs.push(+(fcf / Math.pow(1+wacc/100, i+1)).toFixed(1));
+  // Projections
+  const projRev=[], projEbit=[], projTax=[], projNopat=[], projDA=[], projCapex=[], projDNWC=[], projFCFs=[];
+  let rev = baseRev;
+  for (let i = 0; i < n; i++) {
+    const prior = rev;
+    rev = r1(prior * (1 + revGrowths[i]/100));
+    const ebit  = r1(rev * margins[i]/100);
+    const tax   = r1(ebit * taxRate/100);
+    const nopat = r1(ebit - tax);
+    const da    = r1(rev * daPct/100);
+    // Capex sits above D&A to fund growth; the gap narrows as growth slows.
+    const capex = r1(rev * (daPct + capexAdd * revGrowths[i]/g1)/100);
+    // Working capital investment follows the CHANGE in revenue, not its level.
+    const dnwc  = r1(nwcPct/100 * (rev - prior));
+    projRev.push(rev); projEbit.push(ebit); projTax.push(tax); projNopat.push(nopat);
+    projDA.push(da); projCapex.push(capex); projDNWC.push(dnwc);
+    projFCFs.push(r1(nopat + da - capex - dnwc));
   }
 
-  const pvSum      = +pvFCFs.reduce((a,b)=>a+b,0).toFixed(1);
-  const lastFCF    = projFCFs[projFCFs.length-1];
-  const termVal    = +(lastFCF * (1+tg/100) / (wacc/100 - tg/100)).toFixed(1);
-  const pvTV       = +(termVal / Math.pow(1+wacc/100, d.projYrs)).toFixed(1);
-  const evEnterprise = +(pvSum + pvTV).toFixed(1);
-  // Split into gross debt and cash (net debt = debt - cash)
-  const grossDebt  = rnd(100, 800, 0);
-  const cash       = rnd(20, Math.min(300, grossDebt*0.6), 0);
-  const netDebt    = +(grossDebt - cash).toFixed(0);
-  const shares     = rnd(50, 800, 0);
-  const equityVal  = +(evEnterprise - grossDebt + cash).toFixed(1); // EV - Debt + Cash
-  const pricePerShare = +(equityVal / shares * 100).toFixed(0); // pence
-
-  // Balance sheet items
-  const ppe     = +(baseRev * rnd(0.3,0.8,2)).toFixed(0);
-  const intang  = +(baseRev * rnd(0.1,0.3,2)).toFixed(0);
-  const currAssets = +(baseRev * rnd(0.4,0.7,2)).toFixed(0);
-  const totalAssets = ppe + intang + currAssets + rndI(50,200);
-  const longDebtVal = +netDebt.toFixed(0);
-  const equity_bs  = +(totalAssets * rnd(0.4,0.7,2)).toFixed(0);
-
-  // WACC components (for build mode)
-  const debtRatio  = rnd(20,45,1);
-  const equityRatio= +(100-debtRatio).toFixed(1);
-  const costDebt   = rnd(3.5,7.5,1);
-  const beta       = rnd(0.6,1.8,2);
-  const riskFree   = rnd(3.5,4.5,1);
-  const mktPremium = rnd(5.0,7.0,1);
+  // Discount rates
+  const wacc       = rnd(d.wacc[0], d.wacc[1], 1);
+  const riskFree   = rnd(3.5, 4.5, 1);
+  const beta       = rnd(0.6, 1.6, 2);
+  const mktPremium = rnd(5.0, 6.5, 1);
+  const costDebt   = r1(riskFree + rnd(1, 3, 1));
+  const debtRatio  = rnd(15, 45, 1);
+  const equityRatio= r1(100 - debtRatio);
   const costEquity = +(riskFree + beta*mktPremium).toFixed(2);
   const waccCalc   = +(equityRatio/100*costEquity + debtRatio/100*costDebt*(1-taxRate/100)).toFixed(2);
 
-  // In Full Model / Build WACC mode, the student calculates WACC themselves (waccCalc).
-  // So ALL correct answers (pvFCFs, termVal, pvTV, EV, equity, price) must use waccCalc,
-  // NOT the randomly generated wacc. We recalculate them here.
-  const pvFCFs_calc = projFCFs.map((fcf, i) => +(fcf / Math.pow(1 + waccCalc/100, i+1)).toFixed(1));
-  const pvSum_calc  = +pvFCFs_calc.reduce((a,b)=>a+b,0).toFixed(1);
-  const lastFCF_val = projFCFs[projFCFs.length-1];
-  const termVal_calc   = +(lastFCF_val * (1+tg/100) / (waccCalc/100 - tg/100)).toFixed(1);
-  const pvTV_calc      = +(termVal_calc / Math.pow(1+waccCalc/100, projFCFs.length)).toFixed(1);
-  const ev_calc        = +(pvSum_calc + pvTV_calc).toFixed(1);
-  const equityVal_calc = +(ev_calc - grossDebt + cash).toFixed(1);
-  const price_calc     = +(equityVal_calc / shares * 100).toFixed(0);
+  // Capital structure
+  const grossDebt = Math.round(baseRev * rnd(0.1, 0.7, 2));
+  const cash      = Math.round(grossDebt * rnd(0.1, 0.6, 2));
+  const netDebt   = grossDebt - cash;
 
-  return {
-    coName, sector, secIdx,
-    baseRev, ebitMargin, ebit, taxRate, nopat, da, daPercent, capex, capexPct, wcChange, wcPct, baseFCF,
-    revGrowths, projRev: projRevs, projFCFs,
-    // wacc-based (used for mode=given display and charts when WACC is given)
-    pvFCFs, pvSum, termVal, pvTV,
-    evEnterprise, netDebt, shares, equityVal, pricePerShare,
-    // waccCalc-based (used for mode=build/full correct answers)
-    pvFCFs_calc, pvSum_calc, termVal_calc, pvTV_calc,
-    ev_calc, equityVal_calc, price_calc,
-    wacc, tg, projYrs: d.projYrs,
-    ppe, intang, currAssets, totalAssets, longDebtVal, equity_bs,
-    debtRatio, equityRatio, costDebt, beta, riskFree, mktPremium, costEquity, waccCalc,
-    hint: buildHint(wacc, tg, pvSum, pvTV, d.projYrs),
-    grossDebt, cash, netDebt
-  };
+  const qq = { coName, sector, secIdx, projYrs:n, taxRate, daPct, capexAdd, nwcPct, tg,
+    baseRev, prevRev, baseGrowth, baseMargin, targetMargin, baseEbit, baseTax, baseNopat, baseDA, baseCapex, baseDNWC, baseFCF,
+    revGrowths, margins, projRev, projEbit, projTax, projNopat, projDA, projCapex, projDNWC, projFCFs,
+    wacc, riskFree, beta, mktPremium, costDebt, debtRatio, equityRatio, costEquity, waccCalc,
+    grossDebt, cash, netDebt, shares:0 };
+
+  // Share count chosen so the WACC-given answer lands at a realistic price.
+  const pre = valueAt(qq, wacc);
+  qq.shares = Math.max(10, Math.round(pre.equity * 100 / rnd(150, 1500, 0)));
+  qq.given = valueAt(qq, wacc);
+  qq.calc  = valueAt(qq, waccCalc);
+
+  // Balance sheet that adds up. NWC on the balance sheet equals nwcPct of revenue.
+  const life     = rnd(prof.life[0], prof.life[1], 0);
+  qq.ppe         = Math.round(baseDA * life);
+  qq.intang      = Math.round(baseRev * rnd(0.05, 0.3, 2));
+  qq.opCA        = Math.round(baseRev * (Math.max(nwcPct,0)/100 + rnd(0.08, 0.2, 2)));
+  qq.nwcBal      = Math.round(baseRev * nwcPct/100);
+  qq.opCL        = qq.opCA - qq.nwcBal;
+  qq.otherNCL    = Math.round(baseRev * rnd(0.02, 0.1, 2));
+  qq.totalAssets = qq.ppe + qq.intang + qq.opCA + cash;
+  qq.equity_bs   = qq.totalAssets - qq.opCL - grossDebt - qq.otherNCL;
+
+  if (!force) {
+    if (wacc - tg < 3 || waccCalc - tg < 3) return null;
+    if (projFCFs[n-1] <= 0) return null;
+    if (qq.given.equity < 0.15*qq.given.ev || qq.calc.equity < 0.15*qq.calc.ev) return null;
+    if (qq.given.price < 50 || qq.calc.price < 50) return null;
+    if (qq.equity_bs < 0.1*qq.totalAssets) return null;
+  }
+  return qq;
 }
 
-function buildHint(wacc, tg, pvSum, pvTV, yrs) {
-  return `DCF = PV of FCFs + PV of Terminal Value. Discount each FCF by (1+WACC)^t. Terminal Value = FCF_${yrs} × (1+g) ÷ (WACC−g). Then subtract net debt to get equity value, divide by shares for price per share.`;
+// Values the student is being marked on: WACC given, or their own WACC in the build modes.
+const usingCalc = () => mode !== 'given';
+const V = () => usingCalc() ? q.calc : q.given;
+const usedWACC = () => usingCalc() ? q.waccCalc : q.wacc;
+
+function buildHint() {
+  return `FCF = NOPAT + D&A − Capex − increase in NWC. Discount each year's FCF by (1+WACC)^t. Terminal value = FCF in year ${q.projYrs} × (1+g) ÷ (WACC − g), discounted by (1+WACC)^${q.projYrs}. EV − gross debt + cash = equity value; divide by shares and ×100 for pence.`;
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -488,14 +549,13 @@ function render() {
 
 function renderCompanyHeader() {
   const sectorColors = ['#2563eb','#059669','#d97706','#7c3aed','#dc2626','#0891b2','#16a34a','#9f1239'];
-  const c = sectorColors[q.secIdx % sectorColors.length];
   document.getElementById('coHeader').innerHTML = `
     <div class="co-header">
       <div class="co-name">${q.coName}</div>
       <div class="co-sector">${q.sector} · ${difficulty.toUpperCase()} · ${q.projYrs}-Year Projection</div>
       <div class="co-kpis">
         <div class="co-kpi"><div class="co-kpi-label">Base Revenue</div><div class="co-kpi-val">${fmtM(q.baseRev)}</div></div>
-        <div class="co-kpi"><div class="co-kpi-label">EBIT Margin</div><div class="co-kpi-val">${fmtP(q.ebitMargin)}</div></div>
+        <div class="co-kpi"><div class="co-kpi-label">Base EBIT Margin</div><div class="co-kpi-val">${fmtP(q.baseMargin)}</div></div>
         <div class="co-kpi"><div class="co-kpi-label">Tax Rate</div><div class="co-kpi-val">${fmtP(q.taxRate)}</div></div>
       </div>
     </div>`;
@@ -503,8 +563,12 @@ function renderCompanyHeader() {
   document.getElementById('diffTag').className = `diff-tag ${difficulty}`;
 }
 
+// Cash-flow cell for an amount that is deducted: a positive number is an outflow.
+const outCell = (v) => v >= 0 ? `<td class="neg">(${fmtM(v)})</td>` : `<td class="pos">+${fmtM(-v)}</td>`;
+
 function renderTabs() {
   const yrs = Array.from({length:q.projYrs},(_,i)=>`Y${i+1}`);
+  const rv  = fcfVisible ? ' revealed' : '';
   const fcfToggleBar = `
     <div class="fcf-toggle-bar">
       <span class="fcf-toggle-label">⚠️ Hide FCF rows, calculate them yourself</span>
@@ -513,25 +577,28 @@ function renderTabs() {
         <span class="toggle-slider"></span>
       </label>
     </div>`;
+  const nwcNote = q.nwcPct < 0 ? 'customers pay in advance' : 'of revenue';
 
-  // Income Statement, FCF rows get class fcf-hidden-row
   document.getElementById('tab-is').innerHTML = fcfToggleBar + `
+    <div style="overflow-x:auto">
     <table class="fin-table">
       <thead><tr><th>Line Item</th><th>Base Year</th>${yrs.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
       <tbody>
         <tr><td>Revenue</td><td>${fmtM(q.baseRev)}</td>${q.projRev.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
-        <tr><td class="indent">Revenue Growth</td><td class="neg">—</td>${q.revGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
-        <tr><td>EBIT (${fmtP(q.ebitMargin)} margin)</td><td>${fmtM(q.ebit)}</td>${q.projRev.map(v=>`<td>${fmtM(+(v*q.ebitMargin/100).toFixed(1))}</td>`).join('')}</tr>
-        <tr><td>Tax (${fmtP(q.taxRate)})</td><td class="neg">(${fmtM(+(q.ebit*q.taxRate/100).toFixed(1))})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.ebitMargin/100*q.taxRate/100).toFixed(1))})</td>`).join('')}</tr>
-        <tr class="subtotal"><td>NOPAT</td><td>${fmtM(q.nopat)}</td>${q.projFCFs.map((v,i)=>`<td>${fmtM(+(q.projRev[i]*q.ebitMargin/100*(1-q.taxRate/100)).toFixed(1))}</td>`).join('')}</tr>
-        <tr><td>+ D&A (${fmtP(q.daPercent)} of Rev)</td><td>${fmtM(q.da)}</td>${q.projRev.map(v=>`<td>${fmtM(+(v*q.daPercent/100).toFixed(1))}</td>`).join('')}</tr>
-        <tr><td>− CapEx (${fmtP(q.capexPct)} of Rev)</td><td class="neg">(${fmtM(q.capex)})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.capexPct/100).toFixed(1))})</td>`).join('')}</tr>
-        <tr><td>− ΔWorking Capital (${fmtP(q.wcPct)} of Rev)</td><td class="neg">(${fmtM(q.wcChange)})</td>${q.projRev.map(v=>`<td class="neg">(${fmtM(+(v*q.wcPct/100).toFixed(1))})</td>`).join('')}</tr>
-        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Free Cash Flow</td><td>${fmtM(q.baseFCF)}</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td class="indent">Revenue Growth</td><td>+${fmt(q.baseGrowth,1)}%</td>${q.revGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
+        <tr><td class="indent">EBIT Margin</td><td>${fmtP(q.baseMargin)}</td>${q.margins.map(v=>`<td>${fmtP(v)}</td>`).join('')}</tr>
+        <tr><td>EBIT</td><td>${fmtM(q.baseEbit)}</td>${q.projEbit.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td>Tax on EBIT (${fmtP(q.taxRate)})</td><td class="neg">(${fmtM(q.baseTax)})</td>${q.projTax.map(v=>`<td class="neg">(${fmtM(v)})</td>`).join('')}</tr>
+        <tr class="subtotal"><td>NOPAT</td><td>${fmtM(q.baseNopat)}</td>${q.projNopat.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td>+ D&A (${fmtP(q.daPct)} of Rev)</td><td>${fmtM(q.baseDA)}</td>${q.projDA.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
+        <tr><td>− Capex</td><td class="neg">(${fmtM(q.baseCapex)})</td>${q.projCapex.map(v=>`<td class="neg">(${fmtM(v)})</td>`).join('')}</tr>
+        <tr><td>− Increase in NWC (NWC ${fmtP(q.nwcPct)}, ${nwcNote})</td>${outCell(q.baseDNWC)}${q.projDNWC.map(outCell).join('')}</tr>
+        <tr class="total-row fcf-hidden-row${rv}"><td>Free Cash Flow</td><td>${fmtM(q.baseFCF)}</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
       </tbody>
-    </table>`;
+    </table>
+    </div>
+    <div style="margin-top:.6rem;font-size:.72rem;color:var(--muted);line-height:1.6">Capex runs above D&A while the company grows and converges towards it as growth fades. The NWC line is NWC % × (this year's revenue − last year's revenue).</div>`;
 
-  // Balance Sheet, separate debt and cash
   document.getElementById('tab-bs').innerHTML = `
     <table class="fin-table">
       <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>
@@ -539,30 +606,31 @@ function renderTabs() {
         <tr><td colspan="2" style="padding:.4rem .75rem"><div class="section-label" style="margin:0">Assets</div></td></tr>
         <tr><td>PP&E (net)</td><td>${fmtM(q.ppe)}</td></tr>
         <tr><td>Intangibles & Goodwill</td><td>${fmtM(q.intang)}</td></tr>
-        <tr><td>Current Assets (excl. cash)</td><td>${fmtM(+(q.currAssets - q.cash).toFixed(0))}</td></tr>
-        <tr class="subtotal"><td>Cash & Equivalents</td><td>${fmtM(q.cash)}</td></tr>
+        <tr><td>Receivables & Inventory</td><td>${fmtM(q.opCA)}</td></tr>
+        <tr><td>Cash & Equivalents</td><td>${fmtM(q.cash)}</td></tr>
         <tr class="total-row"><td>Total Assets</td><td>${fmtM(q.totalAssets)}</td></tr>
         <tr><td colspan="2" style="padding:.4rem .75rem"><div class="section-label" style="margin:0">Liabilities & Equity</div></td></tr>
-        <tr><td>Gross Debt (bonds + loans)</td><td class="neg">${fmtM(q.grossDebt)}</td></tr>
-        <tr><td>Other Liabilities</td><td>${fmtM(+(q.totalAssets - q.grossDebt - q.equity_bs).toFixed(0))}</td></tr>
+        <tr><td>Payables, Accruals & Deferred Revenue</td><td>${fmtM(q.opCL)}</td></tr>
+        <tr><td>Gross Debt (bonds + loans)</td><td>${fmtM(q.grossDebt)}</td></tr>
+        <tr><td>Other Non-current Liabilities</td><td>${fmtM(q.otherNCL)}</td></tr>
         <tr class="subtotal"><td>Shareholders' Equity</td><td>${fmtM(q.equity_bs)}</td></tr>
-        <tr class="total-row"><td>Total L + E</td><td>${fmtM(q.totalAssets)}</td></tr>
+        <tr class="total-row"><td>Total L + E</td><td>${fmtM(q.opCL + q.grossDebt + q.otherNCL + q.equity_bs)}</td></tr>
       </tbody>
     </table>
     <div style="margin-top:.75rem;padding:.65rem .9rem;background:var(--blue-l);border:1px solid var(--blue-m);border-radius:9px;font-size:.75rem;color:#1e40af;line-height:1.7">
+      <strong>Net working capital:</strong> ${fmtM(q.opCA)} − ${fmtM(q.opCL)} = ${fmtM(q.nwcBal)}, which is ${fmtP(q.nwcPct)} of revenue.<br>
       <strong>Bridge reminder:</strong> Equity Value = EV − Gross Debt + Cash &nbsp;|&nbsp; Net Debt = ${fmtM(q.grossDebt)} − ${fmtM(q.cash)} = ${fmtM(q.netDebt)}
     </div>`;
 
-  // Cash Flow
   document.getElementById('tab-cf').innerHTML = `
     <table class="fin-table">
       <thead><tr><th>Line Item</th><th>Base Year</th></tr></thead>
       <tbody>
-        <tr><td>Net Operating Profit After Tax (NOPAT)</td><td>${fmtM(q.nopat)}</td></tr>
-        <tr><td>+ Depreciation & Amortisation</td><td>${fmtM(q.da)}</td></tr>
-        <tr><td>− Capital Expenditure</td><td class="neg">(${fmtM(q.capex)})</td></tr>
-        <tr><td>− Change in Working Capital</td><td class="neg">(${fmtM(q.wcChange)})</td></tr>
-        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Free Cash Flow to Firm</td><td>${fmtM(q.baseFCF)}</td></tr>
+        <tr><td>Net Operating Profit After Tax (NOPAT)</td><td>${fmtM(q.baseNopat)}</td></tr>
+        <tr><td>+ Depreciation & Amortisation</td><td>${fmtM(q.baseDA)}</td></tr>
+        <tr><td>− Capital Expenditure</td><td class="neg">(${fmtM(q.baseCapex)})</td></tr>
+        <tr><td>− Increase in Net Working Capital</td>${outCell(q.baseDNWC)}</tr>
+        <tr class="total-row fcf-hidden-row${rv}"><td>Free Cash Flow to Firm</td><td>${fmtM(q.baseFCF)}</td></tr>
       </tbody>
     </table>
     <div style="margin-top:1rem;padding:.65rem .9rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px">
@@ -575,28 +643,28 @@ function renderTabs() {
       </div>
     </div>`;
 
-  // Projections Summary
+  const v = V();
+  const pvRows = answered ? `
+        <tr class="subtotal"><td>PV of FCF @ ${fmtP(usedWACC())}</td>${v.pvFCFs.map(x=>`<td>${fmtM(x)}</td>`).join('')}</tr>
+        <tr class="total-row"><td>Sum PV(FCFs)</td>${Array.from({length:q.projYrs},(_,i)=>i===q.projYrs-1?`<td>${fmtM(v.pvSum)}</td>`:`<td>—</td>`).join('')}</tr>` : '';
   document.getElementById('tab-proj').innerHTML = `
+    <div style="overflow-x:auto">
     <table class="fin-table">
-      <thead><tr><th>Year</th>${Array.from({length:q.projYrs},(_,i)=>`<th>Y${i+1}</th>`).join('')}</tr></thead>
+      <thead><tr><th>Year</th>${yrs.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
       <tbody>
-        <tr><td>Revenue</td>${q.projRev.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
-        <tr><td>Growth</td>${q.revGrowths.map(v=>`<td class="pos">+${fmt(v,1)}%</td>`).join('')}</tr>
-        <tr class="fcf-hidden-row${fcfVisible?' revealed':''}"><td>FCF</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
-        <tr class="subtotal fcf-hidden-row${fcfVisible?' revealed':''}"><td>PV of FCF</td>${q.pvFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
-        <tr class="total-row fcf-hidden-row${fcfVisible?' revealed':''}"><td>Sum PV(FCFs)</td>${Array.from({length:q.projYrs},(_,i)=>i===q.projYrs-1?`<td>${fmtM(q.pvSum)}</td>`:`<td>—</td>`).join('')}</tr>
+        <tr><td>Revenue</td>${q.projRev.map(x=>`<td>${fmtM(x)}</td>`).join('')}</tr>
+        <tr><td>Growth</td>${q.revGrowths.map(x=>`<td class="pos">+${fmt(x,1)}%</td>`).join('')}</tr>
+        <tr class="fcf-hidden-row${rv}"><td>FCF</td>${q.projFCFs.map(x=>`<td>${fmtM(x)}</td>`).join('')}</tr>${pvRows}
       </tbody>
     </table>
-    <div style="margin-top:.75rem;font-size:.72rem;color:var(--muted);text-align:center">Toggle FCF visibility using the switch on the Income Statement tab</div>`;
+    </div>
+    <div style="margin-top:.75rem;font-size:.72rem;color:var(--muted);text-align:center">${answered ? 'Present values at the WACC you are marked on.' : 'Present values appear here once you check or reveal your answers.'}</div>`;
 }
 
 function renderGivenInfo() {
-  const isGiven = mode === 'given' || mode === 'full';
   const waccRow = mode === 'given'
     ? `<div class="info-card highlight"><div class="info-label">WACC (given)</div><div class="info-val">${fmtP(q.wacc)}</div></div>`
-    : mode === 'full'
-    ? `<div class="info-card" style="background:#f0fdf4;border-color:#bbf7d0"><div class="info-label">WACC</div><div class="info-val" style="color:#15803d">You calculate (CAPM) →</div></div>`
-    : `<div class="info-card" style="background:#fee2e2;border-color:#fca5a5"><div class="info-label">WACC</div><div class="info-val" style="color:#991b1b">You calculate →</div></div>`;
+    : `<div class="info-card" style="background:#fee2e2;border-color:#fca5a5"><div class="info-label">WACC</div><div class="info-val" style="color:#991b1b">You calculate (CAPM) →</div></div>`;
 
   document.getElementById('givenGrid').innerHTML = `
     ${waccRow}
@@ -606,9 +674,9 @@ function renderGivenInfo() {
     <div class="info-card" style="background:#f0fdf4;border-color:#bbf7d0"><div class="info-label">Net Debt (Debt − Cash)</div><div class="info-val" style="color:#15803d">${fmtM(q.netDebt)}</div></div>
     <div class="info-card"><div class="info-label">Shares Outstanding</div><div class="info-val">${fmt(q.shares,0)}m</div></div>
     <div class="info-card"><div class="info-label">Projection Years</div><div class="info-val">${q.projYrs}</div></div>
-    <div class="info-card"><div class="info-label">Last Projected FCF</div><div class="info-val">${fmtM(q.projFCFs[q.projYrs-1])}</div></div>
+    <div class="info-card"><div class="info-label">Discounting</div><div class="info-val" style="font-size:.8rem">End of year</div></div>
   `;
-  document.getElementById('hintBox').textContent = q.hint;
+  document.getElementById('hintBox').textContent = buildHint();
 }
 
 function renderAnswerInputs() {
@@ -620,12 +688,8 @@ function renderAnswerInputs() {
     { id:'ans-equity',  label:`Equity Value (EV − Debt + Cash)`,              unit:'£m' },
     { id:'ans-price',   label:`Intrinsic Share Price`,                        unit:'p'  },
   ];
-  if(!fcfVisible) {
-    inputs.unshift({ id:'ans-basefcf', label:`Base Year FCF`, unit:'£m' });
-  }
-  if(mode==='build' || mode==='full') {
-    inputs.unshift({ id:'ans-wacc', label:`Calculated WACC`, unit:'%' });
-  }
+  if(!fcfVisible) inputs.unshift({ id:'ans-basefcf', label:`Base Year FCF`, unit:'£m' });
+  if(mode==='build' || mode==='full') inputs.unshift({ id:'ans-wacc', label:`Calculated WACC`, unit:'%' });
   document.getElementById('answerSection').innerHTML = inputs.map(inp=>`
     <div class="ans-row">
       <span class="ans-label">${inp.label}</span>
@@ -640,99 +704,111 @@ function renderAnswerInputs() {
 function renderFormulas() {
   const w = mode==='given'?`${fmt(q.wacc,1)}%`:'WACC';
   document.getElementById('formulaBox').innerHTML = `
-<span class="comment">// Discounted Cash Flow Valuation</span>
+<span class="comment">// Free cash flow to the firm</span>
+<span class="kw">NOPAT</span>    = EBIT × (1 − tax rate)
+<span class="kw">ΔNWC_t</span>   = NWC% × (Revenue_t − Revenue_t−1)
+<span class="kw">FCF</span>      = NOPAT + D&A − Capex − ΔNWC
 
-<span class="kw">FCF</span> = NOPAT + D&A − CapEx − ΔWorkingCapital
+<span class="comment">// Discounting (end of year)</span>
 <span class="kw">PV(FCF_t)</span> = FCF_t ÷ (1 + <span class="val">${w}</span>)^t
-<span class="kw">TerminalValue</span> = FCF_n × (1 + g) ÷ (WACC − g)
-<span class="kw">PV(TV)</span> = TV ÷ (1 + <span class="val">${w}</span>)^n
-<span class="kw">EnterpriseValue</span> = Σ PV(FCFs) + PV(TV)
+<span class="kw">TV</span>        = FCF_n × (1 + g) ÷ (WACC − g)
+<span class="kw">PV(TV)</span>    = TV ÷ (1 + <span class="val">${w}</span>)^n
+<span class="kw">EV</span>        = Σ PV(FCFs) + PV(TV)
 
-<span class="comment">// Equity Bridge</span>
+<span class="comment">// Equity bridge</span>
 <span class="kw">EquityValue</span> = EV − GrossDebt + Cash
-<span class="kw">NetDebt</span>     = GrossDebt − Cash
-<span class="kw">SharePrice</span> = EquityValue ÷ SharesOutstanding${mode!=='given'?`
+<span class="kw">SharePrice</span>  = EquityValue ÷ Shares × 100 (pence)
 
-<span class="comment">// WACC (Capital Asset Pricing Model)</span>
-<span class="kw">Ke</span> = Rf + β × (Rm − Rf)
+<span class="comment">// Sanity checks a real model shows</span>
+<span class="kw">TV share</span>      = PV(TV) ÷ EV
+<span class="kw">Exit multiple</span> = TV ÷ EBITDA_n${mode!=='given'?`
+
+<span class="comment">// WACC (CAPM, target capital structure)</span>
+<span class="kw">Ke</span>   = Rf + β × (Rm − Rf)
 <span class="kw">WACC</span> = (E/V)×Ke + (D/V)×Kd×(1−T)`:''}`;
 }
 
 function renderWACCBuilder() {
   document.getElementById('waccBuilder').style.display='block';
-  document.getElementById('waccGrid').innerHTML = `
-    <div class="wacc-input-card"><div class="wacc-label">Risk-Free Rate (Rf)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.riskFree)}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Beta (β)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${q.beta}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Market Risk Premium</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.mktPremium)}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Cost of Debt (Kd)</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.costDebt)}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Debt / Total Capital</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.debtRatio)}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Equity / Total Capital</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.equityRatio)}</div></div>
-    <div class="wacc-input-card"><div class="wacc-label">Tax Rate</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${fmtP(q.taxRate)}</div></div>
-    <div class="wacc-input-card" style="background:var(--blue-l);border-color:var(--blue-m)"><div class="wacc-label">Your Ke = Rf + β×(Rm−Rf)</div><div style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = <span style="color:var(--blue);font-weight:700">${fmtP(q.costEquity)}</span></div></div>
-  `;
+  const card = (label, val) => `<div class="wacc-input-card"><div class="wacc-label">${label}</div><div style="font-family:var(--mono);font-size:.9rem;color:var(--blue);font-weight:700">${val}</div></div>`;
+  document.getElementById('waccGrid').innerHTML =
+    card('Risk-Free Rate (Rf)', fmtP(q.riskFree)) +
+    card('Beta (β)', q.beta) +
+    card('Market Risk Premium', fmtP(q.mktPremium)) +
+    card('Pre-tax Cost of Debt (Kd)', fmtP(q.costDebt)) +
+    card('Target D / (D + E)', fmtP(q.debtRatio)) +
+    card('Target E / (D + E)', fmtP(q.equityRatio)) +
+    card('Tax Rate', fmtP(q.taxRate));
+  document.getElementById('waccAnswer').value = '';
+  document.getElementById('waccCalcResult').textContent = '';
 }
 
 // ─── CHECK ANSWERS ────────────────────────────────────────────────────────────
+function answerTargets() {
+  const v = V();
+  const t = {
+    'ans-pvfcf':  v.pvSum,
+    'ans-tv':     v.termVal,
+    'ans-pvtv':   v.pvTV,
+    'ans-ev':     v.ev,
+    'ans-equity': v.equity,
+    'ans-price':  v.price,
+  };
+  if(!fcfVisible) t['ans-basefcf'] = q.baseFCF;
+  if(mode!=='given') t['ans-wacc'] = q.waccCalc;
+  return t;
+}
+
 function checkAnswers() {
   if(answered) return;
   answered = true;
-  const tol = difficulty==='easy' ? 15 : difficulty==='medium' ? 8 : 4;
+  const tol = difficulty==='easy' ? 5 : difficulty==='medium' ? 3 : 2; // % tolerance
+  const targets = answerTargets();
 
-  // In build/full mode the student derives WACC themselves (waccCalc),
-  // so correct answers are the _calc versions, not the wacc-based ones.
-  const useCalc = (mode !== 'given');
-  const targets = {
-    'ans-pvfcf':  useCalc ? q.pvSum_calc  : q.pvSum,
-    'ans-tv':     useCalc ? q.termVal_calc : q.termVal,
-    'ans-pvtv':   useCalc ? q.pvTV_calc    : q.pvTV,
-    'ans-ev':     useCalc ? q.ev_calc      : q.evEnterprise,
-    'ans-equity': useCalc ? q.equityVal_calc : q.equityVal,
-    'ans-price':  useCalc ? q.price_calc   : q.pricePerShare,
-  };
-  if(!fcfVisible) targets['ans-basefcf'] = q.baseFCF;
-  if(mode!=='given') targets['ans-wacc'] = q.waccCalc;
-
-  let correct = 0, total = 0;
+  let correct = 0;
   for(const [id, target] of Object.entries(targets)) {
     const el = document.getElementById(id);
     if(!el) continue;
     const val = parseFloat(el.value);
-    if(isNaN(val)) continue;
-    total++;
+    if(isNaN(val)) { el.classList.add('wrong'); continue; }
     const pct = Math.abs(val - target) / Math.abs(target) * 100;
     if(pct <= tol) { el.classList.add('correct'); correct++; }
     else { el.classList.add('wrong'); }
   }
 
-  if(correct === Object.keys(targets).length) {
+  const total = Object.keys(targets).length;
+  if(correct === total) {
     score.correct++; score.streak++;
     showBanner('pass', `🎯 All correct! Great work on ${q.coName}.`);
   } else if(correct > 0) {
     score.wrong++; score.streak=0;
-    showBanner('fail', `${correct}/${Object.keys(targets).length} correct. Review the steps below.`);
+    showBanner('fail', `${correct}/${total} correct. Review the steps below.`);
   } else {
     score.wrong++; score.streak=0;
     showBanner('fail', `No correct answers. Check the step-by-step solution below.`);
   }
   score.total++;
   updateScoreUI();
-  showSolution();
+  afterAnswer();
   updateProgress();
 }
 
 function revealAnswers() {
-  const useCalc = (mode !== 'given');
-  if(document.getElementById('ans-basefcf')) document.getElementById('ans-basefcf').value = fmt(q.baseFCF,1);
-  document.getElementById('ans-pvfcf').value  = fmt(useCalc ? q.pvSum_calc  : q.pvSum, 1);
-  document.getElementById('ans-tv').value     = fmt(useCalc ? q.termVal_calc : q.termVal, 1);
-  document.getElementById('ans-pvtv').value   = fmt(useCalc ? q.pvTV_calc    : q.pvTV, 1);
-  document.getElementById('ans-ev').value     = fmt(useCalc ? q.ev_calc      : q.evEnterprise, 1);
-  document.getElementById('ans-equity').value = fmt(useCalc ? q.equityVal_calc : q.equityVal, 1);
-  document.getElementById('ans-price').value  = useCalc ? q.price_calc : q.pricePerShare;
-  if(document.getElementById('ans-wacc')) document.getElementById('ans-wacc').value = fmt(q.waccCalc,2);
-  showBanner('info','Answers revealed. Study the steps below to understand the calculation.');
-  showSolution();
+  const targets = answerTargets();
+  for(const [id, target] of Object.entries(targets)) {
+    const el = document.getElementById(id);
+    if(!el) continue;
+    el.value = id==='ans-price' ? target : id==='ans-wacc' ? fmt(target,2) : fmt(target,1);
+  }
   answered = true;
+  showBanner('info','Answers revealed. Study the steps below to understand the calculation.');
+  afterAnswer();
+}
+
+function afterAnswer() {
+  renderTabs();
+  updateChart();
+  showSolution();
 }
 
 function showBanner(type, msg) {
@@ -741,35 +817,71 @@ function showBanner(type, msg) {
   b.innerHTML = `<span>${type==='pass'?'✅':type==='fail'?'❌':'💡'}</span><span>${msg}</span>`;
 }
 
+// Share price (pence) at any WACC and terminal growth, unrounded, for the sensitivity grid.
+function priceAt(w, g) {
+  const pvs  = q.projFCFs.reduce((s,f,i)=>s + f/Math.pow(1+w/100,i+1), 0);
+  const tv   = q.projFCFs[q.projYrs-1]*(1+g/100)/(w/100-g/100);
+  const pvtv = tv/Math.pow(1+w/100,q.projYrs);
+  return (pvs + pvtv - q.grossDebt + q.cash) / q.shares * 100;
+}
+
 function showSolution() {
   document.getElementById('stepsPanel').style.display='block';
-  const usedWACC = (mode!=='given') ? q.waccCalc : q.wacc;
-  const useCalc  = (mode !== 'given');
-  const _pvFCFs  = useCalc ? q.pvFCFs_calc  : q.pvFCFs;
-  const _pvSum   = useCalc ? q.pvSum_calc   : q.pvSum;
-  const _termVal = useCalc ? q.termVal_calc : q.termVal;
-  const _pvTV    = useCalc ? q.pvTV_calc    : q.pvTV;
-  const _ev      = useCalc ? q.ev_calc      : q.evEnterprise;
-  const _equity  = useCalc ? q.equityVal_calc : q.equityVal;
-  const _price   = useCalc ? q.price_calc   : q.pricePerShare;
+  const v = V(), w = usedWACC(), n = q.projYrs;
 
   const steps = [];
   if(!fcfVisible) {
-    steps.push({t:`Calculate Free Cash Flow (base year)`, v:`NOPAT + D&A − CapEx − ΔWC = ${fmtM(q.nopat)} + ${fmtM(q.da)} − ${fmtM(q.capex)} − ${fmtM(q.wcChange)} = ${fmtM(q.baseFCF)}`});
+    steps.push({t:`Free cash flow (base year)`, v:`NOPAT + D&A − Capex − ΔNWC = ${fmtM(q.baseNopat)} + ${fmtM(q.baseDA)} − ${fmtM(q.baseCapex)} − ${fmtM(q.baseDNWC)} = ${fmtM(q.baseFCF)}`});
+    steps.push({t:`Free cash flow (forecast years)`, v:q.projFCFs.map((f,i)=>`Y${i+1}: ${fmtM(q.projNopat[i])} + ${fmtM(q.projDA[i])} − ${fmtM(q.projCapex[i])} − ${fmtM(q.projDNWC[i])} = ${fmtM(f)}`).join(' | ')});
   }
   if(mode!=='given') {
-    steps.push({t:`Calculate Cost of Equity (CAPM)`, v:`Ke = ${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = ${fmtP(q.costEquity)}`});
-    steps.push({t:`Calculate WACC`, v:`WACC = ${fmtP(q.equityRatio)}×${fmtP(q.costEquity)} + ${fmtP(q.debtRatio)}×${fmtP(q.costDebt)}×(1−${fmtP(q.taxRate)}) = ${fmtP(q.waccCalc)}`});
+    steps.push({t:`Cost of equity (CAPM)`, v:`Ke = ${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = ${fmt(q.costEquity,2)}%`});
+    steps.push({t:`WACC`, v:`WACC = ${fmtP(q.equityRatio)} × ${fmt(q.costEquity,2)}% + ${fmtP(q.debtRatio)} × ${fmtP(q.costDebt)} × (1 − ${fmtP(q.taxRate)}) = ${fmt(q.waccCalc,2)}%`});
   }
-  steps.push({t:`Discount each FCF to present value`, v:`${q.projFCFs.map((v,i)=>`${fmtM(v)}÷(1+${fmtP(usedWACC)})^${i+1}=${fmtM(_pvFCFs[i])}`).join(' + ')}`});
-  steps.push({t:`Sum of PV(FCFs)`, v:`Σ PV(FCFs) = ${fmtM(_pvSum)}`});
-  steps.push({t:`Terminal Value (Gordon Growth Model)`, v:`TV = ${fmtM(q.projFCFs[q.projYrs-1])} × (1+${fmtP(q.tg)}) ÷ (${fmtP(usedWACC)} − ${fmtP(q.tg)}) = ${fmtM(_termVal)}`});
-  steps.push({t:`PV of Terminal Value`, v:`PV(TV) = ${fmtM(_termVal)} ÷ (1+${fmtP(usedWACC)})^${q.projYrs} = ${fmtM(_pvTV)}`});
-  steps.push({t:`Enterprise Value`, v:`EV = ${fmtM(_pvSum)} + ${fmtM(_pvTV)} = ${fmtM(_ev)}`});
-  steps.push({t:`Equity Value (EV − Debt + Cash)`, v:`${fmtM(_ev)} − ${fmtM(q.grossDebt)} + ${fmtM(q.cash)} = ${fmtM(_equity)}`});
-  steps.push({t:`Intrinsic Share Price`, v:`${fmtM(_equity)} ÷ ${fmt(q.shares,0)}m shares × 100 = ${_price}p`});
+  steps.push({t:`Discount each FCF to present value`, v:q.projFCFs.map((f,i)=>`${fmtM(f)} ÷ (1+${fmt(w,2)}%)^${i+1} = ${fmtM(v.pvFCFs[i])}`).join(' + ')});
+  steps.push({t:`Sum of PV(FCFs)`, v:`Σ PV(FCFs) = ${fmtM(v.pvSum)}`});
+  steps.push({t:`Terminal value (Gordon growth)`, v:`TV = ${fmtM(q.projFCFs[n-1])} × (1+${fmtP(q.tg)}) ÷ (${fmt(w,2)}% − ${fmtP(q.tg)}) = ${fmtM(v.termVal)}`});
+  steps.push({t:`PV of terminal value`, v:`PV(TV) = ${fmtM(v.termVal)} ÷ (1+${fmt(w,2)}%)^${n} = ${fmtM(v.pvTV)}`});
+  steps.push({t:`Enterprise value`, v:`EV = ${fmtM(v.pvSum)} + ${fmtM(v.pvTV)} = ${fmtM(v.ev)}`});
+  steps.push({t:`Equity value (EV − debt + cash)`, v:`${fmtM(v.ev)} − ${fmtM(q.grossDebt)} + ${fmtM(q.cash)} = ${fmtM(v.equity)}`});
+  steps.push({t:`Intrinsic share price`, v:`${fmtM(v.equity)} ÷ ${fmt(q.shares,0)}m shares × 100 = ${v.price}p`});
+
+  // Sanity checks
+  const tvShare = v.pvTV / v.ev * 100;
+  const ebitdaN = q.projEbit[n-1] + q.projDA[n-1];
+  const exitMult = v.termVal / ebitdaN;
+  const reinvest = q.projCapex[n-1] - q.projDA[n-1] + q.projDNWC[n-1];
+  const rr = reinvest / q.projNopat[n-1];
+  const ronic = rr > 0 ? (q.tg/100) / rr : null;
+  const checks = [
+    `<strong>Terminal value is ${fmt(tvShare,0)}% of EV.</strong> ${tvShare > 75 ? 'Most of the value sits beyond the forecast, so the answer rests on g and WACC: test them hard.' : 'The forecast years carry a reasonable share of the value.'}`,
+    `<strong>Implied exit multiple: ${fmt(exitMult,1)}x EBITDA</strong> (TV ${fmtM(v.termVal)} ÷ year-${n} EBITDA ${fmtM(r1(ebitdaN))}). Compare it with what listed ${q.sector.toLowerCase()} companies trade on; a gap means the growth or WACC assumption disagrees with the market.`,
+    ronic !== null
+      ? `<strong>Implied return on new capital: ${fmt(ronic*100,0)}%.</strong> Year-${n} reinvestment is ${fmt(rr*100,0)}% of NOPAT, and g = reinvestment rate × return on new capital. ${ronic*100 < w ? 'That is below WACC, so the growth destroys value.' : 'That is above WACC, so the growth creates value.'}`
+      : `<strong>Reinvestment is negative in year ${n}</strong> (working capital releases cash), so growth looks free. Real companies cannot grow forever without investing: question the terminal FCF.`
+  ];
+
+  // Sensitivity grid: rows = terminal growth, columns = WACC
+  const ws = [-1,-0.5,0,0.5,1].map(d=>+(w+d).toFixed(2));
+  const gs = [-0.5,0,0.5].map(d=>+(q.tg+d).toFixed(1));
+  const grid = `
+    <div style="overflow-x:auto;margin-top:.5rem">
+    <table class="fin-table">
+      <thead><tr><th>g \\ WACC</th>${ws.map(x=>`<th>${fmt(x,1)}%</th>`).join('')}</tr></thead>
+      <tbody>${gs.map(g=>`<tr><td>${fmtP(g)}</td>${ws.map(x=>{
+        if (x - g < 1) return '<td>n/a</td>';
+        const base = Math.abs(x-w)<1e-9 && Math.abs(g-q.tg)<1e-9;
+        return `<td${base?' style="font-weight:700;color:var(--blue)"':''}>${Math.round(priceAt(x,g))}p</td>`;
+      }).join('')}</tr>`).join('')}</tbody>
+    </table>
+    </div>`;
+
   document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
-    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('');
+    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('') + `
+    <div class="section-label" style="margin-top:1rem">Sanity checks</div>
+    <div style="font-size:.78rem;line-height:1.7;color:#334155">${checks.map(c=>`<p style="margin:.35rem 0">${c}</p>`).join('')}</div>
+    <div class="section-label" style="margin-top:1rem">Share price sensitivity (pence)</div>
+    ${grid}`;
   document.getElementById('stepsPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -778,58 +890,60 @@ function updateChart() { showChart(activeChart); }
 
 function showChart(type, el=null) {
   activeChart = type;
-  if(el) { document.querySelectorAll('.panel .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
+  if(el) { el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
   if(mainChart){ mainChart.destroy(); mainChart=null; }
-  const ctx = document.getElementById('mainChart').getContext('2d');
+  const canvas = document.getElementById('mainChart');
+  const ctx = canvas.getContext('2d');
+  const note = document.getElementById('chartNote');
+
+  // PV, bridge and sensitivity charts would give the answers away, so they wait.
+  if(type!=='fcf' && !answered) {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    note.textContent = 'Check or reveal your answers to unlock this chart.';
+    return;
+  }
+  const v = V(), w = usedWACC();
   const yrs = Array.from({length:q.projYrs},(_,i)=>`Year ${i+1}`);
   const g1 = ctx.createLinearGradient(0,0,0,220); g1.addColorStop(0,'rgba(37,99,235,.25)'); g1.addColorStop(1,'rgba(37,99,235,.02)');
-  const g2 = ctx.createLinearGradient(0,0,0,220); g2.addColorStop(0,'rgba(16,185,129,.2)');  g2.addColorStop(1,'rgba(16,185,129,.02)');
 
-  const base = {responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{labels:{font:{family:'IBM Plex Mono',size:10},color:'#64748b',boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: £${c.parsed.y?.toFixed(1)||c.parsed.y}m`},bodyFont:{family:'IBM Plex Mono',size:10},titleFont:{family:'Space Grotesk',size:10}}},scales:{x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:v=>`£${v}m`}}}};
+  const base = {responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{labels:{font:{family:'IBM Plex Mono',size:10},color:'#64748b',boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: £${c.parsed.y?.toFixed(1)||c.parsed.y}m`},bodyFont:{family:'IBM Plex Mono',size:10},titleFont:{family:'Space Grotesk',size:10}}},scales:{x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:x=>`£${x}m`}}}};
 
   if(type==='fcf') {
-    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'FCF',data:q.projFCFs,backgroundColor:'rgba(37,99,235,.75)',borderRadius:6,borderSkipped:false},{label:'Revenue',data:q.projRev,type:'line',borderColor:'#06b6d4',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y1'}]},options:{...base,scales:{...base.scales,y:{...base.scales.y,title:{display:true,text:'FCF (£m)',font:{family:'IBM Plex Mono',size:9},color:'#64748b'}},y1:{position:'right',grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:v=>`£${v}m`}}}}});
-    document.getElementById('chartNote').textContent='Free cash flows and revenue trajectory over the projection period';
+    const fcfData = fcfVisible ? q.projFCFs : [];
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'FCF',data:fcfData,backgroundColor:'rgba(37,99,235,.75)',borderRadius:6,borderSkipped:false},{label:'Revenue',data:q.projRev,type:'line',borderColor:'#06b6d4',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y1'}]},options:{...base,scales:{...base.scales,y:{...base.scales.y,title:{display:true,text:'FCF (£m)',font:{family:'IBM Plex Mono',size:9},color:'#64748b'}},y1:{position:'right',grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#94a3b8',callback:x=>`£${x}m`}}}}});
+    note.textContent = fcfVisible ? 'Free cash flows and revenue over the projection period' : 'FCF bars are hidden while you calculate them yourself';
   }
   else if(type==='pv') {
-    const cumPV = q.pvFCFs.map((v,i)=>+(q.pvFCFs.slice(0,i+1).reduce((a,b)=>a+b,0)).toFixed(1));
-    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'PV of FCF',data:q.pvFCFs,backgroundColor:'rgba(37,99,235,.7)',borderRadius:5,borderSkipped:false},{label:'Cumulative PV',data:cumPV,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,fill:false,yAxisID:'y'}]},options:{...base}});
-    document.getElementById('chartNote').textContent=`PV sum = £${fmt(q.pvSum,1)}m | Terminal Value PV = £${fmt(q.pvTV,1)}m`;
+    const cumPV = v.pvFCFs.map((x,i)=>r1(v.pvFCFs.slice(0,i+1).reduce((a,b)=>a+b,0)));
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:yrs,datasets:[{label:'PV of FCF',data:v.pvFCFs,backgroundColor:'rgba(37,99,235,.7)',borderRadius:5,borderSkipped:false},{label:'Cumulative PV',data:cumPV,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,fill:false,yAxisID:'y'}]},options:{...base}});
+    note.textContent = `PV sum = ${fmtM(v.pvSum)} | Terminal value PV = ${fmtM(v.pvTV)}`;
   }
   else if(type==='bridge') {
-    mainChart = new Chart(ctx,{type:'bar',data:{labels:['PV of FCFs','PV of Terminal Value','Enterprise Value','(−) Gross Debt','(+) Cash','Equity Value'],datasets:[{label:'Value (£m)',data:[q.pvSum,q.pvTV,q.evEnterprise,-q.grossDebt,q.cash,q.equityVal],backgroundColor:['rgba(37,99,235,.75)','rgba(6,182,212,.75)','rgba(16,185,129,.75)','rgba(239,68,68,.7)','rgba(16,185,129,.6)','rgba(139,92,246,.75)'],borderRadius:6,borderSkipped:false}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` £${c.parsed.y.toFixed(1)}m`}}}}});
-    document.getElementById('chartNote').textContent=`EV (${fmtM(q.evEnterprise)}) − Debt (${fmtM(q.grossDebt)}) + Cash (${fmtM(q.cash)}) = Equity Value (${fmtM(q.equityVal)})`;
+    mainChart = new Chart(ctx,{type:'bar',data:{labels:['PV of FCFs','PV of Terminal Value','Enterprise Value','(−) Gross Debt','(+) Cash','Equity Value'],datasets:[{label:'Value (£m)',data:[v.pvSum,v.pvTV,v.ev,-q.grossDebt,q.cash,v.equity],backgroundColor:['rgba(37,99,235,.75)','rgba(6,182,212,.75)','rgba(16,185,129,.75)','rgba(239,68,68,.7)','rgba(16,185,129,.6)','rgba(139,92,246,.75)'],borderRadius:6,borderSkipped:false}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` £${c.parsed.y.toFixed(1)}m`}}}}});
+    note.textContent = `EV (${fmtM(v.ev)}) − Debt (${fmtM(q.grossDebt)}) + Cash (${fmtM(q.cash)}) = Equity Value (${fmtM(v.equity)})`;
   }
   else if(type==='sens') {
-    // Sensitivity: wacc ±2%, tg ±1%
-    const waccRange = [-2,-1,0,1,2].map(d=>+(q.wacc+d).toFixed(1));
-    const prices = waccRange.map(w=>{
-      const pvs = q.projFCFs.reduce((sum,v,i)=>sum + v/Math.pow(1+w/100,i+1), 0);
-      const tv  = q.projFCFs[q.projYrs-1]*(1+q.tg/100)/(w/100-q.tg/100);
-      const pvtv= tv/Math.pow(1+w/100,q.projYrs);
-      return +((pvs+pvtv-q.grossDebt+q.cash)/q.shares*100).toFixed(0);
-    });
-    mainChart = new Chart(ctx,{type:'line',data:{labels:waccRange.map(w=>`${fmt(w,1)}%`),datasets:[{label:'Share Price (p)',data:prices,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` ${c.parsed.y}p`}}},scales:{x:{...base.scales.x,title:{display:true,text:'WACC',font:{size:9},color:'#64748b'}},y:{...base.scales.y,ticks:{callback:v=>`${v}p`}}}}});
-    document.getElementById('chartNote').textContent=`Sensitivity: share price vs WACC (terminal growth fixed at ${fmtP(q.tg)})`;
+    const waccRange = [-2,-1,0,1,2].map(d=>+(w+d).toFixed(2)).filter(x=>x-q.tg>=1);
+    const prices = waccRange.map(x=>Math.round(priceAt(x,q.tg)));
+    mainChart = new Chart(ctx,{type:'line',data:{labels:waccRange.map(x=>`${fmt(x,1)}%`),datasets:[{label:'Share Price (p)',data:prices,borderColor:'#2563eb',backgroundColor:g1,fill:true,tension:.4,pointRadius:4,borderWidth:2.5}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:c=>` ${c.parsed.y}p`}}},scales:{x:{...base.scales.x,title:{display:true,text:'WACC',font:{size:9},color:'#64748b'}},y:{...base.scales.y,ticks:{callback:x=>`${x}p`}}}}});
+    note.textContent = `Share price vs WACC (terminal growth fixed at ${fmtP(q.tg)})`;
   }
 }
 
 // ─── MISC ─────────────────────────────────────────────────────────────────────
 function toggleFCF(checkbox) {
   fcfVisible = !checkbox.checked;
-  // Toggle all fcf-hidden-row elements
   document.querySelectorAll('.fcf-hidden-row').forEach(row => {
     if(fcfVisible) row.classList.add('revealed');
     else row.classList.remove('revealed');
   });
-  // Re-render answer inputs to add/remove basefcf field
   renderAnswerInputs();
+  updateChart();
 }
 
 function showTab(id, el) {
   ['is','bs','cf','proj'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===id?'block':'none';});
-  document.querySelectorAll('.tab-bar .tab').forEach(t=>t.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if(el) { el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
 }
 
 function toggleHint() {
@@ -838,12 +952,12 @@ function toggleHint() {
   document.querySelector('.hint-toggle').textContent = h.classList.contains('show') ? '🙈 Hide hint' : '💡 Show hint';
 }
 
+// Tells you whether your WACC is right without printing the answer.
 function calcWACC() {
-  const ke = q.costEquity;
-  const kd = q.costDebt;
-  const t  = q.taxRate/100;
-  const wr = +(q.equityRatio/100*ke + q.debtRatio/100*kd*(1-t)).toFixed(2);
-  document.getElementById('waccCalcResult').textContent = `Formula result: ${fmtP(wr)}`;
+  const val = parseFloat(document.getElementById('waccAnswer').value);
+  const out = document.getElementById('waccCalcResult');
+  if(isNaN(val)) { out.textContent = ''; return; }
+  out.textContent = Math.abs(val - q.waccCalc) <= 0.05 ? '✓ Matches' : '✗ Not yet';
 }
 
 function updateScoreUI() {
@@ -860,14 +974,16 @@ function updateProgress() {
 
 function setMode(m, el) {
   mode = m;
-  document.querySelectorAll('.mp').forEach(b=>b.classList.remove('active'));
+  // Full Model means working out the FCFs as well as the WACC.
+  fcfVisible = (m !== 'full');
+  el.parentElement.querySelectorAll('.mp').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   newQuestion();
 }
 
 function setDifficulty(d, el) {
   difficulty = d;
-  document.querySelectorAll('.dp').forEach(b=>b.classList.remove('active'));
+  el.parentElement.querySelectorAll('.dp').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   newQuestion();
 }

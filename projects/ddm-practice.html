@@ -161,6 +161,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 .fade-in{animation:fadeUp .35s ease both}
 .loading{animation:pulse 1s infinite}
 </style>
+<style>
+/* Valuation Practice switcher, shared by the DCF, DDM and residual income pages */
+.vp-switch{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem;width:fit-content;max-width:100%;padding:.25rem;margin-bottom:1rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px}
+.vp-switch .vp-tab{padding:.45rem .9rem;border-radius:9px;font-size:.8rem;font-weight:600;color:#475569;text-decoration:none;white-space:nowrap;transition:background .15s,color .15s}
+.vp-switch .vp-tab:hover{color:#2563eb;background:#fff}
+.vp-switch .vp-tab.active{background:#2563eb;color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.3)}
+/* Phone fix: let grid columns shrink below their content, and scroll wide tables inside their panel */
+.main-grid>*{min-width:0}
+@media(max-width:700px){.fin-table{display:block;overflow-x:auto;white-space:nowrap}.panel-head{flex-wrap:wrap;gap:.5rem}.tab-bar{flex-wrap:wrap}}
+</style>
 </head>
 <body>
 
@@ -173,7 +183,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 </nav>
 
 <div class="hero">
-  <div class="hero-badge">💰 Interactive · Unlimited Practice · AI-Powered</div>
+  <div class="vp-switch" role="navigation" aria-label="Valuation practice">
+    <a href="dcf-practice.html" class="vp-tab">DCF</a>
+    <a href="ddm-practice.html" class="vp-tab active" aria-current="page">Dividend discount</a>
+    <a href="residual-practice.html" class="vp-tab">Residual income</a>
+  </div>
+  <div class="hero-badge">💰 Valuation Practice · Dividend discount</div>
   <h1>DDM <span>Practice</span> Tool</h1>
   <p>Master the Dividend Discount Model through unlimited randomised exercises. From Gordon Growth to multi-stage valuation, build intuition for dividend-paying equity one company at a time.</p>
 
@@ -350,11 +365,18 @@ function generateQuestion() {
   // Core inputs
   const ke        = rnd(d.ke_lo, d.ke_hi, 1);   // required return on equity
   const eps0      = rnd(20, 150, 1);             // current EPS in pence
-  const payoutPct = rnd(d.payout_lo, d.payout_hi, 0); // dividend payout ratio
+  // Stable growth g, payout and ROE are tied together so that g = retention x ROE,
+  // the sustainable growth identity. Pick g and payout, then solve for ROE.
+  const gGordon = rnd(d.g_lo, d.g_hi, 1);
+  let payoutPct, retainPct, roe;
+  for(let k=0;k<50;k++){
+    payoutPct = rnd(d.payout_lo, d.payout_hi, 0);
+    retainPct = 100 - payoutPct;
+    roe = +(gGordon / (retainPct/100)).toFixed(1);
+    if(roe >= 6 && roe <= 30) break;
+  }
   const d0        = +(eps0 * payoutPct / 100).toFixed(1); // current dividend
-  const retainPct = 100 - payoutPct;
-  const roe       = rnd(10, 22, 1);              // return on equity for g calc
-  const gSust     = +(retainPct/100 * roe).toFixed(2); // sustainable growth rate
+  const gSust     = +(retainPct/100 * roe).toFixed(2); // sustainable growth rate (equals g to rounding)
 
   // Historical dividends (working backwards from d0)
   const histGrowths = Array.from({length:d.histYrs}, ()=>rnd(1.5,5,1));
@@ -364,7 +386,6 @@ function generateQuestion() {
   }
 
   // Gordon Growth (single-stage)
-  const gGordon = rnd(d.g_lo, d.g_hi, 1);
   const d1_gordon = +(d0 * (1 + gGordon/100)).toFixed(2);
   const p_gordon  = +(d1_gordon / (ke/100 - gGordon/100)).toFixed(1);
 
@@ -395,10 +416,11 @@ function generateQuestion() {
   const p_h_model   = +(p_h_stable + p_h_extra).toFixed(1);
 
   // Earnings data for IS tab
-  const baseRev = rnd(500,3000,0);
-  const netMargin = rnd(8,20,1);
-  const netIncome = +(baseRev * netMargin / 100).toFixed(0);
+  // Built backwards from EPS so that Net income / Shares = EPS on the statement.
   const shares = rnd(80,600,0);
+  const netIncome = +(eps0 * shares / 100).toFixed(1); // £m
+  const netMargin = rnd(8,20,1);
+  const baseRev = +(netIncome / (netMargin/100)).toFixed(0);
   const eps_calc = +(netIncome / shares * 100).toFixed(1); // in pence
   const dps0 = d0; // dividend per share
   const retainedPct_val = +(100 - payoutPct).toFixed(0);
@@ -481,7 +503,7 @@ function renderTabs() {
       <tbody>
         <tr><td>Revenue</td><td>£${fmt(q.baseRev,0)}m</td></tr>
         <tr><td>Net Margin</td><td>${fmtP(q.netMargin)}</td></tr>
-        <tr class="subtotal"><td>Net Income</td><td>£${fmt(q.netIncome,0)}m</td></tr>
+        <tr class="subtotal"><td>Net Income</td><td>£${fmt(q.netIncome,1)}m</td></tr>
         <tr><td>Shares Outstanding</td><td>${fmt(q.shares,0)}m</td></tr>
         <tr><td>Earnings Per Share</td><td>${fmtPx(q.eps0)}</td></tr>
         <tr><td>Payout Ratio</td><td>${q.payoutPct}%</td></tr>
@@ -630,7 +652,7 @@ function renderFormulas() {
 <span class="comment">//   Ke = required return on equity = ${fmtP(q.ke)}</span>
 <span class="comment">// Ke must be > g for the model to work</span>
 
-<span class="kw">Sustainable g</span> = Retention Ratio × ROE
+<span class="kw">Check: sustainable g</span> = Retention Ratio × ROE
              = ${q.retainPct}% × ${fmtP(q.roe)} = <span class="val">${fmtP(q.gSust,2)}</span>`;
   } else if(mode === 'two') {
     box = `<span class="comment">// Two-Stage DDM</span>

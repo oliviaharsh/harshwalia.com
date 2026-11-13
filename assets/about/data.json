@@ -45,19 +45,10 @@
       "summary": "How a securitisation is structured, tranched and priced, with a runnable simulation of cash flows and losses."
     },
     {
-      "id": "dcf-practice",
-      "title": "DCF Practice Tool",
-      "summary": "Randomised DCF exercises across three difficulty modes, with sensitivity charts and worked solutions."
-    },
-    {
-      "id": "residual-practice",
-      "title": "Residual Income Practice Tool",
-      "summary": "Randomised residual income model exercises with step-by-step worked solutions."
-    },
-    {
-      "id": "ddm-practice",
-      "title": "Dividend Discount Practice Tool",
-      "summary": "Randomised DDM exercises across three modes, with sensitivity charts and worked solutions."
+      "id": "valuation-practice",
+      "url": "projects/dcf-practice.html",
+      "title": "Valuation Practice",
+      "summary": "Unlimited randomised DCF, dividend discount and residual income exercises in one place, with worked solutions, sanity checks and sensitivity tables."
     },
     {
       "id": "retirement-calculator",
