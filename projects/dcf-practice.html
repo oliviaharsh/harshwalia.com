@@ -183,6 +183,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 /* Phone fix: let grid columns shrink below their content, and scroll wide tables inside their panel */
 .main-grid>*{min-width:0}
 @media(max-width:700px){.fin-table{display:block;overflow-x:auto;white-space:nowrap}.panel-head{flex-wrap:wrap;gap:.5rem}.tab-bar{flex-wrap:wrap}}
+/* Formula reference: one formula per card, stacked fractions, this question's inputs underneath */
+.fx{display:flex;flex-direction:column;gap:1.1rem}
+.fx-h{display:flex;align-items:center;gap:.5rem;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:.5rem}
+.fx-h b{display:inline-flex;align-items:center;justify-content:center;width:1.3rem;height:1.3rem;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:.66rem;letter-spacing:0}
+.fx-row{padding:.75rem .9rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.fx-row+.fx-row{margin-top:.5rem}
+.fx-name{font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.45rem}
+.fx-eq{font-family:'Cambria Math',Cambria,'STIX Two Text','Times New Roman',serif;font-size:1.08rem;color:#0f172a;line-height:1.7;overflow-wrap:anywhere}
+.fx-eq .lhs{color:#1d4ed8;font-weight:600}
+.fx-eq sub,.fx-eq sup{font-size:.68em;line-height:0}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;text-align:center;margin:.15rem .15rem;line-height:1.3}
+.frac>span:first-child{padding:0 .4rem .2rem;border-bottom:1.5px solid currentColor}
+.frac>span:last-child{padding:.2rem .4rem 0}
+.fx-now{margin-top:.55rem;display:flex;flex-wrap:wrap;gap:.35rem}
+.fx-now span{font-family:var(--mono);font-size:.7rem;color:#1e40af;background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:.12rem .45rem}
+.fx-note{margin-top:.45rem;font-size:.72rem;color:#64748b;line-height:1.55}
+@media(max-width:700px){.fx-eq{font-size:1rem}.fx-row{padding:.65rem .7rem}}
 </style>
 </head>
 <body>
@@ -279,7 +296,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
     <div class="panel fade-in">
       <div class="panel-head"><h3><span class="ph-icon">📐</span> Formula Reference</h3></div>
       <div class="panel-body">
-        <div class="formula-box" id="formulaBox"></div>
+        <div class="fx" id="formulaBox"></div>
       </div>
     </div>
 
@@ -391,6 +408,12 @@ const fmt  = (n,dec=1) => n.toFixed(dec);
 const fmtM = (n) => n < 0 ? `−£${fmt(-n)}m` : `£${fmt(n)}m`;
 const fmtP = (n) => `${fmt(n,1)}%`;
 
+// ─── FORMULA REFERENCE HELPERS ───────────────────────────────────────────────
+const FX = {
+  frac: (n,d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`,
+  row: (name, eq, now=[], note='') => `<div class="fx-row"><div class="fx-name">${name}</div><div class="fx-eq">${eq}</div>${now.length?`<div class="fx-now">${now.map(x=>`<span>${x}</span>`).join('')}</div>`:''}${note?`<div class="fx-note">${note}</div>`:''}</div>`,
+  sec: (num, title, rows) => `<div class="fx-sec"><div class="fx-h"><b>${num}</b>${title}</div>${rows.join('')}</div>`
+};
 // ─── VALUATION ────────────────────────────────────────────────────────────────
 // Values the projected FCFs at a given WACC (in %). Each step is rounded to 0.1,
 // the same way the step-by-step solution shows it.
@@ -702,30 +725,37 @@ function renderAnswerInputs() {
 }
 
 function renderFormulas() {
-  const w = mode==='given'?`${fmt(q.wacc,1)}%`:'WACC';
-  document.getElementById('formulaBox').innerHTML = `
-<span class="comment">// Free cash flow to the firm</span>
-<span class="kw">NOPAT</span>    = EBIT × (1 − tax rate)
-<span class="kw">ΔNWC_t</span>   = NWC% × (Revenue_t − Revenue_t−1)
-<span class="kw">FCF</span>      = NOPAT + D&A − Capex − ΔNWC
-
-<span class="comment">// Discounting (end of year)</span>
-<span class="kw">PV(FCF_t)</span> = FCF_t ÷ (1 + <span class="val">${w}</span>)^t
-<span class="kw">TV</span>        = FCF_n × (1 + g) ÷ (WACC − g)
-<span class="kw">PV(TV)</span>    = TV ÷ (1 + <span class="val">${w}</span>)^n
-<span class="kw">EV</span>        = Σ PV(FCFs) + PV(TV)
-
-<span class="comment">// Equity bridge</span>
-<span class="kw">EquityValue</span> = EV − GrossDebt + Cash
-<span class="kw">SharePrice</span>  = EquityValue ÷ Shares × 100 (pence)
-
-<span class="comment">// Sanity checks a real model shows</span>
-<span class="kw">TV share</span>      = PV(TV) ÷ EV
-<span class="kw">Exit multiple</span> = TV ÷ EBITDA_n${mode!=='given'?`
-
-<span class="comment">// WACC (CAPM, target capital structure)</span>
-<span class="kw">Ke</span>   = Rf + β × (Rm − Rf)
-<span class="kw">WACC</span> = (E/V)×Ke + (D/V)×Kd×(1−T)`:''}`;
+  const {frac,row,sec} = FX;
+  const n = q.projYrs;
+  const waccChip = mode==='given' ? `WACC = ${fmtP(q.wacc)}` : 'WACC = the one you calculate';
+  const out = [
+    sec(1,'Free cash flow, each year',[
+      row('Operating profit after tax', `<span class="lhs">NOPAT</span> = EBIT × (1 − <i>t</i>)`, [`t = ${fmtP(q.taxRate)}`]),
+      row('Investment in working capital', `<span class="lhs">ΔNWC<sub><i>t</i></sub></span> = NWC% × (Revenue<sub><i>t</i></sub> − Revenue<sub><i>t</i>−1</sub>)`, [`NWC% = ${fmtP(q.nwcPct)}`],
+        q.nwcPct < 0 ? 'NWC is negative here because customers pay in advance, so growth brings cash in.' : 'Only the growth in revenue needs extra working capital, not the whole revenue.'),
+      row('Free cash flow to the firm', `<span class="lhs">FCF</span> = NOPAT + D&amp;A − Capex − ΔNWC`)
+    ]),
+    sec(2,'Discount to today (end of year)',[
+      row('Present value of each year', `<span class="lhs">PV(FCF<sub><i>t</i></sub>)</span> = ${frac('FCF<sub><i>t</i></sub>','(1 + WACC)<sup><i>t</i></sup>')}`, [waccChip]),
+      row(`Terminal value at year ${n} (Gordon growth)`, `<span class="lhs">TV</span> = ${frac('FCF<sub><i>n</i></sub> × (1 + <i>g</i>)','WACC − <i>g</i>')}`, [`n = ${n}`, `g = ${fmtP(q.tg)}`]),
+      row('Present value of the terminal value', `<span class="lhs">PV(TV)</span> = ${frac('TV','(1 + WACC)<sup><i>n</i></sup>')}`),
+      row('Enterprise value', `<span class="lhs">EV</span> = Σ PV(FCF<sub><i>t</i></sub>) + PV(TV)`)
+    ]),
+    sec(3,'Equity bridge',[
+      row('Equity value', `<span class="lhs">Equity value</span> = EV − Gross debt + Cash`, [`Debt = ${fmtM(q.grossDebt)}`, `Cash = ${fmtM(q.cash)}`]),
+      row('Share price in pence', `<span class="lhs">Price</span> = ${frac('Equity value','Shares')} × 100`, [`Shares = ${fmt(q.shares,0)}m`])
+    ])
+  ];
+  if (mode !== 'given') out.push(sec(4,'WACC (CAPM, target capital structure)',[
+    row('Cost of equity', `<span class="lhs">K<sub>e</sub></span> = R<sub>f</sub> + β × (R<sub>m</sub> − R<sub>f</sub>)`, [`Rf = ${fmtP(q.riskFree)}`, `β = ${q.beta}`, `MRP = ${fmtP(q.mktPremium)}`], 'R<sub>m</sub> − R<sub>f</sub> is the market risk premium (MRP).'),
+    row('Weighted average cost of capital', `<span class="lhs">WACC</span> = ${frac('E','D + E')} × K<sub>e</sub> + ${frac('D','D + E')} × K<sub>d</sub> × (1 − <i>t</i>)`, [`D/(D+E) = ${fmtP(q.debtRatio)}`, `Kd = ${fmtP(q.costDebt)}`, `t = ${fmtP(q.taxRate)}`], 'Interest is tax deductible, so debt costs K<sub>d</sub> × (1 − t) after tax.')
+  ]));
+  out.push(sec(out.length+1,'Sanity checks a real model shows',[
+    row('Share of value in the terminal value', `<span class="lhs">TV share</span> = ${frac('PV(TV)','EV')}`, [], 'Above about 75% means most of the value sits beyond the forecast, so test g and WACC hard.'),
+    row('Implied exit multiple', `<span class="lhs">Exit multiple</span> = ${frac('TV','EBITDA<sub><i>n</i></sub>')}`, [], 'Compare it with what similar listed companies trade on.'),
+    row('Growth needs investment', `<span class="lhs"><i>g</i></span> = Reinvestment rate × Return on new capital`, [], 'Reinvestment rate = (Capex − D&amp;A + ΔNWC) ÷ NOPAT. Growth only adds value when the return on new capital beats WACC.')
+  ]));
+  document.getElementById('formulaBox').innerHTML = out.join('');
 }
 
 function renderWACCBuilder() {

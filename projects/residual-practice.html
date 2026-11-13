@@ -159,6 +159,23 @@ input:checked + .slider::before{transform:translateX(16px)}
 /* Phone fix: let grid columns shrink below their content, and scroll wide tables inside their panel */
 .main-grid>*{min-width:0}
 @media(max-width:700px){.fin-table{display:block;overflow-x:auto;white-space:nowrap}.panel-head{flex-wrap:wrap;gap:.5rem}.tab-bar{flex-wrap:wrap}}
+/* Formula reference: one formula per card, stacked fractions, this question's inputs underneath */
+.fx{display:flex;flex-direction:column;gap:1.1rem}
+.fx-h{display:flex;align-items:center;gap:.5rem;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:.5rem}
+.fx-h b{display:inline-flex;align-items:center;justify-content:center;width:1.3rem;height:1.3rem;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:.66rem;letter-spacing:0}
+.fx-row{padding:.75rem .9rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.fx-row+.fx-row{margin-top:.5rem}
+.fx-name{font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.45rem}
+.fx-eq{font-family:'Cambria Math',Cambria,'STIX Two Text','Times New Roman',serif;font-size:1.08rem;color:#0f172a;line-height:1.7;overflow-wrap:anywhere}
+.fx-eq .lhs{color:#1d4ed8;font-weight:600}
+.fx-eq sub,.fx-eq sup{font-size:.68em;line-height:0}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;text-align:center;margin:.15rem .15rem;line-height:1.3}
+.frac>span:first-child{padding:0 .4rem .2rem;border-bottom:1.5px solid currentColor}
+.frac>span:last-child{padding:.2rem .4rem 0}
+.fx-now{margin-top:.55rem;display:flex;flex-wrap:wrap;gap:.35rem}
+.fx-now span{font-family:var(--mono);font-size:.7rem;color:#1e40af;background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:.12rem .45rem}
+.fx-note{margin-top:.45rem;font-size:.72rem;color:#64748b;line-height:1.55}
+@media(max-width:700px){.fx-eq{font-size:1rem}.fx-row{padding:.65rem .7rem}}
 </style>
 </head>
 <body>
@@ -228,6 +245,12 @@ const COS=[
   {name:'Pinnacle Tech PLC',sector:'Technology'},
 ];
 
+// ─── FORMULA REFERENCE HELPERS ───────────────────────────────────────────────
+const FX = {
+  frac: (n,d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`,
+  row: (name, eq, now=[], note='') => `<div class="fx-row"><div class="fx-name">${name}</div><div class="fx-eq">${eq}</div>${now.length?`<div class="fx-now">${now.map(x=>`<span>${x}</span>`).join('')}</div>`:''}${note?`<div class="fx-note">${note}</div>`:''}</div>`,
+  sec: (num, title, rows) => `<div class="fx-sec"><div class="fx-h"><b>${num}</b>${title}</div>${rows.join('')}</div>`
+};
 function generateQuestion(){
   const co=COS[Math.floor(Math.random()*COS.length)];
   let bv0,ni0,ke,shares,years,tg,niGPct,payR;
@@ -306,13 +329,12 @@ function renderGuided(){
           <div class="info-card"><div class="info-label">Dividends Paid (Year 1)</div><div class="info-val">£${y.div}m</div></div>
           <div class="info-card full"><div class="info-label">Shares Outstanding</div><div class="info-val">${q.shares}m shares</div></div>
         </div>
-        <div class="formula-box">
-          <strong style="font-family:var(--head);font-size:.73rem;color:var(--dark)">RIM Formulae</strong>
-          <span class="eq">Equity Charge  =  BV Equity(t−1)  ×  Ke</span>
-          <span class="eq">Residual Income (RI)  =  Net Income  −  Equity Charge</span>
-          <span class="eq">BV Equity(t)  =  BV(t−1) + NI − Dividends</span>
-          <span class="eq">PV(RI)  =  RI ÷ (1 + Ke)ᵗ</span>
-        </div>
+        <div class="fx" style="margin-bottom:1rem">${FX.sec(1,'Residual income formulae',[
+          FX.row('Equity charge', `<span class="lhs">Equity charge</span> = BV<sub><i>t</i>−1</sub> × K<sub>e</sub>`, [], 'The return shareholders require on the book value at the start of the year.'),
+          FX.row('Residual income', `<span class="lhs">RI<sub><i>t</i></sub></span> = NI<sub><i>t</i></sub> − Equity charge`),
+          FX.row('Book value (clean surplus)', `<span class="lhs">BV<sub><i>t</i></sub></span> = BV<sub><i>t</i>−1</sub> + NI<sub><i>t</i></sub> − Dividends<sub><i>t</i></sub>`),
+          FX.row('Present value', `<span class="lhs">PV(RI<sub><i>t</i></sub>)</span> = ${FX.frac('RI<sub><i>t</i></sub>','(1 + K<sub>e</sub>)<sup><i>t</i></sup>')}`)
+        ])}</div>
         <button class="hint-toggle" onclick="toggleHint()">💡 Show hint</button>
         <div class="hint-box" id="hintBox">
           <strong>Step-by-step:</strong><br>
@@ -417,14 +439,13 @@ function renderStandard(){
           <thead><tr><th>Year</th><th>BV Start (£m)</th><th>Net Income (£m)</th><th>NI Growth</th><th>Dividends (£m)</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        <div class="formula-box" style="margin-top:.9rem">
-          <strong style="font-family:var(--head);font-size:.73rem;color:var(--dark)">Formulae</strong>
-          <span class="eq">Equity Charge(t)  =  BV(t−1) × Ke</span>
-          <span class="eq">RI(t)  =  NI(t) − Equity Charge(t)</span>
-          <span class="eq">Terminal RI  =  NI(T)×(1+g) − BV(T)×Ke</span>
-          <span class="eq">Terminal Value  =  Terminal RI ÷ (Ke − g)</span>
-          <span class="eq">Equity Value  =  BV₀  +  Σ PV(RIₜ)  +  PV(Terminal Value)</span>
-        </div>
+        <div class="fx" style="margin-top:.9rem">${FX.sec(1,'Formulae',[
+          FX.row('Equity charge', `<span class="lhs">Equity charge<sub><i>t</i></sub></span> = BV<sub><i>t</i>−1</sub> × K<sub>e</sub>`),
+          FX.row('Residual income', `<span class="lhs">RI<sub><i>t</i></sub></span> = NI<sub><i>t</i></sub> − Equity charge<sub><i>t</i></sub>`),
+          FX.row('Terminal residual income (year T + 1)', `<span class="lhs">RI<sub><i>T</i>+1</sub></span> = NI<sub><i>T</i></sub> × (1 + <i>g</i>) − BV<sub><i>T</i></sub> × K<sub>e</sub>`, [], 'BV<sub>T</sub> is the book value at the end of year T, which is the opening book value of year T + 1.'),
+          FX.row('Terminal value at year T', `<span class="lhs">TV</span> = ${FX.frac('RI<sub><i>T</i>+1</sub>','K<sub>e</sub> − <i>g</i>')}`),
+          FX.row('Equity value', `<span class="lhs">Equity value</span> = BV<sub>0</sub> + Σ PV(RI<sub><i>t</i></sub>) + ${FX.frac('TV','(1 + K<sub>e</sub>)<sup><i>T</i></sup>')}`)
+        ])}</div>
       </div>
     </div>
   </div>

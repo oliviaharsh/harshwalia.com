@@ -170,6 +170,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 /* Phone fix: let grid columns shrink below their content, and scroll wide tables inside their panel */
 .main-grid>*{min-width:0}
 @media(max-width:700px){.fin-table{display:block;overflow-x:auto;white-space:nowrap}.panel-head{flex-wrap:wrap;gap:.5rem}.tab-bar{flex-wrap:wrap}}
+/* Formula reference: one formula per card, stacked fractions, this question's inputs underneath */
+.fx{display:flex;flex-direction:column;gap:1.1rem}
+.fx-h{display:flex;align-items:center;gap:.5rem;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:.5rem}
+.fx-h b{display:inline-flex;align-items:center;justify-content:center;width:1.3rem;height:1.3rem;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:.66rem;letter-spacing:0}
+.fx-row{padding:.75rem .9rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.fx-row+.fx-row{margin-top:.5rem}
+.fx-name{font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.45rem}
+.fx-eq{font-family:'Cambria Math',Cambria,'STIX Two Text','Times New Roman',serif;font-size:1.08rem;color:#0f172a;line-height:1.7;overflow-wrap:anywhere}
+.fx-eq .lhs{color:#1d4ed8;font-weight:600}
+.fx-eq sub,.fx-eq sup{font-size:.68em;line-height:0}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;text-align:center;margin:.15rem .15rem;line-height:1.3}
+.frac>span:first-child{padding:0 .4rem .2rem;border-bottom:1.5px solid currentColor}
+.frac>span:last-child{padding:.2rem .4rem 0}
+.fx-now{margin-top:.55rem;display:flex;flex-wrap:wrap;gap:.35rem}
+.fx-now span{font-family:var(--mono);font-size:.7rem;color:#1e40af;background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:.12rem .45rem}
+.fx-note{margin-top:.45rem;font-size:.72rem;color:#64748b;line-height:1.55}
+@media(max-width:700px){.fx-eq{font-size:1rem}.fx-row{padding:.65rem .7rem}}
 </style>
 </head>
 <body>
@@ -264,7 +281,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
     <div class="panel fade-in">
       <div class="panel-head"><h3><span class="ph-icon">📐</span> Formula Reference</h3></div>
       <div class="panel-body">
-        <div class="formula-box" id="formulaBox"></div>
+        <div class="fx" id="formulaBox"></div>
       </div>
     </div>
 
@@ -348,6 +365,12 @@ const fmtP = (n,dec=1) => `${n.toFixed(dec)}%`;
 const fmtPx= (n) => `${n.toFixed(2)}p`;
 
 // ─── GENERATE QUESTION ────────────────────────────────────────────────────────
+// ─── FORMULA REFERENCE HELPERS ───────────────────────────────────────────────
+const FX = {
+  frac: (n,d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`,
+  row: (name, eq, now=[], note='') => `<div class="fx-row"><div class="fx-name">${name}</div><div class="fx-eq">${eq}</div>${now.length?`<div class="fx-now">${now.map(x=>`<span>${x}</span>`).join('')}</div>`:''}${note?`<div class="fx-note">${note}</div>`:''}</div>`,
+  sec: (num, title, rows) => `<div class="fx-sec"><div class="fx-h"><b>${num}</b>${title}</div>${rows.join('')}</div>`
+};
 function generateQuestion() {
   const secIdx = rndI(0,7);
   const sector = SECTORS[secIdx];
@@ -639,49 +662,42 @@ function renderAnswerInputs() {
 }
 
 function renderFormulas() {
-  let box = '';
+  const {frac,row,sec} = FX;
+  let out = [];
   if(mode === 'gordon') {
-    box = `<span class="comment">// Gordon Growth Model (Single-Stage DDM)</span>
-
-<span class="kw">D₁</span>  = D₀ × (1 + g)
-<span class="kw">P₀</span>  = D₁ ÷ (Ke − g)
-
-<span class="comment">// where:</span>
-<span class="comment">//   D₀ = current dividend = ${fmtPx(q.d0)}</span>
-<span class="comment">//   g  = constant growth rate = ${fmtP(q.gGordon)}</span>
-<span class="comment">//   Ke = required return on equity = ${fmtP(q.ke)}</span>
-<span class="comment">// Ke must be > g for the model to work</span>
-
-<span class="kw">Check: sustainable g</span> = Retention Ratio × ROE
-             = ${q.retainPct}% × ${fmtP(q.roe)} = <span class="val">${fmtP(q.gSust,2)}</span>`;
+    out = [
+      sec(1,'Gordon growth (one stage)',[
+        row("Next year's dividend", `<span class="lhs">D<sub>1</sub></span> = D<sub>0</sub> × (1 + <i>g</i>)`, [`D0 = ${fmtPx(q.d0)}`, `g = ${fmtP(q.gGordon)}`]),
+        row('Share price today', `<span class="lhs">P<sub>0</sub></span> = ${frac('D<sub>1</sub>','K<sub>e</sub> − <i>g</i>')}`, [`Ke = ${fmtP(q.ke)}`], 'Only works when K<sub>e</sub> is above g.')
+      ]),
+      sec(2,'Cross-check',[
+        row('Sustainable growth', `<span class="lhs"><i>g</i></span> = <i>b</i> × ROE`, [`b = ${q.retainPct}%`, `ROE = ${fmtP(q.roe)}`], `b is the retention ratio (1 − payout). ${q.retainPct}% × ${fmtP(q.roe)} = ${fmtP(q.gSust)}, the same g as above.`)
+      ])
+    ];
   } else if(mode === 'two') {
-    box = `<span class="comment">// Two-Stage DDM</span>
-
-<span class="kw">Stage 1:</span>  Discount each Dₜ at Ke for t = 1…${q.stageYrs}
-  PV(Dₜ) = Dₜ ÷ (1 + Ke)^t   [Ke = ${fmtP(q.ke)}]
-
-<span class="kw">Stage 2:</span>  Apply Gordon Growth from Year ${q.stageYrs}+1
-  P_N = D_{N+1} ÷ (Ke − gL)
-  PV(P_N) = P_N ÷ (1 + Ke)^N
-
-<span class="kw">P₀</span> = Σ PV(Dₜ) + PV(P_N)
-
-<span class="comment">// Stage 1 growth: ${fmtP(q.gHigh)} for ${q.stageYrs} years</span>
-<span class="comment">// Stage 2 growth: ${fmtP(q.gStable)} forever</span>`;
+    out = [
+      sec(1,`Stage 1: high growth for ${q.stageYrs} years`,[
+        row('Dividend in year t', `<span class="lhs">D<sub><i>t</i></sub></span> = D<sub>0</sub> × (1 + <i>g</i><sub>high</sub>)<sup><i>t</i></sup>`, [`D0 = ${fmtPx(q.d0)}`, `g high = ${fmtP(q.gHigh)}`]),
+        row('Present value of each dividend', `<span class="lhs">PV(D<sub><i>t</i></sub>)</span> = ${frac('D<sub><i>t</i></sub>','(1 + K<sub>e</sub>)<sup><i>t</i></sup>')}`, [`Ke = ${fmtP(q.ke)}`])
+      ]),
+      sec(2,'Stage 2: stable growth forever',[
+        row(`Price at the end of year ${q.stageYrs}`, `<span class="lhs">P<sub><i>N</i></sub></span> = ${frac('D<sub><i>N</i>+1</sub>','K<sub>e</sub> − <i>g</i><sub>stable</sub>')}`, [`N = ${q.stageYrs}`, `g stable = ${fmtP(q.gStable)}`], 'D<sub>N+1</sub> = D<sub>N</sub> × (1 + g<sub>stable</sub>), the first dividend of the stable phase.'),
+        row('Present value of that price', `<span class="lhs">PV(P<sub><i>N</i></sub>)</span> = ${frac('P<sub><i>N</i></sub>','(1 + K<sub>e</sub>)<sup><i>N</i></sup>')}`)
+      ]),
+      sec(3,'Share price today',[
+        row('Add the two stages', `<span class="lhs">P<sub>0</sub></span> = Σ PV(D<sub><i>t</i></sub>) + PV(P<sub><i>N</i></sub>)`)
+      ])
+    ];
   } else {
-    box = `<span class="comment">// H-Model (Gradual Decline from gS to gL)</span>
-
-<span class="kw">P₀</span> = [D₀(1+gL) ÷ (Ke−gL)]  ← stable component
-   + [D₀ × H × (gS−gL) ÷ (Ke−gL)]  ← extra premium
-
-<span class="comment">// Assumes growth declines linearly over 2H years</span>
-<span class="comment">// D₀ = ${fmtPx(q.d0)}</span>
-<span class="comment">// gS = ${fmtP(q.gS_h)}  (initial high growth)</span>
-<span class="comment">// gL = ${fmtP(q.gL_h)}  (long-run stable growth)</span>
-<span class="comment">// H  = ${q.H}    (half-life in years)</span>
-<span class="comment">// Ke = ${fmtP(q.ke)}</span>`;
+    out = [
+      sec(1,'H-model: growth fades in a straight line',[
+        row('Share price today', `<span class="lhs">P<sub>0</sub></span> = ${frac('D<sub>0</sub> × (1 + <i>g</i><sub>L</sub>)','K<sub>e</sub> − <i>g</i><sub>L</sub>')} + ${frac('D<sub>0</sub> × <i>H</i> × (<i>g</i><sub>S</sub> − <i>g</i><sub>L</sub>)','K<sub>e</sub> − <i>g</i><sub>L</sub>')}`,
+          [`D0 = ${fmtPx(q.d0)}`, `gS = ${fmtP(q.gS_h)}`, `gL = ${fmtP(q.gL_h)}`, `H = ${q.H}`, `Ke = ${fmtP(q.ke)}`],
+          `The first part values the company at its long-run growth g<sub>L</sub>. The second adds the premium for higher growth g<sub>S</sub> that falls to g<sub>L</sub> over 2H = ${2*q.H} years.`)
+      ])
+    ];
   }
-  document.getElementById('formulaBox').innerHTML = box;
+  document.getElementById('formulaBox').innerHTML = out.join('');
 }
 
 // ─── CHECK ANSWERS ────────────────────────────────────────────────────────────
