@@ -187,6 +187,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 .fx-now span{font-family:var(--mono);font-size:.7rem;color:#1e40af;background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:.12rem .45rem}
 .fx-note{margin-top:.45rem;font-size:.72rem;color:#64748b;line-height:1.55}
 @media(max-width:700px){.fx-eq{font-size:1rem}.fx-row{padding:.65rem .7rem}}
+/* Step-by-step solution: maths in the formula-card style, results in green, per-year tables */
+.step-content{min-width:0}
+.sol-eq{font-family:'Cambria Math',Cambria,'STIX Two Text','Times New Roman',serif;font-size:1rem;color:#0f172a;line-height:1.75;overflow-wrap:anywhere;margin-top:.2rem}
+.sol-eq .res{color:#15803d;font-weight:700;white-space:nowrap}
+.sol-wrap{overflow-x:auto;margin-top:.4rem}
+.sol-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem}
+.sol-tbl th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:600;text-align:right;padding:.3rem .45rem;border-bottom:1px solid var(--border);white-space:nowrap}
+.sol-tbl td{text-align:right;padding:.3rem .45rem;border-bottom:1px solid #eef2f7;color:#0f172a;white-space:nowrap}
+.sol-tbl th:first-child,.sol-tbl td:first-child{text-align:left}
+.sol-tbl tr.tot td{border-top:1.5px solid #cbd5e1;border-bottom:none;font-weight:700;color:#15803d}
+.sol-tbl sup{font-size:.75em}
 </style>
 </head>
 <body>
@@ -365,6 +376,13 @@ const fmtP = (n,dec=1) => `${n.toFixed(dec)}%`;
 const fmtPx= (n) => `${n.toFixed(2)}p`;
 
 // ─── GENERATE QUESTION ────────────────────────────────────────────────────────
+// ─── SOLUTION LAYOUT HELPERS ─────────────────────────────────────────────────
+const SOL = {
+  eq:  (...lines) => lines.map(l=>`<div class="sol-eq">${l}</div>`).join(''),
+  res: (s) => `<span class="res">${s}</span>`,
+  tbl: (head, rows, tot) => `<div class="sol-wrap"><table class="sol-tbl"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}${tot?`<tr class="tot">${tot.map(c=>`<td>${c}</td>`).join('')}</tr>`:''}</tbody></table></div>`,
+  note:(s) => `<div class="fx-note">${s}</div>`
+};
 // ─── FORMULA REFERENCE HELPERS ───────────────────────────────────────────────
 const FX = {
   frac: (n,d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`,
@@ -778,27 +796,40 @@ function showBanner(type, msg) {
 
 function showSolution() {
   document.getElementById('stepsPanel').style.display = 'block';
+  const {frac} = FX, {eq, res, tbl, note} = SOL;
   const steps = [];
 
   if(mode === 'gordon') {
-    steps.push({t:'Calculate D₁ (next period dividend)', v:`D₁ = D₀ × (1+g) = ${fmtPx(q.d0)} × (1 + ${fmtP(q.gGordon)}) = ${fmtPx(q.d1_gordon)}`});
-    steps.push({t:'Apply Gordon Growth Model', v:`P₀ = D₁ ÷ (Ke − g) = ${fmtPx(q.d1_gordon)} ÷ (${fmtP(q.ke)} − ${fmtP(q.gGordon)}) = ${fmtPx(q.d1_gordon)} ÷ ${fmtP(q.ke - q.gGordon)} = ${fmtPx(q.p_gordon)}`});
+    steps.push({t:"Next year's dividend", v: eq(
+      `D<sub>1</sub> = D<sub>0</sub> × (1 + <i>g</i>)`,
+      `= ${fmtPx(q.d0)} × ${(1+q.gGordon/100).toFixed(3)} = ${res(fmtPx(q.d1_gordon))}`)});
+    steps.push({t:'Share price (Gordon growth)', v: eq(
+      `P<sub>0</sub> = ${frac('D<sub>1</sub>','K<sub>e</sub> − <i>g</i>')} = ${frac(fmtPx(q.d1_gordon), `${fmtP(q.ke)} − ${fmtP(q.gGordon)}`)} = ${frac(fmtPx(q.d1_gordon), fmtP(q.ke - q.gGordon))} = ${res(fmtPx(q.p_gordon))}`)});
   } else if(mode === 'two') {
-    steps.push({t:`Forecast dividends in high-growth stage (${fmtP(q.gHigh)})`, v:q.stageDivs.map((d,i)=>`Y${i+1}: ${fmtPx(d)}`).join(' | ')});
-    steps.push({t:'Discount each dividend to PV', v:q.stagePVs.map((p,i)=>`PV(D${i+1}) = ${fmtPx(q.stageDivs[i])} ÷ (1+${fmtP(q.ke)})^${i+1} = ${fmtPx(p)}`).join(' | ')});
-    steps.push({t:'Sum of PV(Dividends)', v:`Σ PV(Dₜ) = ${fmtPx(q.pvStageSum)}`});
-    steps.push({t:`Terminal dividend D${q.stageYrs+1} (first stable-phase div)`, v:`D${q.stageYrs+1} = ${fmtPx(q.stageDivs[q.stageYrs-1])} × (1+${fmtP(q.gStable)}) = ${fmtPx(q.dStable1)}`});
-    steps.push({t:`Terminal Price at Year ${q.stageYrs} (Gordon Growth)`, v:`P_N = ${fmtPx(q.dStable1)} ÷ (${fmtP(q.ke)} − ${fmtP(q.gStable)}) = ${fmtPx(q.terminalP)}`});
-    steps.push({t:`PV of Terminal Price`, v:`PV(P_N) = ${fmtPx(q.terminalP)} ÷ (1+${fmtP(q.ke)})^${q.stageYrs} = ${fmtPx(q.pvTerminal)}`});
-    steps.push({t:'Intrinsic Share Price', v:`P₀ = ${fmtPx(q.pvStageSum)} + ${fmtPx(q.pvTerminal)} = ${fmtPx(q.p_twostage)}`});
+    const N = q.stageYrs;
+    steps.push({t:`Stage 1: grow and discount each dividend (g = ${fmtP(q.gHigh)}, Ke = ${fmtP(q.ke)})`, v: tbl(['Year','Dividend','(1 + Ke)<sup>t</sup>','PV'],
+      q.stageDivs.map((d,i)=>[`Y${i+1}`, fmtPx(d), Math.pow(1+q.ke/100,i+1).toFixed(4), fmtPx(q.stagePVs[i])]),
+      ['Σ PV(D)','','', fmtPx(q.pvStageSum)])
+      + note(`Each dividend is the one before × ${(1+q.gHigh/100).toFixed(3)}. PV = dividend ÷ (1 + Ke)<sup>t</sup>.`)});
+    steps.push({t:`First dividend of the stable phase`, v: eq(
+      `D<sub>${N+1}</sub> = D<sub>${N}</sub> × (1 + <i>g</i><sub>stable</sub>) = ${fmtPx(q.stageDivs[N-1])} × ${(1+q.gStable/100).toFixed(3)} = ${res(fmtPx(q.dStable1))}`)});
+    steps.push({t:`Price at the end of year ${N}`, v: eq(
+      `P<sub>${N}</sub> = ${frac(`D<sub>${N+1}</sub>`,'K<sub>e</sub> − <i>g</i><sub>stable</sub>')} = ${frac(fmtPx(q.dStable1), `${fmtP(q.ke)} − ${fmtP(q.gStable)}`)} = ${res(fmtPx(q.terminalP))}`)});
+    steps.push({t:'Present value of that price', v: eq(
+      `PV(P<sub>${N}</sub>) = ${frac(fmtPx(q.terminalP), `${(1+q.ke/100).toFixed(4)}<sup>${N}</sup>`)} = ${res(fmtPx(q.pvTerminal))}`)});
+    steps.push({t:'Share price today', v: eq(
+      `P<sub>0</sub> = Σ PV(D) + PV(P<sub>${N}</sub>) = ${fmtPx(q.pvStageSum)} + ${fmtPx(q.pvTerminal)} = ${res(fmtPx(q.p_twostage))}`)});
   } else {
-    steps.push({t:'Calculate stable-growth component', v:`D₀(1+gL) ÷ (Ke−gL) = ${fmtPx(q.d0)} × ${(1+q.gL_h/100).toFixed(4)} ÷ (${fmtP(q.ke)}−${fmtP(q.gL_h)}) = ${fmtPx(q.p_h_stable)}`});
-    steps.push({t:'Calculate extra growth premium', v:`D₀ × H × (gS−gL) ÷ (Ke−gL) = ${fmtPx(q.d0)} × ${q.H} × (${fmtP(q.gS_h)}−${fmtP(q.gL_h)}) ÷ (${fmtP(q.ke)}−${fmtP(q.gL_h)}) = ${fmtPx(q.p_h_extra)}`});
-    steps.push({t:'Intrinsic Share Price (H-Model)', v:`P₀ = ${fmtPx(q.p_h_stable)} + ${fmtPx(q.p_h_extra)} = ${fmtPx(q.p_h_model)}`});
+    steps.push({t:'Stable-growth part', v: eq(
+      `${frac('D<sub>0</sub> × (1 + <i>g</i><sub>L</sub>)','K<sub>e</sub> − <i>g</i><sub>L</sub>')} = ${frac(`${fmtPx(q.d0)} × ${(1+q.gL_h/100).toFixed(3)}`, `${fmtP(q.ke)} − ${fmtP(q.gL_h)}`)} = ${res(fmtPx(q.p_h_stable))}`)});
+    steps.push({t:'Extra-growth premium', v: eq(
+      `${frac('D<sub>0</sub> × <i>H</i> × (<i>g</i><sub>S</sub> − <i>g</i><sub>L</sub>)','K<sub>e</sub> − <i>g</i><sub>L</sub>')} = ${frac(`${fmtPx(q.d0)} × ${q.H} × (${fmtP(q.gS_h)} − ${fmtP(q.gL_h)})`, `${fmtP(q.ke)} − ${fmtP(q.gL_h)}`)} = ${res(fmtPx(q.p_h_extra))}`)});
+    steps.push({t:'Share price today (H-model)', v: eq(
+      `P<sub>0</sub> = ${fmtPx(q.p_h_stable)} + ${fmtPx(q.p_h_extra)} = ${res(fmtPx(q.p_h_model))}`)});
   }
 
   document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
-    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('');
+    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div>${s.v}</div></div>`).join('');
   document.getElementById('stepsPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 

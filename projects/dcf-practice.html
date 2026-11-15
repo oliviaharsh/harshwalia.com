@@ -200,6 +200,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,
 .fx-now span{font-family:var(--mono);font-size:.7rem;color:#1e40af;background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:.12rem .45rem}
 .fx-note{margin-top:.45rem;font-size:.72rem;color:#64748b;line-height:1.55}
 @media(max-width:700px){.fx-eq{font-size:1rem}.fx-row{padding:.65rem .7rem}}
+/* Step-by-step solution: maths in the formula-card style, results in green, per-year tables */
+.step-content{min-width:0}
+.sol-eq{font-family:'Cambria Math',Cambria,'STIX Two Text','Times New Roman',serif;font-size:1rem;color:#0f172a;line-height:1.75;overflow-wrap:anywhere;margin-top:.2rem}
+.sol-eq .res{color:#15803d;font-weight:700;white-space:nowrap}
+.sol-wrap{overflow-x:auto;margin-top:.4rem}
+.sol-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem}
+.sol-tbl th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:600;text-align:right;padding:.3rem .45rem;border-bottom:1px solid var(--border);white-space:nowrap}
+.sol-tbl td{text-align:right;padding:.3rem .45rem;border-bottom:1px solid #eef2f7;color:#0f172a;white-space:nowrap}
+.sol-tbl th:first-child,.sol-tbl td:first-child{text-align:left}
+.sol-tbl tr.tot td{border-top:1.5px solid #cbd5e1;border-bottom:none;font-weight:700;color:#15803d}
+.sol-tbl sup{font-size:.75em}
+.nw{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -408,6 +420,13 @@ const fmt  = (n,dec=1) => n.toFixed(dec);
 const fmtM = (n) => n < 0 ? `−£${fmt(-n)}m` : `£${fmt(n)}m`;
 const fmtP = (n) => `${fmt(n,1)}%`;
 
+// ─── SOLUTION LAYOUT HELPERS ─────────────────────────────────────────────────
+const SOL = {
+  eq:  (...lines) => lines.map(l=>`<div class="sol-eq">${l}</div>`).join(''),
+  res: (s) => `<span class="res">${s}</span>`,
+  tbl: (head, rows, tot) => `<div class="sol-wrap"><table class="sol-tbl"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}${tot?`<tr class="tot">${tot.map(c=>`<td>${c}</td>`).join('')}</tr>`:''}</tbody></table></div>`,
+  note:(s) => `<div class="fx-note">${s}</div>`
+};
 // ─── FORMULA REFERENCE HELPERS ───────────────────────────────────────────────
 const FX = {
   frac: (n,d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`,
@@ -600,7 +619,10 @@ function renderTabs() {
         <span class="toggle-slider"></span>
       </label>
     </div>`;
-  const nwcNote = q.nwcPct < 0 ? 'customers pay in advance' : 'of revenue';
+  // Plain-English reason for the sign of the NWC line, shown under the income statement.
+  const nwcExplain = q.nwcPct < 0
+    ? `NWC is negative here (${fmtP(q.nwcPct)} of revenue): the company collects cash from customers before it pays its suppliers. As revenue grows, NWC becomes more negative. That is a <strong>decrease</strong> in NWC, which releases cash, so it adds to FCF. You still deduct the increase in NWC; here the increase is negative, and deducting a negative adds.`
+    : `Each year the company ties up NWC % × (this year's revenue − last year's revenue) in working capital. That increase uses cash, so it is deducted.`;
 
   document.getElementById('tab-is').innerHTML = fcfToggleBar + `
     <div style="overflow-x:auto">
@@ -615,12 +637,12 @@ function renderTabs() {
         <tr class="subtotal"><td>NOPAT</td><td>${fmtM(q.baseNopat)}</td>${q.projNopat.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
         <tr><td>+ D&A (${fmtP(q.daPct)} of Rev)</td><td>${fmtM(q.baseDA)}</td>${q.projDA.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
         <tr><td>− Capex</td><td class="neg">(${fmtM(q.baseCapex)})</td>${q.projCapex.map(v=>`<td class="neg">(${fmtM(v)})</td>`).join('')}</tr>
-        <tr><td>− Increase in NWC (NWC ${fmtP(q.nwcPct)}, ${nwcNote})</td>${outCell(q.baseDNWC)}${q.projDNWC.map(outCell).join('')}</tr>
+        <tr><td>(Increase) / decrease in NWC <span style="color:var(--muted);font-weight:400">(NWC = ${fmtP(q.nwcPct)} of revenue)</span></td>${outCell(q.baseDNWC)}${q.projDNWC.map(outCell).join('')}</tr>
         <tr class="total-row fcf-hidden-row${rv}"><td>Free Cash Flow</td><td>${fmtM(q.baseFCF)}</td>${q.projFCFs.map(v=>`<td>${fmtM(v)}</td>`).join('')}</tr>
       </tbody>
     </table>
     </div>
-    <div style="margin-top:.6rem;font-size:.72rem;color:var(--muted);line-height:1.6">Capex runs above D&A while the company grows and converges towards it as growth fades. The NWC line is NWC % × (this year's revenue − last year's revenue).</div>`;
+    <div style="margin-top:.6rem;font-size:.72rem;color:var(--muted);line-height:1.6">Brackets are cash out, green figures are cash in. ${nwcExplain} Capex runs above D&amp;A while the company grows and converges towards it as growth fades.</div>`;
 
   document.getElementById('tab-bs').innerHTML = `
     <table class="fin-table">
@@ -652,7 +674,7 @@ function renderTabs() {
         <tr><td>Net Operating Profit After Tax (NOPAT)</td><td>${fmtM(q.baseNopat)}</td></tr>
         <tr><td>+ Depreciation & Amortisation</td><td>${fmtM(q.baseDA)}</td></tr>
         <tr><td>− Capital Expenditure</td><td class="neg">(${fmtM(q.baseCapex)})</td></tr>
-        <tr><td>− Increase in Net Working Capital</td>${outCell(q.baseDNWC)}</tr>
+        <tr><td>(Increase) / decrease in net working capital</td>${outCell(q.baseDNWC)}</tr>
         <tr class="total-row fcf-hidden-row${rv}"><td>Free Cash Flow to Firm</td><td>${fmtM(q.baseFCF)}</td></tr>
       </tbody>
     </table>
@@ -732,7 +754,7 @@ function renderFormulas() {
     sec(1,'Free cash flow, each year',[
       row('Operating profit after tax', `<span class="lhs">NOPAT</span> = EBIT × (1 − <i>t</i>)`, [`t = ${fmtP(q.taxRate)}`]),
       row('Investment in working capital', `<span class="lhs">ΔNWC<sub><i>t</i></sub></span> = NWC% × (Revenue<sub><i>t</i></sub> − Revenue<sub><i>t</i>−1</sub>)`, [`NWC% = ${fmtP(q.nwcPct)}`],
-        q.nwcPct < 0 ? 'NWC is negative here because customers pay in advance, so growth brings cash in.' : 'Only the growth in revenue needs extra working capital, not the whole revenue.'),
+        q.nwcPct < 0 ? 'NWC is negative here: the company collects cash before it pays suppliers, so ΔNWC is negative and growth brings cash in.' : 'Only the growth in revenue needs extra working capital, not the whole revenue.'),
       row('Free cash flow to the firm', `<span class="lhs">FCF</span> = NOPAT + D&amp;A − Capex − ΔNWC`)
     ]),
     sec(2,'Discount to today (end of year)',[
@@ -748,7 +770,7 @@ function renderFormulas() {
   ];
   if (mode !== 'given') out.push(sec(4,'WACC (CAPM, target capital structure)',[
     row('Cost of equity', `<span class="lhs">K<sub>e</sub></span> = R<sub>f</sub> + β × (R<sub>m</sub> − R<sub>f</sub>)`, [`Rf = ${fmtP(q.riskFree)}`, `β = ${q.beta}`, `MRP = ${fmtP(q.mktPremium)}`], 'R<sub>m</sub> − R<sub>f</sub> is the market risk premium (MRP).'),
-    row('Weighted average cost of capital', `<span class="lhs">WACC</span> = ${frac('E','D + E')} × K<sub>e</sub> + ${frac('D','D + E')} × K<sub>d</sub> × (1 − <i>t</i>)`, [`D/(D+E) = ${fmtP(q.debtRatio)}`, `Kd = ${fmtP(q.costDebt)}`, `t = ${fmtP(q.taxRate)}`], 'Interest is tax deductible, so debt costs K<sub>d</sub> × (1 − t) after tax.')
+    row('Weighted average cost of capital', `<span class="lhs">WACC</span> = <span class="nw">${frac('E','D + E')} × K<sub>e</sub></span> + <span class="nw">${frac('D','D + E')} × K<sub>d</sub> × (1 − <i>t</i>)</span>`, [`D/(D+E) = ${fmtP(q.debtRatio)}`, `Kd = ${fmtP(q.costDebt)}`, `t = ${fmtP(q.taxRate)}`], 'Interest is tax deductible, so debt costs K<sub>d</sub> × (1 − t) after tax.')
   ]));
   out.push(sec(out.length+1,'Sanity checks a real model shows',[
     row('Share of value in the terminal value', `<span class="lhs">TV share</span> = ${frac('PV(TV)','EV')}`, [], 'Above about 75% means most of the value sits beyond the forecast, so test g and WACC hard.'),
@@ -859,22 +881,44 @@ function showSolution() {
   document.getElementById('stepsPanel').style.display='block';
   const v = V(), w = usedWACC(), n = q.projYrs;
 
+  const {frac} = FX, {eq, res, tbl, note} = SOL;
+  const pct2 = x => `${fmt(x,2)}%`;
+  const wS = mode !== 'given' ? pct2(w) : fmtP(w);
+  const inBr = x => x < 0 ? `(${fmtM(x)})` : fmtM(x);
   const steps = [];
   if(!fcfVisible) {
-    steps.push({t:`Free cash flow (base year)`, v:`NOPAT + D&A − Capex − ΔNWC = ${fmtM(q.baseNopat)} + ${fmtM(q.baseDA)} − ${fmtM(q.baseCapex)} − ${fmtM(q.baseDNWC)} = ${fmtM(q.baseFCF)}`});
-    steps.push({t:`Free cash flow (forecast years)`, v:q.projFCFs.map((f,i)=>`Y${i+1}: ${fmtM(q.projNopat[i])} + ${fmtM(q.projDA[i])} − ${fmtM(q.projCapex[i])} − ${fmtM(q.projDNWC[i])} = ${fmtM(f)}`).join(' | ')});
+    steps.push({t:'Free cash flow, base year', v: eq(
+      `FCF = NOPAT + D&amp;A − Capex − ΔNWC`,
+      `= ${fmtM(q.baseNopat)} + ${fmtM(q.baseDA)} − ${fmtM(q.baseCapex)} <span class="nw">− ${inBr(q.baseDNWC)}</span> = ${res(fmtM(q.baseFCF))}`)});
+    steps.push({t:'Free cash flow, forecast years', v: tbl(['Year','NOPAT','+ D&amp;A','− Capex','ΔNWC','FCF'],
+      q.projFCFs.map((f,i)=>[`Y${i+1}`, fmt(q.projNopat[i]), fmt(q.projDA[i]), fmt(q.projCapex[i]), fmt(q.projDNWC[i]), `<b>${fmt(f)}</b>`]))
+      + note('£m. FCF = NOPAT + D&amp;A − Capex − ΔNWC. A negative ΔNWC means NWC fell, which releases cash: deducting a negative adds to FCF.')});
   }
-  if(mode!=='given') {
-    steps.push({t:`Cost of equity (CAPM)`, v:`Ke = ${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = ${fmt(q.costEquity,2)}%`});
-    steps.push({t:`WACC`, v:`WACC = ${fmtP(q.equityRatio)} × ${fmt(q.costEquity,2)}% + ${fmtP(q.debtRatio)} × ${fmtP(q.costDebt)} × (1 − ${fmtP(q.taxRate)}) = ${fmt(q.waccCalc,2)}%`});
+  if(mode !== 'given') {
+    steps.push({t:'Cost of equity (CAPM)', v: eq(
+      `K<sub>e</sub> = R<sub>f</sub> + β × MRP`,
+      `= ${fmtP(q.riskFree)} + ${q.beta} × ${fmtP(q.mktPremium)} = ${res(pct2(q.costEquity))}`)});
+    steps.push({t:'WACC', v: eq(
+      `WACC = <span class="nw">${frac('E','D + E')} × K<sub>e</sub></span> + <span class="nw">${frac('D','D + E')} × K<sub>d</sub> × (1 − <i>t</i>)</span>`,
+      `= <span class="nw">${fmtP(q.equityRatio)} × ${pct2(q.costEquity)}</span> + <span class="nw">${fmtP(q.debtRatio)} × ${fmtP(q.costDebt)} × (1 − ${fmtP(q.taxRate)})</span> = ${res(pct2(q.waccCalc))}`)});
   }
-  steps.push({t:`Discount each FCF to present value`, v:q.projFCFs.map((f,i)=>`${fmtM(f)} ÷ (1+${fmt(w,2)}%)^${i+1} = ${fmtM(v.pvFCFs[i])}`).join(' + ')});
-  steps.push({t:`Sum of PV(FCFs)`, v:`Σ PV(FCFs) = ${fmtM(v.pvSum)}`});
-  steps.push({t:`Terminal value (Gordon growth)`, v:`TV = ${fmtM(q.projFCFs[n-1])} × (1+${fmtP(q.tg)}) ÷ (${fmt(w,2)}% − ${fmtP(q.tg)}) = ${fmtM(v.termVal)}`});
-  steps.push({t:`PV of terminal value`, v:`PV(TV) = ${fmtM(v.termVal)} ÷ (1+${fmt(w,2)}%)^${n} = ${fmtM(v.pvTV)}`});
-  steps.push({t:`Enterprise value`, v:`EV = ${fmtM(v.pvSum)} + ${fmtM(v.pvTV)} = ${fmtM(v.ev)}`});
-  steps.push({t:`Equity value (EV − debt + cash)`, v:`${fmtM(v.ev)} − ${fmtM(q.grossDebt)} + ${fmtM(q.cash)} = ${fmtM(v.equity)}`});
-  steps.push({t:`Intrinsic share price`, v:`${fmtM(v.equity)} ÷ ${fmt(q.shares,0)}m shares × 100 = ${v.price}p`});
+  steps.push({t:`Discount each year's FCF at ${wS}`, v: tbl(['Year','FCF','(1 + WACC)<sup>t</sup>','PV'],
+    q.projFCFs.map((f,i)=>[`Y${i+1}`, fmt(f), Math.pow(1+w/100,i+1).toFixed(4), fmt(v.pvFCFs[i])]),
+    ['Σ PV(FCF)','','', fmt(v.pvSum)])
+    + note('£m. PV = FCF ÷ (1 + WACC)<sup>t</sup>.')});
+  steps.push({t:`Terminal value at year ${n} (Gordon growth)`, v: eq(
+    `TV = ${frac(`FCF<sub>${n}</sub> × (1 + <i>g</i>)`,'WACC − <i>g</i>')}`,
+    `= ${frac(`${fmtM(q.projFCFs[n-1])} × ${(1+q.tg/100).toFixed(3)}`, `${wS} − ${fmtP(q.tg)}`)} = ${res(fmtM(v.termVal))}`)});
+  steps.push({t:'Present value of the terminal value', v: eq(
+    `PV(TV) = ${frac('TV',`(1 + WACC)<sup>${n}</sup>`)} = ${frac(fmtM(v.termVal), `${(1+w/100).toFixed(4)}<sup>${n}</sup>`)} = ${res(fmtM(v.pvTV))}`)});
+  steps.push({t:'Enterprise value', v: eq(
+    `EV = Σ PV(FCF) + PV(TV)`,
+    `= ${fmtM(v.pvSum)} + ${fmtM(v.pvTV)} = ${res(fmtM(v.ev))}`)});
+  steps.push({t:'Equity value', v: eq(
+    `Equity = EV − Gross debt + Cash`,
+    `= ${fmtM(v.ev)} − ${fmtM(q.grossDebt)} + ${fmtM(q.cash)} = ${res(fmtM(v.equity))}`)});
+  steps.push({t:'Intrinsic share price', v: eq(
+    `Price = ${frac('Equity value','Shares')} × 100 = ${frac(fmtM(v.equity), `${fmt(q.shares,0)}m`)} × 100 = ${res(v.price + 'p')}`)});
 
   // Sanity checks
   const tvShare = v.pvTV / v.ev * 100;
@@ -907,7 +951,7 @@ function showSolution() {
     </div>`;
 
   document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
-    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div><div class="step-val">${s.v}</div></div></div>`).join('') + `
+    <div class="step"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.t}</div>${s.v}</div></div>`).join('') + `
     <div class="section-label" style="margin-top:1rem">Sanity checks</div>
     <div style="font-size:.78rem;line-height:1.7;color:#334155">${checks.map(c=>`<p style="margin:.35rem 0">${c}</p>`).join('')}</div>
     <div class="section-label" style="margin-top:1rem">Share price sensitivity (pence)</div>
