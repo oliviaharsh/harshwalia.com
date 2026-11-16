@@ -1,9 +1,9 @@
 {
   "about": {
     "name": "Harsh Walia",
-    "title": "MSc Investments",
+    "title": "MSc Investments (Distinction)",
     "bio": [
-      "I am studying for an MSc in Investments at the University of Birmingham. I write research on listed companies and build the valuation models behind it, and I publish both here so anyone can check the working.",
+      "I completed an MSc in Investments at the University of Birmingham with Distinction. I write research on listed companies and build the valuation models behind it, and I publish both here so anyone can check the working.",
       "My coverage is travel and technology: airlines, online travel and internet platforms. The same drivers keep coming back across them: capacity, utilisation, pricing and operating leverage. What I learn on one company carries over to the next.",
       "The models are built in Excel and Python. Every forecast driver traces back to a published source, and where a number is not verified at source, the note says so.",
       "I also read the people who do this for a living. I follow bankers and equity analysts on LinkedIn and have connected with a number of them. Comparing how they frame a company with how I framed it is the quickest way I have found to spot what I missed."
@@ -23,7 +23,7 @@
       }
     ],
     "education": {
-      "degree": "MSc Investments",
+      "degree": "MSc Investments (Distinction)",
       "university": "University of Birmingham",
       "duration": "2025–2026"
     }
