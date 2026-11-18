@@ -20,6 +20,12 @@
         Header set Cache-Control "public, max-age=2592000"
     </FilesMatch>
 
+    # Exception: research/data.js lists every published note and changes with each one,
+    # so it must revalidate like HTML. Comes after the rule above so it wins.
+    <FilesMatch "^data\.js$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+
     # The API key lives above the web root, but defend in depth anyway.
     <FilesMatch "^(config\.local\.php|fmp-config\.php|\.env)$">
         Require all denied
