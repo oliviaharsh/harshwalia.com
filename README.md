@@ -11,7 +11,7 @@ recur: capacity, load, price per unit, fuel and operating leverage.
 | Path | |
 |---|---|
 | `index.html` | Home, research index, projects, writing |
-| `research/` | Published company notes |
+| `research/` | Published company notes. `data.js` lists every company and note; `company.html?id=` is one company's page, newest note on top |
 | `markets.html` | Market monitor: live TradingView chart, policy rates, event archive |
 | `projects/` | Valuation tools: DCF, DDM, residual income, securitisation, retirement |
 | `assets/` | Charts and data for published notes |
@@ -22,6 +22,9 @@ recur: capacity, load, price per unit, fuel and operating leverage.
   inherited from EUROCONTROL's published traffic scenarios; beta re-estimated by OLS on a clean
   pre-offer window rather than taken off a screen.
 - **Airbnb, Inc. (ABNB)**. Pre-IPO DCF and comparables, December 2020.
+
+To publish a new note, add it to that company's `notes` in `research/data.js`. The home page card
+and the company page pick the newest note by date.
 
 Each note states its method, its sources and their dates, and what would prove it wrong. Where a
 figure is not verified at source, the note says so.

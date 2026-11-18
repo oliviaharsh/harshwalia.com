@@ -150,7 +150,7 @@
     <section id="research" class="hidden py-20 px-6 max-w-7xl mx-auto">
         <div class="mb-10">
             <h2 class="text-3xl font-bold mb-2 text-gray-900">Investment Research</h2>
-            <p class="text-gray-500 mb-2">Company notes with a stated method, a target and the reasoning behind it</p>
+            <p class="text-gray-500 mb-2">One page per company: the latest view on top, every note underneath, newest first</p>
             <p class="text-gray-400 text-sm mb-8 max-w-3xl">Coverage is deliberately narrow: <strong class="text-gray-600">travel and technology</strong>. Airlines, online travel and internet platforms share the same drivers: capacity, utilisation, price per unit and operating leverage. Each note compounds on the last rather than starting from zero.</p>
             <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
                 <div class="relative w-full lg:w-80">
@@ -271,6 +271,7 @@
             All valuations, target prices and analysis on this site are personal academic work produced for educational and portfolio purposes only. Nothing here constitutes investment advice or a recommendation to buy or sell any security.
         </p>
     </footer>
+    <script src="research/data.js"></script>
 
     <script>
     document.getElementById('footerYear').textContent = new Date().getFullYear();
@@ -300,64 +301,21 @@
     // Leave as '' if you haven't built the detail page yet:
     // the "Read Full Report" button will simply not appear.
     // ────────────────────────────────────────────────
-    const researchItems = [
-        {
-            id: 'easyjet-apollo',
-            firm: 'easyJet plc',
-            ticker: 'EZJ',
-            sector: 'Airlines · Travel & Leisure',
-            exchange: 'LSE',
-            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/1b/EasyJet_logo.svg',
-            valuation: 'undervalued',
-            targetPrice: '752p',
-            currentPrice: '666p',
-            upside: '+12.9%',
-            method: 'Bottom-up DCF · EUROCONTROL capacity scenarios',
-            publishDate: '16 Sep 2026',
-            reportUrl: 'research/easyjet.html',
-            summary: 'Apollo\'s 715p cash offer looks light. Built bottom up from seats flown, load factor and revenue per seat, with capacity inherited from EUROCONTROL\'s published scenarios. Base case 752p. Verdict: do not accept.',
-            thesis: [
-                'Margin recovery unfinished: FY25 profit per seat of £6.39 vs management\'s own £7–£10 target, reached only in FY28 on our base case',
-                '£602m net cash in a sector that rarely has any, so c.80p per share of the offer is paid with easyJet\'s own money',
-                'easyJet holidays compounds off an existing customer base: higher margin, asset-light, already-acquired passengers',
-                'Working capital is a structural tailwind: unearned revenue rose £209m in FY25, and the earlier model assumed zero'
-            ],
-            risks: [
-                'The unit wedge is only £3.99 a seat, so 50bp of annual cost drift takes profit per seat to £1.74 by FY31 with no recession required',
-                'Fuel modelled as a cost per seat at a fixed growth rate, not off the forward curve and disclosed hedge book',
-                'Terminal value is 63.9% of enterprise value',
-                'Not yet three-statement: the balance sheet is not rolled forward and cash ties are not proven'
-            ]
-        },
-        {
-            id: 'airbnb-ipo',
-            firm: 'Airbnb, Inc.',
-            ticker: 'ABNB',
-            sector: 'Travel & Leisure',
-            exchange: 'NASDAQ',
-            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg',
-            valuation: 'overvalued',
-            targetPrice: '$40.28',
-            currentPrice: '$68.00',
-            upside: '-40.8%',
-            method: 'DCF + Trading Comps',
-            publishDate: '10 Dec 2020',
-            reportUrl: 'research/airbnb-ipo.html',
-            summary: 'At $68 the market was buying the narrative, not the business. A five year DCF anchored to UNWTO recovery scenarios puts base case fair value at $40.28. Historical case study, December 2020.',
-            thesis: [
-                'Strong platform economics: ~75% gross margin, take rate rising from 11.4% to 14.1%',
-                'Domestic STR demand outpacing international travel recovery post-COVID',
-                'Brand moat maturing, with S&M spend declining from 43% to 22% of revenue',
-                'FCF-generative at scale: $505M FCF in FY2018'
-            ],
-            risks: [
-                'IPO priced at $68 implies ~$100B Day-1 EV, far above any DCF scenario',
-                'Adj. EBITDA negative in FY2019 and FY2020; profitability timeline uncertain',
-                'Revenue fell 32% YoY in 9M 2020, so COVID recovery speed is the key model assumption',
-                'Heavy post-IPO SBC and $2B emergency debt burden'
-            ]
-        }
-    ];
+    // One card per company, built from research/data.js. Each card shows the company's NEWEST note;
+    // the company page (research/company.html) lists every note.
+    const researchItems = (window.RESEARCH_COMPANIES || []).map(c => {
+        const notes = window.researchNotesNewestFirst(c);
+        const n = notes[0] || {};
+        return {
+            id: c.id, firm: c.firm, ticker: c.ticker, sector: c.sector, exchange: c.exchange, logoUrl: c.logoUrl,
+            about: c.about || '', status: c.status || '', noteCount: notes.length,
+            valuation: n.valuation, verdict: n.verdict, targetPrice: n.value, currentPrice: n.price, upside: n.upside,
+            method: n.method, publishDate: n.dateLabel, sortDate: n.date, summary: n.summary,
+            thesis: n.thesis, risks: n.risks,
+            reportUrl: n.url ? 'research/' + n.url : '',
+            companyUrl: 'research/company.html?id=' + encodeURIComponent(c.id)
+        };
+    });
 
     // ────────────────────────────────────────────────
     // HELPERS
@@ -392,17 +350,17 @@
 
         let items = researchItems.filter(r => {
             const mF = f==='all'||r.valuation===f;
-            const mS = !q||[r.firm,r.ticker,r.sector,r.exchange,r.summary||''].some(s=>s.toLowerCase().includes(q));
+            const mS = !q||[r.firm,r.ticker,r.sector,r.exchange,r.summary||'',r.about||''].some(s=>s.toLowerCase().includes(q));
             return mF && mS;
         });
 
         if (sort==='alpha')  items.sort((a,b)=>a.firm.localeCompare(b.firm));
-        else if (sort==='oldest') items.sort((a,b)=>new Date(a.publishDate)-new Date(b.publishDate));
-        else items.sort((a,b)=>new Date(b.publishDate)-new Date(a.publishDate));
+        else if (sort==='oldest') items.sort((a,b)=>(a.sortDate||'').localeCompare(b.sortDate||''));
+        else items.sort((a,b)=>(b.sortDate||'').localeCompare(a.sortDate||''));
 
         const grid  = document.getElementById('researchGrid');
         const empty = document.getElementById('researchEmpty');
-        document.getElementById('researchCount').textContent = `${items.length} report${items.length!==1?'s':''}`;
+        document.getElementById('researchCount').textContent = `${items.length} compan${items.length!==1?'ies':'y'} · ${items.reduce((t,r)=>t+r.noteCount,0)} notes`;
 
         if (!items.length) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
         empty.classList.add('hidden');
@@ -412,29 +370,30 @@
 
                 <!-- Header: logo + badge -->
                 <div class="flex items-start justify-between mb-5">
-                    <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="openResearchModal('${r.id}')">
+                    <a href="${r.companyUrl}" class="flex items-center gap-3 min-w-0 cursor-pointer">
                         ${logoHTML(r)}
                         <div class="min-w-0">
                             <p class="font-bold text-gray-900 text-base leading-tight group-hover:text-blue-600 transition truncate">${r.firm}</p>
                             <p class="text-xs text-gray-400 font-medium">${r.ticker} · ${r.exchange}</p>
                         </div>
-                    </div>
+                    </a>
                     <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass(r.valuation)} whitespace-nowrap ml-2 flex-shrink-0">
                         ${badgeLabel(r.valuation)}
                     </span>
                 </div>
 
                 <!-- Summary -->
-                <p class="text-gray-500 text-sm leading-relaxed mb-5 flex-1 line-clamp-3 cursor-pointer" onclick="openResearchModal('${r.id}')">${r.summary}</p>
+                <a href="${r.companyUrl}" class="block text-gray-500 text-sm leading-relaxed mb-3 line-clamp-3">${r.about}</a>
+                <p class="text-xs text-gray-400 mb-5 flex-1">${r.noteCount} note${r.noteCount!==1?'s':''} · latest ${r.publishDate}${r.status?' · <span class="text-amber-600 font-medium">update in progress</span>':''}</p>
 
                 <!-- Price metrics -->
                 <div class="grid grid-cols-3 gap-2 mb-5">
                     <div class="bg-blue-50 rounded-xl p-3 text-center">
-                        <p class="text-xs text-gray-400 mb-0.5">Target</p>
+                        <p class="text-xs text-gray-400 mb-0.5">Latest value</p>
                         <p class="font-bold text-gray-900 text-sm">${r.targetPrice}</p>
                     </div>
                     <div class="bg-blue-50 rounded-xl p-3 text-center">
-                        <p class="text-xs text-gray-400 mb-0.5">Current</p>
+                        <p class="text-xs text-gray-400 mb-0.5">Price then</p>
                         <p class="font-bold text-gray-900 text-sm">${r.currentPrice}</p>
                     </div>
                     <div class="bg-blue-50 rounded-xl p-3 text-center">
@@ -461,10 +420,10 @@
                             class="flex-1 px-3 py-2 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition text-center">
                             Quick View
                         </button>
-                        ${r.reportUrl ? `
-                        <a href="${r.reportUrl}"
+                        ${r.companyUrl ? `
+                        <a href="${r.companyUrl}"
                             class="flex-1 px-3 py-2 text-xs font-semibold text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition text-center flex items-center justify-center gap-1.5">
-                            <span class="sm:hidden">Full Report</span><span class="hidden sm:inline">Read Full Report</span>
+                            <span class="sm:hidden">All notes</span><span class="hidden sm:inline">Open ${r.firm.split(' ')[0]}</span>
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>` : `
                         <span class="flex-1 px-3 py-2 text-xs font-medium text-gray-300 border border-gray-100 rounded-lg text-center cursor-default">
@@ -536,7 +495,7 @@
                     Read Full Research Report
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
-                <p class="text-xs text-gray-400 mt-2">DCF model · Comparables · Sensitivity analysis · Charts</p>
+                <p class="text-xs text-gray-400 mt-2">Latest note, ${r.publishDate} · <a href="${r.companyUrl}" class="text-blue-600 hover:underline">all ${r.noteCount} note${r.noteCount!==1?'s':''} on ${r.firm}</a></p>
             </div>` : `
             <div class="text-center pt-4 border-t border-blue-50">
                 <p class="text-xs text-gray-400">Full research report coming soon</p>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Research | HW</title>
+    <meta name="description" content="Every research note on one company, newest first, with the latest view on top.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563EB'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'%3EHW%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #06B6D4 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .glass-panel { background:#fff; border:1px solid rgba(59,130,246,0.15); box-shadow:0 4px 20px rgba(59,130,246,0.06); }
+        .company-header { background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 60%); border-bottom: 1px solid rgba(59,130,246,0.12); }
+        .badge-undervalued { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-overvalued  { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge-fairvalue   { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+        .logo-box { width:64px; height:64px; object-fit:contain; border-radius:14px; background:#fff; border:1px solid rgba(59,130,246,0.15); padding:6px; flex-shrink:0; }
+        .logo-fallback { width:64px; height:64px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem; background:linear-gradient(135deg,#dbeafe,#cffafe); color:#1d4ed8; border:1px solid rgba(59,130,246,0.15); flex-shrink:0; }
+        .timeline-item { position:relative; padding-left:1.75rem; }
+        .timeline-item::before { content:''; position:absolute; left:0.35rem; top:0.4rem; width:0.65rem; height:0.65rem; border-radius:9999px; background:#2563eb; box-shadow:0 0 0 4px #dbeafe; }
+        .timeline-item:not(:last-child)::after { content:''; position:absolute; left:0.66rem; top:1.4rem; bottom:-1.5rem; width:2px; background:#dbeafe; }
+        .section-label { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#2563eb; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
+
+<nav class="w-full border-b border-blue-100 bg-white sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+        <a href="../index.html" class="text-2xl font-bold brand-font gradient-text">HW</a>
+        <a href="../index.html" onclick="sessionStorage.setItem('openSection','research')"
+           class="text-blue-600 hover:text-blue-700 transition flex items-center gap-1.5 font-medium text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            All research
+        </a>
+    </div>
+</nav>
+
+<main id="page"></main>
+
+<footer class="max-w-5xl mx-auto px-4 sm:px-6 py-10 text-xs text-gray-400 leading-relaxed">
+    All valuations, target prices and analysis on this site are personal academic work produced for educational and
+    portfolio purposes only. Nothing here constitutes investment advice or a recommendation to buy or sell any security.
+    <span class="block mt-2"><a href="../index.html" class="text-blue-500 hover:text-blue-600">harshwalia.com</a></span>
+</footer>
+
+<script src="data.js"></script>
+<script>
+(function () {
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function badgeClass(v) { return v === 'undervalued' ? 'badge-undervalued' : v === 'overvalued' ? 'badge-overvalued' : 'badge-fairvalue'; }
+    function arrow(v) { return v === 'undervalued' ? '&#9650;' : v === 'overvalued' ? '&#9660;' : '&#9670;'; }
+    function upsideColor(u) { return !u ? 'text-gray-500' : String(u).charAt(0) === '+' ? 'text-emerald-600' : 'text-red-500'; }
+
+    var id = new URLSearchParams(location.search).get('id');
+    var c = (window.RESEARCH_COMPANIES || []).filter(function (x) { return x.id === id; })[0];
+    var page = document.getElementById('page');
+
+    if (!c) {
+        page.innerHTML = '<div class="max-w-5xl mx-auto px-4 sm:px-6 py-24 text-center">'
+            + '<p class="text-gray-500 font-semibold">That company page does not exist.</p>'
+            + '<a href="../index.html" onclick="sessionStorage.setItem(\'openSection\',\'research\')" class="text-blue-600 text-sm mt-3 inline-block">See all research</a></div>';
+        return;
+    }
+
+    var notes = window.researchNotesNewestFirst(c);
+    var n = notes[0];
+    document.title = c.firm + ' | Research | HW';
+
+    var logo = c.logoUrl
+        ? '<img src="' + esc(c.logoUrl) + '" alt="' + esc(c.firm) + '" class="logo-box" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
+          + '<div class="logo-fallback" style="display:none">' + esc(c.ticker.slice(0, 2)) + '</div>'
+        : '<div class="logo-fallback">' + esc(c.ticker.slice(0, 2)) + '</div>';
+
+    function tile(value, label, cls) {
+        if (!value) return '';
+        return '<div class="glass-panel rounded-2xl p-4 text-center"><p class="text-xl sm:text-2xl font-bold ' + (cls || 'text-gray-900')
+            + ' brand-font">' + esc(value) + '</p><p class="text-xs text-gray-500 mt-1">' + esc(label) + '</p></div>';
+    }
+    function list(items, color, mark) {
+        return (items || []).map(function (t) {
+            return '<li class="flex items-start gap-3 text-sm text-gray-600"><span class="' + color + ' flex-shrink-0 mt-0.5 font-bold">' + mark + '</span><span>' + esc(t) + '</span></li>';
+        }).join('');
+    }
+
+    var html = '';
+    // ── Header: who the company is
+    html += '<header class="company-header"><div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-12">'
+        + '<div class="flex items-start gap-4 sm:gap-5">' + logo
+        + '<div class="min-w-0"><h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">' + esc(c.firm) + '</h1>'
+        + '<p class="text-sm text-gray-500 mt-1">' + esc(c.ticker) + ' &middot; ' + esc(c.exchange) + ' &middot; ' + esc(c.sector) + '</p></div></div>'
+        + '<p class="text-gray-600 mt-6 max-w-3xl leading-relaxed">' + esc(c.about) + '</p>'
+        + '</div></header>';
+
+    html += '<div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">';
+
+    // ── Latest view, from the newest note
+    if (n) {
+        html += '<section>'
+            + '<p class="section-label mb-3">Latest view &middot; ' + esc(n.dateLabel) + '</p>';
+        if (c.status) {
+            html += '<div class="rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm px-4 py-3 mb-5 flex gap-2">'
+                + '<span class="font-bold">&#9888;</span><span>' + esc(c.status) + '</span></div>';
+        }
+        html += '<div class="glass-panel rounded-3xl p-5 sm:p-8">'
+            + '<div class="flex flex-wrap items-center gap-2 mb-3">'
+            + '<span class="' + badgeClass(n.valuation) + ' px-3 py-1 rounded-full text-xs font-bold">' + arrow(n.valuation) + ' ' + esc(n.verdict) + '</span>'
+            + '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">' + esc(n.type) + '</span></div>'
+            + '<h2 class="text-2xl font-bold text-gray-900 mb-5">' + esc(n.title) + '</h2>'
+            + '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">'
+            + tile(n.value, n.valueLabel, 'text-blue-600')
+            + tile(n.price, n.priceLabel)
+            + tile(n.reference, n.referenceLabel)
+            + tile(n.upside, 'Upside vs that price', upsideColor(n.upside))
+            + '</div>'
+            + '<p class="text-gray-600 leading-relaxed mb-6">' + esc(n.summary) + '</p>'
+            + '<div class="grid md:grid-cols-2 gap-4 mb-6">'
+            + '<div class="rounded-2xl bg-emerald-50/60 border border-emerald-100 p-5"><h3 class="font-semibold text-emerald-700 mb-3">Investment thesis</h3><ul class="space-y-2.5">' + list(n.thesis, 'text-emerald-500', '&#9650;') + '</ul></div>'
+            + '<div class="rounded-2xl bg-red-50/60 border border-red-100 p-5"><h3 class="font-semibold text-red-600 mb-3">Key risks</h3><ul class="space-y-2.5">' + list(n.risks, 'text-red-400', '&#9660;') + '</ul></div>'
+            + '</div>'
+            + '<div class="flex flex-wrap items-center gap-3">'
+            + '<a href="' + esc(n.url) + '" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition text-sm">Read the full note'
+            + '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></a>'
+            + '<span class="text-xs text-gray-400">' + esc(n.method) + '</span></div>'
+            + '</div></section>';
+    }
+
+    // ── Every note, newest first
+    html += '<section><p class="section-label mb-1">All notes</p>'
+        + '<p class="text-sm text-gray-500 mb-6">' + notes.length + ' note' + (notes.length !== 1 ? 's' : '')
+        + ', newest first. Each one is dated and kept as published, so you can see how the view changed.</p>'
+        + '<div class="space-y-6">';
+    notes.forEach(function (x) {
+        html += '<a href="' + esc(x.url) + '" class="timeline-item block group">'
+            + '<div class="glass-panel rounded-2xl p-5 group-hover:border-blue-300 transition">'
+            + '<div class="flex flex-wrap items-center gap-2 mb-2 text-xs">'
+            + '<span class="font-semibold text-gray-700">' + esc(x.dateLabel) + '</span>'
+            + '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">' + esc(x.type) + '</span>'
+            + '<span class="' + badgeClass(x.valuation) + ' px-2 py-0.5 rounded-full font-bold">' + arrow(x.valuation) + ' ' + esc(x.verdict) + '</span></div>'
+            + '<h3 class="font-bold text-gray-900 group-hover:text-blue-600 transition">' + esc(x.title) + '</h3>'
+            + '<p class="text-sm text-gray-500 mt-1">' + esc(x.valueLabel) + ' <strong class="text-gray-800">' + esc(x.value) + '</strong>'
+            + (x.price ? ' &middot; ' + esc(x.priceLabel) + ' ' + esc(x.price) : '') + '</p>'
+            + '<p class="text-sm text-gray-500 mt-2 leading-relaxed">' + esc(x.summary) + '</p>'
+            + '<p class="text-sm font-semibold text-blue-600 mt-3">Read note &rarr;</p>'
+            + '</div></a>';
+    });
+    html += '</div></section></div>';
+    page.innerHTML = html;
+})();
+</script>
+</body>
+</html>
